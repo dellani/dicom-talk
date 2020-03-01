@@ -155,12 +155,12 @@ DicomFile >> createDicomFileInstance: readStream [
 	| transferSyntaxEncoder iodClass aDicomSOPCommonIOM position |
 
 	(transferSyntaxEncoder := 
-		DicomRegistry TransferSyntaxes at: self transferSyntaxUID ifAbsent: [nil]) isNil ifTrue: [
+		DicomRegistry TransferSyntaxes at: self transferSyntaxUID ifAbsent: [nil]) ifNil: [
 			Error signal:
 				'Impossible to Open DICOM File: the file is encoded with an unsupported transfer syntax'.
 	].
 	"mediaStorageSOPClassUID data element not present, like with files written by GE CENTRICITY_3.0?"
-	self mediaStorageSOPClassUID isNil ifTrue: [
+	self mediaStorageSOPClassUID ifNil: [
 		"If yes look for the the SOP Class UID data element in the dicom dataset"
 		position := readStream position.
 		aDicomSOPCommonIOM := SOPCommonIOM new pdvBytesStream: readStream encoder: transferSyntaxEncoder.
@@ -169,17 +169,17 @@ DicomFile >> createDicomFileInstance: readStream [
 		readStream position: position.
 		Error signal: 
 			'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present'
-	] ifFalse: [
+	] ifNotNil: [
 		self mediaStorageSOPClassUID isEmpty ifTrue: [ 
 			Error signal:
 				'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present'
 		] ifFalse: [ 
 			iodClass := DicomRegistry SOPClasses at: self mediaStorageSOPClassUID ifAbsent: [nil].
-			iodClass isNil ifTrue: [
+			iodClass ifNil: [
 				Error signal:
 				 	'Impossible to Open DICOM File: Unsupported Storage SOP Class ', self mediaStorageSOPClassUID.
-			] ifFalse: [
-				self dicomIOD: (iodClass new pdvBytesStream: readStream encoder: transferSyntaxEncoder).
+			] ifNotNil: [
+				self parseIOD: iodClass readStream: readStream encoder: transferSyntaxEncoder.
 			]
 		]
 	]
@@ -481,6 +481,15 @@ DicomFile >> mediaStorageSOPInstanceUID: aUIValue [
 
 ]
 
+{ #category : #'private - reading / writing' }
+DicomFile >> parseIOD: iodClass readStream: readStream encoder: transferSyntaxEncoder [
+	self
+		dicomIOD:
+			(iodClass new
+				pdvBytesStream: readStream
+				encoder: transferSyntaxEncoder)
+]
+
 { #category : #accessing }
 DicomFile >> privateInformation [
 
@@ -541,45 +550,6 @@ DicomFile >> privateInformationCreatorUID: aUIValue [
 		]
 	].
 
-]
-
-{ #category : #utilities }
-DicomFile >> pseudonymize: pseudonym [
-	"dcmodify -nb -imt -m PatientID=MEDINA_003987_01 -m
-PatientName=MEDINA_003987_01  -e PatientBirthName -e PatientAddress -e
-PatientTelephoneNumbers -ep path-to-file"
-
-	"Since it is not guaranteed that the IOD subclass implements the accessor
-	to the data element, manipulate the values directly in the data elements
-	dictionary (very ugly!) - PRD October 20, 2017"
-	
-	"Dirks Script"
-	self pseudonymizeDataElement: #patientID value: pseudonym.
-	self pseudonymizeDataElement: #patientName value: pseudonym.
-	self pseudonymizeDataElement: #patientBirthName value: ''.
-	self pseudonymizeDataElement: #patientAddress value: ''.
-	self pseudonymizeDataElement: #patientTelephoneNumbers value: ''.
-
-	"Other obvious data elements"
-	self pseudonymizeDataElement: #otherPatientNames value: ''.
-	self pseudonymizeDataElement: #patientMotherBirthName value: ''.
-
-	"Other (not so) obvious data elements"
-	"Private Creators Group of Data Elements:			
-		0033;‘MITRA OBJECT UTF8 ATTRIBUTES 1.0‘;0002	'Patient Name (UTF8 Encoded)'
-		0033;‘MITRA OBJECT UTF8 ATTRIBUTES 1.0‘;0013	'Patient's Name'"
-	
-
-
-
-]
-
-{ #category : #utilities }
-DicomFile >> pseudonymizeDataElement: aSymbolName value: anObject [
-	| dataElement |
-	dataElement := self dataElementsDictionary at: aSymbolName ifAbsent: [ nil ].
-	dataElement notNil
-		ifTrue: [ dataElement value: anObject ]
 ]
 
 { #category : #'private - reading / writing' }

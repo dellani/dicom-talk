@@ -103,27 +103,29 @@ DADataElement >> decodeElementDataBytes: valueDataBytes [
 { #category : #'field value retrieving' }
 DADataElement >> decodeElementDataBytes_preDICOMV3: valueDataBytes [
 	"VR = DATE, pre-DICOM encoding/decoding
-	
-	PRD 04.2001  - 01-07.2002, 06.2017"
+	PRD 04.2001  - 01-07.2002, 06.2017, 03.2018"
 
-	| year month day date |
+	| split year month day date monthday byteString |
 	
-	(valueDataBytes at: 3) = 16r2F ifTrue: [
-		month := (valueDataBytes copyFrom: 1 to: 2) asString asNumber.
-		day := (valueDataBytes copyFrom: 4 to: 5) asString asNumber.
-		year := (valueDataBytes copyFrom: 7 to: 10) asString asNumber.
-	] ifFalse: [
-		year := (valueDataBytes copyFrom: 1 to: 4) asString asNumber.
-		month := (valueDataBytes copyFrom: 6 to: 7) asString asNumber.
-		day := (valueDataBytes copyFrom: 9 to: 10) asString asNumber.
-	].
+	byteString := ByteString fromByteArray: valueDataBytes.
+	split := '.' split: byteString.
+	split size > 1 ifFalse: [split := '/' split: byteString].
+	
+	"look for the substring with the year"
+	split do: [ :substring | substring size = 4 ifTrue: [ year := substring asNumber ] ].
+	
+	"look for the substrings with the month and the day"
+	monthday := OrderedCollection new.
+	split do: [ :substring | substring size = 2 ifTrue: [ monthday add: substring asNumber ] ].
+
+	"Normally the first substring in monthday should represent the month, aber Kontrolle ist besser."
+	monthday first > 12 
+		ifTrue: [ day := monthday first. month := monthday last ] 
+		ifFalse: [ month := monthday first. day := monthday last ].
+	
 	"Guarantee that Date will be UTC+/-0; Always use instances of
 	 DateTime for Date or Time representation"
-	[ date := DateAndTime
-		year: year
-		month: month
-		day: day
-		offset: 0 asDuration ]
+	[ date := DateAndTime year: year month: month day: day offset: 0 asDuration ]
 		on: Error
 		do: [ :ex | date := nil ].
 	^ date
@@ -133,13 +135,22 @@ DADataElement >> decodeElementDataBytes_preDICOMV3: valueDataBytes [
 DADataElement >> decodeValue [
 	| anOrderedCollection split |
 	anOrderedCollection := OrderedCollection new.
-	(self dataBytes includes: 16r2E) | (self dataBytes includes: 16r2F)
-		ifFalse: [ split := (self dataBytes includes: 16r5C)
-				ifFalse: [ self dataBytesByteSpliter ]
-				ifTrue: [ self dataBytesByteSpliter_exception01 ].
-			split do: [ :valueDataBytes | anOrderedCollection add: (self decodeElementDataBytes: valueDataBytes) ] ]
-		ifTrue: [ (self dataBytesByteSpliter: 16r0A)
-				do: [ :valueDataBytes | anOrderedCollection add: (self decodeElementDataBytes_preDICOMV3: valueDataBytes) ] ].
+	(self dataBytes includes: 16r20) ifTrue: [ "Remove blanks"
+		dataBytes := (self stringPurify: self dataBytes asString goodChars: DefaultCharacterRepertoire digit) asByteArray.
+		length := dataBytes size.
+	 ].
+
+	self dataBytes size >= self byteSize
+		ifTrue: [ (self dataBytes includes: 16r2E) | (self dataBytes includes: 16r2F)
+			ifFalse: [ split := (self dataBytes includes: 16r5C)
+					ifFalse: [ self dataBytesByteSpliter ]
+					ifTrue: [ self dataBytesByteSpliter_exception01 ].
+				split do: [ :valueDataBytes | anOrderedCollection add: (self decodeElementDataBytes: valueDataBytes) ] ]
+			ifTrue: [ (self dataBytesByteSpliter: 16r0A)
+					do: [ :valueDataBytes | anOrderedCollection add: (self decodeElementDataBytes_preDICOMV3: valueDataBytes) ] ] ]
+		ifFalse: [ self type = '3'
+			ifTrue: [ anOrderedCollection add: nil ]
+			ifFalse: [ self raiseElementSizeError ] ].
 	"***** Date string in the pre-DICOM V3.0 encoding format *************"
 	^ anOrderedCollection
 ]

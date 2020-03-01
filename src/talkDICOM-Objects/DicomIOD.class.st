@@ -713,33 +713,6 @@ DicomIOD >> SOPClassUID [
 	^self class SOPClassUID
 ]
 
-{ #category : #pseudonymization }
-DicomIOD >> _pseudonymize: pseudonym [
-	"dcmodify -nb -imt -m PatientID=MEDINA_003987_01 -m
-PatientName=MEDINA_003987_01  -e PatientBirthName -e PatientAddress -e
-PatientTelephoneNumbers -ep path-to-file"
-
-	"Dirks Script"
-	(self canUnderstand: #patientID:)
-		ifTrue: [ self patientID: pseudonym ].
-	(self canUnderstand: #patientName:)
-		ifTrue: [ self patientName: pseudonym ].
-	(self canUnderstand: #patientBirthName:)
-		ifTrue: [ self patientBirthName: '' ].
-	(self canUnderstand: #patientAddress:)
-		ifTrue: [ self patientAddress: '' ].
-	(self canUnderstand: #patientTelephoneNumbers:)
-		ifTrue: [ self patientTelephoneNumbers: '' ].
-		
-	"Obvious data elements"
-	(self canUnderstand: #otherPatientNames)
-		ifTrue: [ self otherPatientNames: '' ].
-	(self canUnderstand: #patientMotherBirthName)
-		ifTrue: [ self patientMotherBirthName: '' ].
-		
-
-]
-
 { #category : #converting }
 DicomIOD >> asDICOMDIR_IE [
 
@@ -755,19 +728,21 @@ DicomIOD >> asDicomImage [
 	^self subclassResponsibility
 ]
 
-{ #category : #accessing }
-DicomIOD >> bsonDictionary: aDictionary [
+{ #category : #parsing }
+DicomIOD >> blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntax [
+
+	"encoder := aDicomTransferSyntax."
 
 	| iom |
-
-	super bsonDictionary: aDictionary.
+	super blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntax.
 	self informationObjectModules do: 
 			[:each |
 			iom := each new.
-			iom encoder: self encoder.
+			iom encoder: aDicomTransferSyntax.
 			iom dataElementsDictionary: self dataElementsDictionary.
 			iom dataElementsValues: self dataElementsValues.
 			self perform: (each moduleName , ':') asSymbol with: iom].
+	self checkIOD
 ]
 
 { #category : #checking }
@@ -889,56 +864,14 @@ DicomIOD >> newStudyInstanceUID [
 
 { #category : #parsing }
 DicomIOD >> pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntax [
-
-	"encoder := aDicomTransferSyntax."
-
 	| iom |
 	super pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntax.
-	self informationObjectModules do: 
-			[:each |
+	self informationObjectModules
+		do: [ :each | 
 			iom := each new.
 			iom encoder: aDicomTransferSyntax.
 			iom dataElementsDictionary: self dataElementsDictionary.
 			iom dataElementsValues: self dataElementsValues.
-			self perform: (each moduleName , ':') asSymbol with: iom].
+			self perform: (each moduleName , ':') asSymbol with: iom ].
 	self checkIOD
-]
-
-{ #category : #pseudonymization }
-DicomIOD >> pseudonymize: pseudonym [
-	"dcmodify -nb -imt -m PatientID=MEDINA_003987_01 -m
-PatientName=MEDINA_003987_01  -e PatientBirthName -e PatientAddress -e
-PatientTelephoneNumbers -ep path-to-file"
-
-	"Since it is not guaranteed that the IOD subclass implements the accessor
-	to the data element, manipulate the values directly in the data elements
-	dictionary (very ugly!) - PRD October 20, 2017"
-	
-	"Dirks Script"
-	self pseudonymizeDataElement: #patientID value: pseudonym.
-	self pseudonymizeDataElement: #patientName value: pseudonym.
-	self pseudonymizeDataElement: #patientBirthName value: ''.
-	self pseudonymizeDataElement: #patientAddress value: ''.
-	self pseudonymizeDataElement: #patientTelephoneNumbers value: ''.
-
-	"Other obvious data elements"
-	self pseudonymizeDataElement: #otherPatientNames value: ''.
-	self pseudonymizeDataElement: #patientMotherBirthName value: ''.
-
-	"Other (not so) obvious data elements"
-	"Private Creators Group of Data Elements:			
-		0033;‘MITRA OBJECT UTF8 ATTRIBUTES 1.0‘;0002	'Patient Name (UTF8 Encoded)'
-		0033;‘MITRA OBJECT UTF8 ATTRIBUTES 1.0‘;0013	'Patient's Name'"
-	
-
-
-
-]
-
-{ #category : #pseudonymization }
-DicomIOD >> pseudonymizeDataElement: aSymbolName value: anObject [
-	| dataElement |
-	dataElement := self dataElementsDictionary at: aSymbolName ifAbsent: [ nil ].
-	dataElement notNil
-		ifTrue: [ dataElement value: anObject ]
 ]

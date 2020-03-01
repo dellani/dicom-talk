@@ -1,5 +1,5 @@
 Class {
-	#name : #'RawData_IOD',
+	#name : #'MultiframeTrueColorSC_IOD',
 	#superclass : #DicomIOD,
 	#instVars : [
 		'patientIOM',
@@ -9,92 +9,62 @@ Class {
 		'frameOfReferenceIOM',
 		'synchronizationIOM',
 		'generalEquipmentIOM',
-		'acquisitionContextIOM',
+		'scEquipmentIOM',
+		'generalImageIOM',
+		'imagePixelIOM',
+		'multiFrameIOM',
+		'scImageIOM',
 		'sopCommonIOM'
 	],
 	#category : #'talkDICOM-Objects'
 }
 
-{ #category : #accessing }
-RawData_IOD class >> DicomIODName [
-	^ 'Raw Data IOD'
+{ #category : #initialization }
+MultiframeTrueColorSC_IOD class >> DicomIODName [
+	^ 'Multi-frame True Color Secondary Capture IOD'
 ]
 
-{ #category : #accessing }
-RawData_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+{ #category : #initialization }
+MultiframeTrueColorSC_IOD class >> InformationObjectModules [
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				"Patient IE"
 				add: PatientIOM initialize;
-				"add: ClinicalTrialSubjectIOM initialize;"
-
 				"Study IE"
 				add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
-				"add: ClinicalTrialStudyIOM initialize;"
-
 				"Series IE"
 				add: GeneralSeriesIOM initialize;
-				"add: ClinicalTrialSeriesIOM initialize;"
-
 				"Frame of Reference IE"
 				add: FrameOfReferenceIOM initialize;
 				add: SynchronizationIOM initialize;
-
 				"Equipment IE"
 				add: GeneralEquipmentIOM initialize;
-
+				add: SCEquipmentIOM initialize;
 				"Image IE"
-				add: AcquisitionContextIOM initialize;
-				"add: SpecimenIOM initialize;"
-				"add: RawDataIOM initialize;"
+				add: GeneralImageIOM initialize;
+				add: ImagePixelIOM initialize;
+				add: MultiFrameIOM initialize;
+				add: SCImageIOM initialize;
 				add: SOPCommonIOM initialize;
-				yourself]
+				yourself
+			 ]
 ]
 
-{ #category : #'class initialization' }
-RawData_IOD class >> SOPClassUID [
-	^ '1.2.840.10008.5.1.4.1.1.66'
+{ #category : #initialization }
+MultiframeTrueColorSC_IOD class >> SOPClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.7.4'
 ]
 
-{ #category : #'class initialization' }
-RawData_IOD class >> initialize [
+{ #category : #initialization }
+MultiframeTrueColorSC_IOD class >> initialize [
+	InformationObjectModules := nil.
 	super initialize
 ]
 
-{ #category : #comparing }
-RawData_IOD >> < dicomIOD [
-	"PRD - March 05th, 2004"
-
-	^self instanceNumber asNumber < dicomIOD instanceNumber asNumber
-]
-
-{ #category : #comparing }
-RawData_IOD >> <= dicomIOD [
-	"PRD - March 05th, 2004"
-
-	^self instanceNumber asNumber <= dicomIOD instanceNumber asNumber
-]
-
-{ #category : #comparing }
-RawData_IOD >> > dicomIOD [
-	"PRD - March 05th, 2004"
-
-	^self instanceNumber asNumber > dicomIOD instanceNumber asNumber
-]
-
-{ #category : #comparing }
-RawData_IOD >> >= dicomIOD [
-	"PRD - March 05th, 2004"
-
-	^self instanceNumber asNumber >= dicomIOD instanceNumber asNumber
-]
-
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> accessionNumber [
+MultiframeTrueColorSC_IOD >> accessionNumber [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -106,7 +76,7 @@ RawData_IOD >> accessionNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> accessionNumber: aSHValue [
+MultiframeTrueColorSC_IOD >> accessionNumber: aSHValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -119,84 +89,107 @@ RawData_IOD >> accessionNumber: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextDescription [
+MultiframeTrueColorSC_IOD >> acquisitionDate [
 
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^acquisitionContextIOM acquisitionContextDescription
+	^generalImageIOM acquisitionDate
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextDescription: aLTValue [
+MultiframeTrueColorSC_IOD >> acquisitionDate: aDAValue [
 
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
 	].
 
-	acquisitionContextIOM acquisitionContextDescription: aLTValue
-
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> acquisitionContextIOM [
-
-	^acquisitionContextIOM
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> acquisitionContextIOM: aAcquisitionContextIOM [
-
-	acquisitionContextIOM := aAcquisitionContextIOM.
-	acquisitionContextIOM encoder: self encoder.
-
-	acquisitionContextIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
-		acquisitionContextIOM dataElementsDictionary keysAndValuesDo: [:key :value |
-			self dataElementsDictionary at: key put: value].
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-	].
-
-	acquisitionContextIOM dataElementsValues == self dataElementsValues ifFalse: [
-		acquisitionContextIOM dataElementsValues keysAndValuesDo: [:key :value |
-			self dataElementsValues at: key put: value].
-		acquisitionContextIOM dataElementsValues: self dataElementsValues
-	].
-
+	generalImageIOM acquisitionDate: aDAValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextSequence [
+MultiframeTrueColorSC_IOD >> acquisitionDateTime [
 
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^acquisitionContextIOM acquisitionContextSequence
+	^generalImageIOM acquisitionDateTime
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> acquisitionDateTime: aDTValue [
 
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
 	].
 
-	acquisitionContextIOM acquisitionContextSequence: aSQValue
+	generalImageIOM acquisitionDateTime: aDTValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionTimeSynchronized [
+MultiframeTrueColorSC_IOD >> acquisitionNumber [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM acquisitionNumber
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> acquisitionNumber: aISValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM acquisitionNumber: aISValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> acquisitionTime [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM acquisitionTime
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> acquisitionTime: aTMValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM acquisitionTime: aTMValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> acquisitionTimeSynchronized [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -208,7 +201,7 @@ RawData_IOD >> acquisitionTimeSynchronized [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionTimeSynchronized: aCSValue [
+MultiframeTrueColorSC_IOD >> acquisitionTimeSynchronized: aCSValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -221,7 +214,7 @@ RawData_IOD >> acquisitionTimeSynchronized: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> additionalPatientHistory [
+MultiframeTrueColorSC_IOD >> additionalPatientHistory [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -233,7 +226,7 @@ RawData_IOD >> additionalPatientHistory [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> additionalPatientHistory: aLTValue [
+MultiframeTrueColorSC_IOD >> additionalPatientHistory: aLTValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -246,7 +239,7 @@ RawData_IOD >> additionalPatientHistory: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> additionalPatientsHistory [
+MultiframeTrueColorSC_IOD >> additionalPatientsHistory [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -258,7 +251,7 @@ RawData_IOD >> additionalPatientsHistory [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> additionalPatientsHistory: aLTValue [
+MultiframeTrueColorSC_IOD >> additionalPatientsHistory: aLTValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -271,7 +264,7 @@ RawData_IOD >> additionalPatientsHistory: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> admittingDiagnosesDescription [
+MultiframeTrueColorSC_IOD >> admittingDiagnosesDescription [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -283,7 +276,7 @@ RawData_IOD >> admittingDiagnosesDescription [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> admittingDiagnosesDescription: aLOValue [
+MultiframeTrueColorSC_IOD >> admittingDiagnosesDescription: aLOValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -296,7 +289,7 @@ RawData_IOD >> admittingDiagnosesDescription: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> aquisitionTimeSynchronized [
+MultiframeTrueColorSC_IOD >> aquisitionTimeSynchronized [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -308,7 +301,7 @@ RawData_IOD >> aquisitionTimeSynchronized [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> aquisitionTimeSynchronized: aCSValue [
+MultiframeTrueColorSC_IOD >> aquisitionTimeSynchronized: aCSValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -321,7 +314,7 @@ RawData_IOD >> aquisitionTimeSynchronized: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> authorizationEquipmentCertificationNumber [
+MultiframeTrueColorSC_IOD >> authorizationEquipmentCertificationNumber [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -333,7 +326,7 @@ RawData_IOD >> authorizationEquipmentCertificationNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> authorizationEquipmentCertificationNumber: aLOValue [
+MultiframeTrueColorSC_IOD >> authorizationEquipmentCertificationNumber: aLOValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -346,7 +339,107 @@ RawData_IOD >> authorizationEquipmentCertificationNumber: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> bodyPartExamined [
+MultiframeTrueColorSC_IOD >> bitsAllocated [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM bitsAllocated
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bitsAllocated: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM bitsAllocated: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bitsStored [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM bitsStored
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bitsStored: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM bitsStored: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bluePaletteColorLookupTableData [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM bluePaletteColorLookupTableData
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bluePaletteColorLookupTableData: aOWValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM bluePaletteColorLookupTableData: aOWValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bluePaletteColorLookupTableDescriptor [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM bluePaletteColorLookupTableDescriptor
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bluePaletteColorLookupTableDescriptor: aSSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM bluePaletteColorLookupTableDescriptor: aSSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> bodyPartExamined [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -358,7 +451,7 @@ RawData_IOD >> bodyPartExamined [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> bodyPartExamined: aCSValue [
+MultiframeTrueColorSC_IOD >> bodyPartExamined: aCSValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -371,7 +464,157 @@ RawData_IOD >> bodyPartExamined: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> dateOfLastCalibration [
+MultiframeTrueColorSC_IOD >> burnedInAnnotation [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM burnedInAnnotation
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> burnedInAnnotation: aCSValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM burnedInAnnotation: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> columns [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM columns
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> columns: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM columns: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> contentDate [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM contentDate
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> contentDate: aDAValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM contentDate: aDAValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> contentTime [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM contentTime
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> contentTime: aTMValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM contentTime: aTMValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> conversionType [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM conversionType
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> conversionType: aCSValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM conversionType: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+MultiframeTrueColorSC_IOD >> dataOfSecondaryCapture [
+
+	scImageIOM isNil ifTrue: [
+		scImageIOM := SCImageIOM new.
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+		scImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scImageIOM dateOfSecondaryCapture
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+MultiframeTrueColorSC_IOD >> dataOfSecondaryCapture: aDAValue [
+
+	scImageIOM isNil ifTrue: [
+		scImageIOM := SCImageIOM new.
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+		scImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scImageIOM dateOfSecondaryCapture: aDAValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> dateOfLastCalibration [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -383,7 +626,7 @@ RawData_IOD >> dateOfLastCalibration [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> dateOfLastCalibration: aDAValue [
+MultiframeTrueColorSC_IOD >> dateOfLastCalibration: aDAValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -396,7 +639,57 @@ RawData_IOD >> dateOfLastCalibration: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> deviceSerialNumber [
+MultiframeTrueColorSC_IOD >> dateOfSecondaryCapture [
+
+	scImageIOM isNil ifTrue: [
+		scImageIOM := SCImageIOM new.
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+		scImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scImageIOM dateOfSecondaryCapture
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> dateOfSecondaryCapture: aDAValue [
+
+	scImageIOM isNil ifTrue: [
+		scImageIOM := SCImageIOM new.
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+		scImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scImageIOM dateOfSecondaryCapture: aDAValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> derivationDescription [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM derivationDescription
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> derivationDescription: aSTValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM derivationDescription: aSTValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> deviceSerialNumber [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -408,7 +701,7 @@ RawData_IOD >> deviceSerialNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> deviceSerialNumber: aLOValue [
+MultiframeTrueColorSC_IOD >> deviceSerialNumber: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -421,7 +714,32 @@ RawData_IOD >> deviceSerialNumber: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> ethnicGroup [
+MultiframeTrueColorSC_IOD >> digitalImageFormatAcquired [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM digitalImageFormatAcquired
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> digitalImageFormatAcquired: aLOValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM digitalImageFormatAcquired: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> ethnicGroup [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -433,7 +751,7 @@ RawData_IOD >> ethnicGroup [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> ethnicGroup: aSHValue [
+MultiframeTrueColorSC_IOD >> ethnicGroup: aSHValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -446,7 +764,7 @@ RawData_IOD >> ethnicGroup: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> ethnnicGroup [
+MultiframeTrueColorSC_IOD >> ethnnicGroup [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -458,7 +776,7 @@ RawData_IOD >> ethnnicGroup [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> ethnnicGroup: aSHValue [
+MultiframeTrueColorSC_IOD >> ethnnicGroup: aSHValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -470,14 +788,39 @@ RawData_IOD >> ethnnicGroup: aSHValue [
 
 ]
 
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> frameIncrementPointer [
+
+	multiFrameIOM isNil ifTrue: [
+		multiFrameIOM := MultiFrameIOM new.
+		multiFrameIOM dataElementsDictionary: self dataElementsDictionary.
+		multiFrameIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^multiFrameIOM frameIncrementPointer
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> frameIncrementPointer: aATValue [
+
+	multiFrameIOM isNil ifTrue: [
+		multiFrameIOM := MultiFrameIOM new.
+		multiFrameIOM dataElementsDictionary: self dataElementsDictionary.
+		multiFrameIOM dataElementsValues: self dataElementsValues.
+	].
+
+	multiFrameIOM frameIncrementPointer: aATValue
+
+]
+
 { #category : #'accessing IOM' }
-RawData_IOD >> frameOfReferenceIOM [
+MultiframeTrueColorSC_IOD >> frameOfReferenceIOM [
 
 	^frameOfReferenceIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> frameOfReferenceIOM: aFrameOfReferenceIOM [
+MultiframeTrueColorSC_IOD >> frameOfReferenceIOM: aFrameOfReferenceIOM [
 
 	frameOfReferenceIOM := aFrameOfReferenceIOM.
 	frameOfReferenceIOM encoder: self encoder.
@@ -498,7 +841,7 @@ RawData_IOD >> frameOfReferenceIOM: aFrameOfReferenceIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> frameOfReferenceUID [
+MultiframeTrueColorSC_IOD >> frameOfReferenceUID [
 
 	frameOfReferenceIOM isNil ifTrue: [
 		frameOfReferenceIOM := FrameOfReferenceIOM new.
@@ -510,7 +853,7 @@ RawData_IOD >> frameOfReferenceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> frameOfReferenceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> frameOfReferenceUID: aUIValue [
 
 	frameOfReferenceIOM isNil ifTrue: [
 		frameOfReferenceIOM := FrameOfReferenceIOM new.
@@ -523,13 +866,13 @@ RawData_IOD >> frameOfReferenceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalEquipmentIOM [
+MultiframeTrueColorSC_IOD >> generalEquipmentIOM [
 
 	^generalEquipmentIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalEquipmentIOM: aGeneralEquipmentIOM [
+MultiframeTrueColorSC_IOD >> generalEquipmentIOM: aGeneralEquipmentIOM [
 
 	generalEquipmentIOM := aGeneralEquipmentIOM.
 	generalEquipmentIOM encoder: self encoder.
@@ -550,13 +893,40 @@ RawData_IOD >> generalEquipmentIOM: aGeneralEquipmentIOM [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalSeriesIOM [
+MultiframeTrueColorSC_IOD >> generalImageIOM [
+
+	^generalImageIOM
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> generalImageIOM: aGeneralImageIOM [
+
+	generalImageIOM := aGeneralImageIOM.
+	generalImageIOM encoder: self encoder.
+
+	generalImageIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
+		generalImageIOM dataElementsDictionary keysAndValuesDo: [:key :value |
+			self dataElementsDictionary at: key put: value].
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+	].
+
+	generalImageIOM dataElementsValues == self dataElementsValues ifFalse: [
+		generalImageIOM dataElementsValues keysAndValuesDo: [:key :value |
+			self dataElementsValues at: key put: value].
+		generalImageIOM dataElementsValues: self dataElementsValues
+	].
+
+
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> generalSeriesIOM [
 
 	^generalSeriesIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalSeriesIOM: aGeneralSeriesIOM [
+MultiframeTrueColorSC_IOD >> generalSeriesIOM: aGeneralSeriesIOM [
 
 	generalSeriesIOM := aGeneralSeriesIOM.
 	generalSeriesIOM encoder: self encoder.
@@ -577,13 +947,13 @@ RawData_IOD >> generalSeriesIOM: aGeneralSeriesIOM [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalStudyIOM [
+MultiframeTrueColorSC_IOD >> generalStudyIOM [
 
 	^generalStudyIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalStudyIOM: aGeneralStudyIOM [
+MultiframeTrueColorSC_IOD >> generalStudyIOM: aGeneralStudyIOM [
 
 	generalStudyIOM := aGeneralStudyIOM.
 	generalStudyIOM encoder: self encoder.
@@ -604,7 +974,184 @@ RawData_IOD >> generalStudyIOM: aGeneralStudyIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceAvailability [
+MultiframeTrueColorSC_IOD >> greenPaletteColorLookupTableData [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM greenPaletteColorLookupTableData
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> greenPaletteColorLookupTableData: aOWValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM greenPaletteColorLookupTableData: aOWValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> greenPaletteColorLookupTableDescriptor [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM greenPaletteColorLookupTableDescriptor
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> greenPaletteColorLookupTableDescriptor: aSSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM greenPaletteColorLookupTableDescriptor: aSSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> highBit [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM highBit
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> highBit: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM highBit: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> imageComments [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM imageComments
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> imageComments: aLTValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM imageComments: aLTValue
+
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> imagePixelIOM [
+
+	^imagePixelIOM
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> imagePixelIOM: aImagePixelIOM [
+
+	imagePixelIOM := aImagePixelIOM.
+	imagePixelIOM encoder: self encoder.
+
+	imagePixelIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
+		imagePixelIOM dataElementsDictionary keysAndValuesDo: [:key :value |
+			self dataElementsDictionary at: key put: value].
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+	].
+
+	imagePixelIOM dataElementsValues == self dataElementsValues ifFalse: [
+		imagePixelIOM dataElementsValues keysAndValuesDo: [:key :value |
+			self dataElementsValues at: key put: value].
+		imagePixelIOM dataElementsValues: self dataElementsValues
+	].
+
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> imageType [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM imageType
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> imageType: aCSValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM imageType: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> imagesInAcquisition [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM imagesInAcquisition
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> imagesInAcquisition: aISValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM imagesInAcquisition: aISValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> instanceAvailability [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -616,7 +1163,7 @@ RawData_IOD >> instanceAvailability [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceAvailability: aCSValue [
+MultiframeTrueColorSC_IOD >> instanceAvailability: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -629,7 +1176,7 @@ RawData_IOD >> instanceAvailability: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationDate [
+MultiframeTrueColorSC_IOD >> instanceCreationDate [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -641,7 +1188,7 @@ RawData_IOD >> instanceCreationDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationDate: aDAValue [
+MultiframeTrueColorSC_IOD >> instanceCreationDate: aDAValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -654,7 +1201,7 @@ RawData_IOD >> instanceCreationDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationTime [
+MultiframeTrueColorSC_IOD >> instanceCreationTime [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -666,7 +1213,7 @@ RawData_IOD >> instanceCreationTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationTime: aTMValue [
+MultiframeTrueColorSC_IOD >> instanceCreationTime: aTMValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -679,7 +1226,7 @@ RawData_IOD >> instanceCreationTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreatorUID [
+MultiframeTrueColorSC_IOD >> instanceCreatorUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -691,7 +1238,7 @@ RawData_IOD >> instanceCreatorUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreatorUID: aUIValue [
+MultiframeTrueColorSC_IOD >> instanceCreatorUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -704,7 +1251,7 @@ RawData_IOD >> instanceCreatorUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceNumber [
+MultiframeTrueColorSC_IOD >> instanceNumber [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -716,7 +1263,7 @@ RawData_IOD >> instanceNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceNumber: aISValue [
+MultiframeTrueColorSC_IOD >> instanceNumber: aISValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -729,7 +1276,7 @@ RawData_IOD >> instanceNumber: aISValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionAddress [
+MultiframeTrueColorSC_IOD >> institutionAddress [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -741,7 +1288,7 @@ RawData_IOD >> institutionAddress [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionAddress: aSTValue [
+MultiframeTrueColorSC_IOD >> institutionAddress: aSTValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -754,7 +1301,7 @@ RawData_IOD >> institutionAddress: aSTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionName [
+MultiframeTrueColorSC_IOD >> institutionName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -766,7 +1313,7 @@ RawData_IOD >> institutionName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionName: aLOValue [
+MultiframeTrueColorSC_IOD >> institutionName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -779,7 +1326,7 @@ RawData_IOD >> institutionName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionalDepartmentName [
+MultiframeTrueColorSC_IOD >> institutionalDepartmentName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -791,7 +1338,7 @@ RawData_IOD >> institutionalDepartmentName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionalDepartmentName: aLOValue [
+MultiframeTrueColorSC_IOD >> institutionalDepartmentName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -804,7 +1351,32 @@ RawData_IOD >> institutionalDepartmentName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> largestPixelValueInSeries [
+MultiframeTrueColorSC_IOD >> largestImagePixelValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM largestImagePixelValue
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> largestImagePixelValue: aSSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM largestImagePixelValue: aSSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> largestPixelValueInSeries [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -816,7 +1388,7 @@ RawData_IOD >> largestPixelValueInSeries [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> largestPixelValueInSeries: aSSValue [
+MultiframeTrueColorSC_IOD >> largestPixelValueInSeries: aSSValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -829,7 +1401,7 @@ RawData_IOD >> largestPixelValueInSeries: aSSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> laterality [
+MultiframeTrueColorSC_IOD >> laterality [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -841,7 +1413,7 @@ RawData_IOD >> laterality [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> laterality: aCSValue [
+MultiframeTrueColorSC_IOD >> laterality: aCSValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -854,7 +1426,57 @@ RawData_IOD >> laterality: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturer [
+MultiframeTrueColorSC_IOD >> lossyImageCompression [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM lossyImageCompression
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> lossyImageCompression: aCSValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM lossyImageCompression: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> lossyImageCompressionRatio [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM lossyImageCompressionRatio
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> lossyImageCompressionRatio: aDSValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM lossyImageCompressionRatio: aDSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> manufacturer [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -866,7 +1488,7 @@ RawData_IOD >> manufacturer [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturer: aLOValue [
+MultiframeTrueColorSC_IOD >> manufacturer: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -879,7 +1501,7 @@ RawData_IOD >> manufacturer: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturerModelName [
+MultiframeTrueColorSC_IOD >> manufacturerModelName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -891,7 +1513,7 @@ RawData_IOD >> manufacturerModelName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturerModelName: aLOValue [
+MultiframeTrueColorSC_IOD >> manufacturerModelName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -904,7 +1526,7 @@ RawData_IOD >> manufacturerModelName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> manufacturersModelName [
+MultiframeTrueColorSC_IOD >> manufacturersModelName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -916,7 +1538,7 @@ RawData_IOD >> manufacturersModelName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> manufacturersModelName: aLOValue [
+MultiframeTrueColorSC_IOD >> manufacturersModelName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -929,32 +1551,59 @@ RawData_IOD >> manufacturersModelName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> modality [
+MultiframeTrueColorSC_IOD >> modality [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^generalSeriesIOM modality
+	^scEquipmentIOM modality
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> modality: aCSValue [
+MultiframeTrueColorSC_IOD >> modality: aCSValue [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	generalSeriesIOM modality: aCSValue
+	scEquipmentIOM modality: aCSValue
+
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> multiFrameIOM [
+
+	^multiFrameIOM
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> multiFrameIOM: aMultiFrameIOM [
+
+	multiFrameIOM := aMultiFrameIOM.
+	multiFrameIOM encoder: self encoder.
+
+	multiFrameIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
+		multiFrameIOM dataElementsDictionary keysAndValuesDo: [:key :value |
+			self dataElementsDictionary at: key put: value].
+		multiFrameIOM dataElementsDictionary: self dataElementsDictionary.
+	].
+
+	multiFrameIOM dataElementsValues == self dataElementsValues ifFalse: [
+		multiFrameIOM dataElementsValues keysAndValuesDo: [:key :value |
+			self dataElementsValues at: key put: value].
+		multiFrameIOM dataElementsValues: self dataElementsValues
+	].
+
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> nameOfPhysiciansReadingStudy [
+MultiframeTrueColorSC_IOD >> nameOfPhysiciansReadingStudy [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -966,7 +1615,7 @@ RawData_IOD >> nameOfPhysiciansReadingStudy [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> nameOfPhysiciansReadingStudy: aPNValue [
+MultiframeTrueColorSC_IOD >> nameOfPhysiciansReadingStudy: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -979,7 +1628,32 @@ RawData_IOD >> nameOfPhysiciansReadingStudy: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> numberOfSeriesRelatedInstances [
+MultiframeTrueColorSC_IOD >> numberOfFrames [
+
+	multiFrameIOM isNil ifTrue: [
+		multiFrameIOM := MultiFrameIOM new.
+		multiFrameIOM dataElementsDictionary: self dataElementsDictionary.
+		multiFrameIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^multiFrameIOM numberOfFrames
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> numberOfFrames: aISValue [
+
+	multiFrameIOM isNil ifTrue: [
+		multiFrameIOM := MultiFrameIOM new.
+		multiFrameIOM dataElementsDictionary: self dataElementsDictionary.
+		multiFrameIOM dataElementsValues: self dataElementsValues.
+	].
+
+	multiFrameIOM numberOfFrames: aISValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> numberOfSeriesRelatedInstances [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -991,7 +1665,7 @@ RawData_IOD >> numberOfSeriesRelatedInstances [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> numberOfSeriesRelatedInstances: aISValue [
+MultiframeTrueColorSC_IOD >> numberOfSeriesRelatedInstances: aISValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1004,7 +1678,7 @@ RawData_IOD >> numberOfSeriesRelatedInstances: aISValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> occupation [
+MultiframeTrueColorSC_IOD >> occupation [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1016,7 +1690,7 @@ RawData_IOD >> occupation [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> occupation: aSHValue [
+MultiframeTrueColorSC_IOD >> occupation: aSHValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1029,7 +1703,7 @@ RawData_IOD >> occupation: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> operatorsName [
+MultiframeTrueColorSC_IOD >> operatorsName [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1041,7 +1715,7 @@ RawData_IOD >> operatorsName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> operatorsName: aPNValue [
+MultiframeTrueColorSC_IOD >> operatorsName: aPNValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1054,7 +1728,7 @@ RawData_IOD >> operatorsName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> otherPatientNames [
+MultiframeTrueColorSC_IOD >> otherPatientNames [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1066,7 +1740,7 @@ RawData_IOD >> otherPatientNames [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> otherPatientNames: aPNValue [
+MultiframeTrueColorSC_IOD >> otherPatientNames: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1079,7 +1753,7 @@ RawData_IOD >> otherPatientNames: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsIDs [
+MultiframeTrueColorSC_IOD >> otherPatientsIDs [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1091,7 +1765,7 @@ RawData_IOD >> otherPatientsIDs [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsIDs: aLOValue [
+MultiframeTrueColorSC_IOD >> otherPatientsIDs: aLOValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1104,7 +1778,7 @@ RawData_IOD >> otherPatientsIDs: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsNames [
+MultiframeTrueColorSC_IOD >> otherPatientsNames [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1116,7 +1790,7 @@ RawData_IOD >> otherPatientsNames [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsNames: aPNValue [
+MultiframeTrueColorSC_IOD >> otherPatientsNames: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1129,7 +1803,7 @@ RawData_IOD >> otherPatientsNames: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientAge [
+MultiframeTrueColorSC_IOD >> patientAge [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1141,7 +1815,7 @@ RawData_IOD >> patientAge [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientAge: aASValue [
+MultiframeTrueColorSC_IOD >> patientAge: aASValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1154,7 +1828,7 @@ RawData_IOD >> patientAge: aASValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthDate [
+MultiframeTrueColorSC_IOD >> patientBirthDate [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1166,7 +1840,7 @@ RawData_IOD >> patientBirthDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthDate: aDAValue [
+MultiframeTrueColorSC_IOD >> patientBirthDate: aDAValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1179,7 +1853,7 @@ RawData_IOD >> patientBirthDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthTime [
+MultiframeTrueColorSC_IOD >> patientBirthTime [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1191,7 +1865,7 @@ RawData_IOD >> patientBirthTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthTime: aTMValue [
+MultiframeTrueColorSC_IOD >> patientBirthTime: aTMValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1204,7 +1878,7 @@ RawData_IOD >> patientBirthTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientComments [
+MultiframeTrueColorSC_IOD >> patientComments [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1216,7 +1890,7 @@ RawData_IOD >> patientComments [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientComments: aLTValue [
+MultiframeTrueColorSC_IOD >> patientComments: aLTValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1229,7 +1903,7 @@ RawData_IOD >> patientComments: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientID [
+MultiframeTrueColorSC_IOD >> patientID [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1241,7 +1915,7 @@ RawData_IOD >> patientID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientID: aLOValue [
+MultiframeTrueColorSC_IOD >> patientID: aLOValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1254,13 +1928,13 @@ RawData_IOD >> patientID: aLOValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientIOM [
+MultiframeTrueColorSC_IOD >> patientIOM [
 
 	^patientIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientIOM: aPatientIOM [
+MultiframeTrueColorSC_IOD >> patientIOM: aPatientIOM [
 
 	patientIOM := aPatientIOM.
 	patientIOM encoder: self encoder.
@@ -1281,7 +1955,7 @@ RawData_IOD >> patientIOM: aPatientIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientName [
+MultiframeTrueColorSC_IOD >> patientName [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1293,7 +1967,7 @@ RawData_IOD >> patientName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientName: aPNValue [
+MultiframeTrueColorSC_IOD >> patientName: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1306,7 +1980,32 @@ RawData_IOD >> patientName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientPosition [
+MultiframeTrueColorSC_IOD >> patientOrientation [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM patientOrientation
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> patientOrientation: aCSValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM patientOrientation: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> patientPosition [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1318,7 +2017,7 @@ RawData_IOD >> patientPosition [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientPosition: aCSValue [
+MultiframeTrueColorSC_IOD >> patientPosition: aCSValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1331,7 +2030,7 @@ RawData_IOD >> patientPosition: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSex [
+MultiframeTrueColorSC_IOD >> patientSex [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1343,7 +2042,7 @@ RawData_IOD >> patientSex [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSex: aCSValue [
+MultiframeTrueColorSC_IOD >> patientSex: aCSValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1356,7 +2055,7 @@ RawData_IOD >> patientSex: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSize [
+MultiframeTrueColorSC_IOD >> patientSize [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1368,7 +2067,7 @@ RawData_IOD >> patientSize [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSize: aDSValue [
+MultiframeTrueColorSC_IOD >> patientSize: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1381,13 +2080,13 @@ RawData_IOD >> patientSize: aDSValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientStudyIOM [
+MultiframeTrueColorSC_IOD >> patientStudyIOM [
 
 	^patientStudyIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientStudyIOM: aPatientStudyIOM [
+MultiframeTrueColorSC_IOD >> patientStudyIOM: aPatientStudyIOM [
 
 	patientStudyIOM := aPatientStudyIOM.
 	patientStudyIOM encoder: self encoder.
@@ -1408,7 +2107,7 @@ RawData_IOD >> patientStudyIOM: aPatientStudyIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientWeight [
+MultiframeTrueColorSC_IOD >> patientWeight [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1420,7 +2119,7 @@ RawData_IOD >> patientWeight [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientWeight: aDSValue [
+MultiframeTrueColorSC_IOD >> patientWeight: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1433,7 +2132,7 @@ RawData_IOD >> patientWeight: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsAge [
+MultiframeTrueColorSC_IOD >> patientsAge [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1445,7 +2144,7 @@ RawData_IOD >> patientsAge [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsAge: aASValue [
+MultiframeTrueColorSC_IOD >> patientsAge: aASValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1458,7 +2157,7 @@ RawData_IOD >> patientsAge: aASValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthDate [
+MultiframeTrueColorSC_IOD >> patientsBirthDate [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1470,7 +2169,7 @@ RawData_IOD >> patientsBirthDate [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthDate: aDAValue [
+MultiframeTrueColorSC_IOD >> patientsBirthDate: aDAValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1483,7 +2182,7 @@ RawData_IOD >> patientsBirthDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthTime [
+MultiframeTrueColorSC_IOD >> patientsBirthTime [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1495,7 +2194,7 @@ RawData_IOD >> patientsBirthTime [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthTime: aTMValue [
+MultiframeTrueColorSC_IOD >> patientsBirthTime: aTMValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1508,7 +2207,7 @@ RawData_IOD >> patientsBirthTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsName [
+MultiframeTrueColorSC_IOD >> patientsName [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1520,7 +2219,7 @@ RawData_IOD >> patientsName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsName: aPNValue [
+MultiframeTrueColorSC_IOD >> patientsName: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1533,7 +2232,7 @@ RawData_IOD >> patientsName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSex [
+MultiframeTrueColorSC_IOD >> patientsSex [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1545,7 +2244,7 @@ RawData_IOD >> patientsSex [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSex: aCSValue [
+MultiframeTrueColorSC_IOD >> patientsSex: aCSValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1558,7 +2257,7 @@ RawData_IOD >> patientsSex: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSize [
+MultiframeTrueColorSC_IOD >> patientsSize [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1570,7 +2269,7 @@ RawData_IOD >> patientsSize [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSize: aDSValue [
+MultiframeTrueColorSC_IOD >> patientsSize: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1583,7 +2282,7 @@ RawData_IOD >> patientsSize: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsWeight [
+MultiframeTrueColorSC_IOD >> patientsWeight [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1595,7 +2294,7 @@ RawData_IOD >> patientsWeight [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsWeight: aDSValue [
+MultiframeTrueColorSC_IOD >> patientsWeight: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1608,7 +2307,7 @@ RawData_IOD >> patientsWeight: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performedActionItemSequence [
+MultiframeTrueColorSC_IOD >> performedActionItemSequence [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1620,7 +2319,7 @@ RawData_IOD >> performedActionItemSequence [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performedActionItemSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> performedActionItemSequence: aSQValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1633,7 +2332,7 @@ RawData_IOD >> performedActionItemSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepDescription [
+MultiframeTrueColorSC_IOD >> performedProcedureStepDescription [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1645,7 +2344,7 @@ RawData_IOD >> performedProcedureStepDescription [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepDescription: aLOValue [
+MultiframeTrueColorSC_IOD >> performedProcedureStepDescription: aLOValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1658,7 +2357,7 @@ RawData_IOD >> performedProcedureStepDescription: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepID [
+MultiframeTrueColorSC_IOD >> performedProcedureStepID [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1670,7 +2369,7 @@ RawData_IOD >> performedProcedureStepID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepID: aSHValue [
+MultiframeTrueColorSC_IOD >> performedProcedureStepID: aSHValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1683,7 +2382,7 @@ RawData_IOD >> performedProcedureStepID: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartDate [
+MultiframeTrueColorSC_IOD >> performedProcedureStepStartDate [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1695,7 +2394,7 @@ RawData_IOD >> performedProcedureStepStartDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartDate: aDAValue [
+MultiframeTrueColorSC_IOD >> performedProcedureStepStartDate: aDAValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1708,7 +2407,7 @@ RawData_IOD >> performedProcedureStepStartDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartTime [
+MultiframeTrueColorSC_IOD >> performedProcedureStepStartTime [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1720,7 +2419,7 @@ RawData_IOD >> performedProcedureStepStartTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartTime: aTMValue [
+MultiframeTrueColorSC_IOD >> performedProcedureStepStartTime: aTMValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1733,7 +2432,7 @@ RawData_IOD >> performedProcedureStepStartTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProtocolCodeSequence [
+MultiframeTrueColorSC_IOD >> performedProtocolCodeSequence [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1745,7 +2444,7 @@ RawData_IOD >> performedProtocolCodeSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProtocolCodeSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> performedProtocolCodeSequence: aSQValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1758,7 +2457,7 @@ RawData_IOD >> performedProtocolCodeSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performingPhysicianName [
+MultiframeTrueColorSC_IOD >> performingPhysicianName [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1770,7 +2469,7 @@ RawData_IOD >> performingPhysicianName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performingPhysicianName: aPNValue [
+MultiframeTrueColorSC_IOD >> performingPhysicianName: aPNValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1783,7 +2482,7 @@ RawData_IOD >> performingPhysicianName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performingPhysiciansName [
+MultiframeTrueColorSC_IOD >> performingPhysiciansName [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1795,7 +2494,7 @@ RawData_IOD >> performingPhysiciansName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performingPhysiciansName: aPNValue [
+MultiframeTrueColorSC_IOD >> performingPhysiciansName: aPNValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1808,7 +2507,32 @@ RawData_IOD >> performingPhysiciansName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> physiciansOfRecord [
+MultiframeTrueColorSC_IOD >> photometricInterpretation [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM photometricInterpretation
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> photometricInterpretation: aCSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM photometricInterpretation: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> physiciansOfRecord [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1820,7 +2544,7 @@ RawData_IOD >> physiciansOfRecord [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> physiciansOfRecord: aPNValue [
+MultiframeTrueColorSC_IOD >> physiciansOfRecord: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1833,7 +2557,57 @@ RawData_IOD >> physiciansOfRecord: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> pixelPaddingValue [
+MultiframeTrueColorSC_IOD >> pixelAspectRatio [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM pixelAspectRatio
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> pixelAspectRatio: aISValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM pixelAspectRatio: aISValue
+
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+MultiframeTrueColorSC_IOD >> pixelData [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM rETIRED_VariablePixelData
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+MultiframeTrueColorSC_IOD >> pixelData: aOWValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM rETIRED_VariablePixelData: aOWValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> pixelPaddingValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -1845,7 +2619,7 @@ RawData_IOD >> pixelPaddingValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> pixelPaddingValue: aSSValue [
+MultiframeTrueColorSC_IOD >> pixelPaddingValue: aSSValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -1858,7 +2632,57 @@ RawData_IOD >> pixelPaddingValue: aSSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> positionReferenceIndicator [
+MultiframeTrueColorSC_IOD >> pixelRepresentation [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM pixelRepresentation
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> pixelRepresentation: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM pixelRepresentation: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> planarConfiguration [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM planarConfiguration
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> planarConfiguration: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM planarConfiguration: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> positionReferenceIndicator [
 
 	frameOfReferenceIOM isNil ifTrue: [
 		frameOfReferenceIOM := FrameOfReferenceIOM new.
@@ -1870,7 +2694,7 @@ RawData_IOD >> positionReferenceIndicator [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> positionReferenceIndicator: aLOValue [
+MultiframeTrueColorSC_IOD >> positionReferenceIndicator: aLOValue [
 
 	frameOfReferenceIOM isNil ifTrue: [
 		frameOfReferenceIOM := FrameOfReferenceIOM new.
@@ -1882,26 +2706,8 @@ RawData_IOD >> positionReferenceIndicator: aLOValue [
 
 ]
 
-{ #category : #printing }
-RawData_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self bodyPartExamined isNil 
-		ifFalse: [self bodyPartExamined printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
-
-	"self instanceCreationTime isNil 
-		ifFalse: [self instanceCreationTime printString printOn: aStream paddedWith: Character space to: 16r0014]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0014]."
-]
-
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> procedureCodeSequence [
+MultiframeTrueColorSC_IOD >> procedureCodeSequence [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1913,7 +2719,7 @@ RawData_IOD >> procedureCodeSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> procedureCodeSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> procedureCodeSequence: aSQValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1926,7 +2732,7 @@ RawData_IOD >> procedureCodeSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> protocolName [
+MultiframeTrueColorSC_IOD >> protocolName [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1938,7 +2744,7 @@ RawData_IOD >> protocolName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> protocolName: aLOValue [
+MultiframeTrueColorSC_IOD >> protocolName: aLOValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -1951,7 +2757,32 @@ RawData_IOD >> protocolName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> rETIRED_OtherPatientIDs [
+MultiframeTrueColorSC_IOD >> qualityControlImage [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM qualityControlImage
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> qualityControlImage: aCSValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM qualityControlImage: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> rETIRED_OtherPatientIDs [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1963,7 +2794,7 @@ RawData_IOD >> rETIRED_OtherPatientIDs [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> rETIRED_OtherPatientIDs: aLOValue [
+MultiframeTrueColorSC_IOD >> rETIRED_OtherPatientIDs: aLOValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1976,7 +2807,107 @@ RawData_IOD >> rETIRED_OtherPatientIDs: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPatientSequence [
+MultiframeTrueColorSC_IOD >> rETIRED_VariablePixelData [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM rETIRED_VariablePixelData
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> rETIRED_VariablePixelData: aUNValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM rETIRED_VariablePixelData: aUNValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> redPaletteColorLookupTableData [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM redPaletteColorLookupTableData
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> redPaletteColorLookupTableData: aOWValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM redPaletteColorLookupTableData: aOWValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> redPaletteColorLookupTableDescriptor [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM redPaletteColorLookupTableDescriptor
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> redPaletteColorLookupTableDescriptor: aSSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM redPaletteColorLookupTableDescriptor: aSSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> referencedImageSequence [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM referencedImageSequence
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> referencedImageSequence: aSQValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM referencedImageSequence: aSQValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> referencedPatientSequence [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1988,7 +2919,7 @@ RawData_IOD >> referencedPatientSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPatientSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> referencedPatientSequence: aSQValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -2001,7 +2932,7 @@ RawData_IOD >> referencedPatientSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPerformedProcedureStepSequence [
+MultiframeTrueColorSC_IOD >> referencedPerformedProcedureStepSequence [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2013,7 +2944,7 @@ RawData_IOD >> referencedPerformedProcedureStepSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPerformedProcedureStepSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> referencedPerformedProcedureStepSequence: aSQValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2026,7 +2957,7 @@ RawData_IOD >> referencedPerformedProcedureStepSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referencedStudyComponentSequence [
+MultiframeTrueColorSC_IOD >> referencedStudyComponentSequence [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2038,7 +2969,7 @@ RawData_IOD >> referencedStudyComponentSequence [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referencedStudyComponentSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> referencedStudyComponentSequence: aSQValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2051,7 +2982,7 @@ RawData_IOD >> referencedStudyComponentSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedStudySequence [
+MultiframeTrueColorSC_IOD >> referencedStudySequence [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2063,7 +2994,7 @@ RawData_IOD >> referencedStudySequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedStudySequence: aSQValue [
+MultiframeTrueColorSC_IOD >> referencedStudySequence: aSQValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2076,7 +3007,7 @@ RawData_IOD >> referencedStudySequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referringPhysicianName [
+MultiframeTrueColorSC_IOD >> referringPhysicianName [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2088,7 +3019,7 @@ RawData_IOD >> referringPhysicianName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referringPhysicianName: aPNValue [
+MultiframeTrueColorSC_IOD >> referringPhysicianName: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2101,7 +3032,7 @@ RawData_IOD >> referringPhysicianName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referringPhysiciansName [
+MultiframeTrueColorSC_IOD >> referringPhysiciansName [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2113,7 +3044,7 @@ RawData_IOD >> referringPhysiciansName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referringPhysiciansName: aPNValue [
+MultiframeTrueColorSC_IOD >> referringPhysiciansName: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2126,7 +3057,7 @@ RawData_IOD >> referringPhysiciansName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> requestAttributesSequence [
+MultiframeTrueColorSC_IOD >> requestAttributesSequence [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2138,7 +3069,7 @@ RawData_IOD >> requestAttributesSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> requestAttributesSequence: aSQValue [
+MultiframeTrueColorSC_IOD >> requestAttributesSequence: aSQValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2151,7 +3082,32 @@ RawData_IOD >> requestAttributesSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationComment [
+MultiframeTrueColorSC_IOD >> rows [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM rows
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> rows: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM rows: aUSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> sOPAuthorizationComment [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2163,7 +3119,7 @@ RawData_IOD >> sOPAuthorizationComment [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationComment: aLTValue [
+MultiframeTrueColorSC_IOD >> sOPAuthorizationComment: aLTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2176,7 +3132,7 @@ RawData_IOD >> sOPAuthorizationComment: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationDateTime [
+MultiframeTrueColorSC_IOD >> sOPAuthorizationDateTime [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2188,7 +3144,7 @@ RawData_IOD >> sOPAuthorizationDateTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationDateTime: aDTValue [
+MultiframeTrueColorSC_IOD >> sOPAuthorizationDateTime: aDTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2201,7 +3157,7 @@ RawData_IOD >> sOPAuthorizationDateTime: aDTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPClassUID [
+MultiframeTrueColorSC_IOD >> sOPClassUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2213,7 +3169,7 @@ RawData_IOD >> sOPClassUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPClassUID: aUIValue [
+MultiframeTrueColorSC_IOD >> sOPClassUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2226,7 +3182,7 @@ RawData_IOD >> sOPClassUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceStatus [
+MultiframeTrueColorSC_IOD >> sOPInstanceStatus [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2238,7 +3194,7 @@ RawData_IOD >> sOPInstanceStatus [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceStatus: aCSValue [
+MultiframeTrueColorSC_IOD >> sOPInstanceStatus: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2251,7 +3207,7 @@ RawData_IOD >> sOPInstanceStatus: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceUID [
+MultiframeTrueColorSC_IOD >> sOPInstanceUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2263,7 +3219,7 @@ RawData_IOD >> sOPInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> sOPInstanceUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2276,7 +3232,211 @@ RawData_IOD >> sOPInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDate [
+MultiframeTrueColorSC_IOD >> samplesPerPixel [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM samplesPerPixel
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> samplesPerPixel: aUSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM samplesPerPixel: aUSValue
+
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> scEquipmentIOM [
+
+	^scEquipmentIOM
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> scEquipmentIOM: aSCEquipmentIOM [
+
+	scEquipmentIOM := aSCEquipmentIOM.
+	scEquipmentIOM encoder: self encoder.
+
+	scEquipmentIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
+		scEquipmentIOM dataElementsDictionary keysAndValuesDo: [:key :value |
+			self dataElementsDictionary at: key put: value].
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+	].
+
+	scEquipmentIOM dataElementsValues == self dataElementsValues ifFalse: [
+		scEquipmentIOM dataElementsValues keysAndValuesDo: [:key :value |
+			self dataElementsValues at: key put: value].
+		scEquipmentIOM dataElementsValues: self dataElementsValues
+	].
+
+
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> scImageIOM [
+
+	^scImageIOM
+]
+
+{ #category : #'accessing IOM' }
+MultiframeTrueColorSC_IOD >> scImageIOM: aSCImageIOM [
+
+	scImageIOM := aSCImageIOM.
+	scImageIOM encoder: self encoder.
+
+	scImageIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
+		scImageIOM dataElementsDictionary keysAndValuesDo: [:key :value |
+			self dataElementsDictionary at: key put: value].
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+	].
+
+	scImageIOM dataElementsValues == self dataElementsValues ifFalse: [
+		scImageIOM dataElementsValues keysAndValuesDo: [:key :value |
+			self dataElementsValues at: key put: value].
+		scImageIOM dataElementsValues: self dataElementsValues
+	].
+
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceID [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM secondaryCaptureDeviceID
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceID: aLOValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM secondaryCaptureDeviceID: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceManufacturer [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM secondaryCaptureDeviceManufacturer
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceManufacturer: aLOValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM secondaryCaptureDeviceManufacturer: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceManufacturerModelName [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM secondaryCaptureDeviceManufacturerModelName
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceManufacturerModelName: aLOValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM secondaryCaptureDeviceManufacturerModelName: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceManufacturersModelName [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM secondaryCaptureDeviceManufacturerModelName
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceManufacturersModelName: aLOValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM secondaryCaptureDeviceManufacturerModelName: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceSoftwareVersions [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM secondaryCaptureDeviceSoftwareVersions
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> secondaryCaptureDeviceSoftwareVersions: aLOValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM secondaryCaptureDeviceSoftwareVersions: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> seriesDate [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2288,7 +3448,7 @@ RawData_IOD >> seriesDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDate: aDAValue [
+MultiframeTrueColorSC_IOD >> seriesDate: aDAValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2301,7 +3461,7 @@ RawData_IOD >> seriesDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDescription [
+MultiframeTrueColorSC_IOD >> seriesDescription [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2313,7 +3473,7 @@ RawData_IOD >> seriesDescription [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDescription: aLOValue [
+MultiframeTrueColorSC_IOD >> seriesDescription: aLOValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2326,7 +3486,7 @@ RawData_IOD >> seriesDescription: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesInstanceUID [
+MultiframeTrueColorSC_IOD >> seriesInstanceUID [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2338,7 +3498,7 @@ RawData_IOD >> seriesInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesInstanceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> seriesInstanceUID: aUIValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2351,7 +3511,7 @@ RawData_IOD >> seriesInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesNumber [
+MultiframeTrueColorSC_IOD >> seriesNumber [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2363,7 +3523,7 @@ RawData_IOD >> seriesNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesNumber: aISValue [
+MultiframeTrueColorSC_IOD >> seriesNumber: aISValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2376,7 +3536,7 @@ RawData_IOD >> seriesNumber: aISValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesTime [
+MultiframeTrueColorSC_IOD >> seriesTime [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2388,7 +3548,7 @@ RawData_IOD >> seriesTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesTime: aTMValue [
+MultiframeTrueColorSC_IOD >> seriesTime: aTMValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2401,7 +3561,32 @@ RawData_IOD >> seriesTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> smallestPixelValueInSeries [
+MultiframeTrueColorSC_IOD >> smallestImagePixelValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^imagePixelIOM smallestImagePixelValue
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> smallestImagePixelValue: aSSValue [
+
+	imagePixelIOM isNil ifTrue: [
+		imagePixelIOM := ImagePixelIOM new.
+		imagePixelIOM dataElementsDictionary: self dataElementsDictionary.
+		imagePixelIOM dataElementsValues: self dataElementsValues.
+	].
+
+	imagePixelIOM smallestImagePixelValue: aSSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> smallestPixelValueInSeries [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2413,7 +3598,7 @@ RawData_IOD >> smallestPixelValueInSeries [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> smallestPixelValueInSeries: aSSValue [
+MultiframeTrueColorSC_IOD >> smallestPixelValueInSeries: aSSValue [
 
 	generalSeriesIOM isNil ifTrue: [
 		generalSeriesIOM := GeneralSeriesIOM new.
@@ -2426,7 +3611,7 @@ RawData_IOD >> smallestPixelValueInSeries: aSSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> softwareVersions [
+MultiframeTrueColorSC_IOD >> softwareVersions [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2438,7 +3623,7 @@ RawData_IOD >> softwareVersions [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> softwareVersions: aLOValue [
+MultiframeTrueColorSC_IOD >> softwareVersions: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2451,7 +3636,7 @@ RawData_IOD >> softwareVersions: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationComment [
+MultiframeTrueColorSC_IOD >> sopAuthorizationComment [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2463,7 +3648,7 @@ RawData_IOD >> sopAuthorizationComment [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationComment: aLTValue [
+MultiframeTrueColorSC_IOD >> sopAuthorizationComment: aLTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2476,7 +3661,7 @@ RawData_IOD >> sopAuthorizationComment: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationDateAndTime [
+MultiframeTrueColorSC_IOD >> sopAuthorizationDateAndTime [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2488,7 +3673,7 @@ RawData_IOD >> sopAuthorizationDateAndTime [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationDateAndTime: aDTValue [
+MultiframeTrueColorSC_IOD >> sopAuthorizationDateAndTime: aDTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2501,7 +3686,7 @@ RawData_IOD >> sopAuthorizationDateAndTime: aDTValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopClassUID [
+MultiframeTrueColorSC_IOD >> sopClassUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2513,7 +3698,7 @@ RawData_IOD >> sopClassUID [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopClassUID: aUIValue [
+MultiframeTrueColorSC_IOD >> sopClassUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2526,13 +3711,13 @@ RawData_IOD >> sopClassUID: aUIValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> sopCommonIOM [
+MultiframeTrueColorSC_IOD >> sopCommonIOM [
 
 	^sopCommonIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> sopCommonIOM: aSOPCommonIOM [
+MultiframeTrueColorSC_IOD >> sopCommonIOM: aSOPCommonIOM [
 
 	sopCommonIOM := aSOPCommonIOM.
 	sopCommonIOM encoder: self encoder.
@@ -2553,7 +3738,7 @@ RawData_IOD >> sopCommonIOM: aSOPCommonIOM [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceStatus [
+MultiframeTrueColorSC_IOD >> sopInstanceStatus [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2565,7 +3750,7 @@ RawData_IOD >> sopInstanceStatus [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceStatus: aCSValue [
+MultiframeTrueColorSC_IOD >> sopInstanceStatus: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2578,7 +3763,7 @@ RawData_IOD >> sopInstanceStatus: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceUID [
+MultiframeTrueColorSC_IOD >> sopInstanceUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2590,7 +3775,7 @@ RawData_IOD >> sopInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> sopInstanceUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2603,7 +3788,32 @@ RawData_IOD >> sopInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> spatialResolution [
+MultiframeTrueColorSC_IOD >> sourceImageSequence [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^generalImageIOM sourceImageSequence
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> sourceImageSequence: aSQValue [
+
+	generalImageIOM isNil ifTrue: [
+		generalImageIOM := GeneralImageIOM new.
+		generalImageIOM dataElementsDictionary: self dataElementsDictionary.
+		generalImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	generalImageIOM sourceImageSequence: aSQValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> spatialResolution [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2615,7 +3825,7 @@ RawData_IOD >> spatialResolution [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> spatialResolution: aDSValue [
+MultiframeTrueColorSC_IOD >> spatialResolution: aDSValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2628,7 +3838,7 @@ RawData_IOD >> spatialResolution: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> specificCharacterSet [
+MultiframeTrueColorSC_IOD >> specificCharacterSet [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2640,7 +3850,7 @@ RawData_IOD >> specificCharacterSet [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> specificCharacterSet: aCSValue [
+MultiframeTrueColorSC_IOD >> specificCharacterSet: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2653,7 +3863,7 @@ RawData_IOD >> specificCharacterSet: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> stationName [
+MultiframeTrueColorSC_IOD >> stationName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2665,7 +3875,7 @@ RawData_IOD >> stationName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> stationName: aSHValue [
+MultiframeTrueColorSC_IOD >> stationName: aSHValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2678,7 +3888,7 @@ RawData_IOD >> stationName: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDate [
+MultiframeTrueColorSC_IOD >> studyDate [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2690,7 +3900,7 @@ RawData_IOD >> studyDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDate: aDAValue [
+MultiframeTrueColorSC_IOD >> studyDate: aDAValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2703,7 +3913,7 @@ RawData_IOD >> studyDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDescription [
+MultiframeTrueColorSC_IOD >> studyDescription [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2715,7 +3925,7 @@ RawData_IOD >> studyDescription [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDescription: aLOValue [
+MultiframeTrueColorSC_IOD >> studyDescription: aLOValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2728,7 +3938,7 @@ RawData_IOD >> studyDescription: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyID [
+MultiframeTrueColorSC_IOD >> studyID [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2740,7 +3950,7 @@ RawData_IOD >> studyID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyID: aSHValue [
+MultiframeTrueColorSC_IOD >> studyID: aSHValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2753,7 +3963,7 @@ RawData_IOD >> studyID: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyInstanceUID [
+MultiframeTrueColorSC_IOD >> studyInstanceUID [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2765,7 +3975,7 @@ RawData_IOD >> studyInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyInstanceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> studyInstanceUID: aUIValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2778,7 +3988,7 @@ RawData_IOD >> studyInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyTime [
+MultiframeTrueColorSC_IOD >> studyTime [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2790,7 +4000,7 @@ RawData_IOD >> studyTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyTime: aTMValue [
+MultiframeTrueColorSC_IOD >> studyTime: aTMValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2803,7 +4013,7 @@ RawData_IOD >> studyTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationChannel [
+MultiframeTrueColorSC_IOD >> synchronizationChannel [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2815,7 +4025,7 @@ RawData_IOD >> synchronizationChannel [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationChannel: aUSValue [
+MultiframeTrueColorSC_IOD >> synchronizationChannel: aUSValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2828,7 +4038,7 @@ RawData_IOD >> synchronizationChannel: aUSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationFrameOfReferenceUID [
+MultiframeTrueColorSC_IOD >> synchronizationFrameOfReferenceUID [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2840,7 +4050,7 @@ RawData_IOD >> synchronizationFrameOfReferenceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationFrameOfReferenceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> synchronizationFrameOfReferenceUID: aUIValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2853,7 +4063,7 @@ RawData_IOD >> synchronizationFrameOfReferenceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> synchronizationFrameofReferenceUID [
+MultiframeTrueColorSC_IOD >> synchronizationFrameofReferenceUID [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2865,7 +4075,7 @@ RawData_IOD >> synchronizationFrameofReferenceUID [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> synchronizationFrameofReferenceUID: aUIValue [
+MultiframeTrueColorSC_IOD >> synchronizationFrameofReferenceUID: aUIValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2878,13 +4088,13 @@ RawData_IOD >> synchronizationFrameofReferenceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> synchronizationIOM [
+MultiframeTrueColorSC_IOD >> synchronizationIOM [
 
 	^synchronizationIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> synchronizationIOM: aSynchronizationIOM [
+MultiframeTrueColorSC_IOD >> synchronizationIOM: aSynchronizationIOM [
 
 	synchronizationIOM := aSynchronizationIOM.
 	synchronizationIOM encoder: self encoder.
@@ -2905,7 +4115,7 @@ RawData_IOD >> synchronizationIOM: aSynchronizationIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationTrigger [
+MultiframeTrueColorSC_IOD >> synchronizationTrigger [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2917,7 +4127,7 @@ RawData_IOD >> synchronizationTrigger [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationTrigger: aCSValue [
+MultiframeTrueColorSC_IOD >> synchronizationTrigger: aCSValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2930,7 +4140,7 @@ RawData_IOD >> synchronizationTrigger: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeDistributionProtocol [
+MultiframeTrueColorSC_IOD >> timeDistributionProtocol [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2942,7 +4152,7 @@ RawData_IOD >> timeDistributionProtocol [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeDistributionProtocol: aCSValue [
+MultiframeTrueColorSC_IOD >> timeDistributionProtocol: aCSValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2955,7 +4165,7 @@ RawData_IOD >> timeDistributionProtocol: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeOfLastCalibration [
+MultiframeTrueColorSC_IOD >> timeOfLastCalibration [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2967,7 +4177,7 @@ RawData_IOD >> timeOfLastCalibration [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeOfLastCalibration: aTMValue [
+MultiframeTrueColorSC_IOD >> timeOfLastCalibration: aTMValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2980,7 +4190,32 @@ RawData_IOD >> timeOfLastCalibration: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeSource [
+MultiframeTrueColorSC_IOD >> timeOfSecondaryCapture [
+
+	scImageIOM isNil ifTrue: [
+		scImageIOM := SCImageIOM new.
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+		scImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scImageIOM timeOfSecondaryCapture
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> timeOfSecondaryCapture: aTMValue [
+
+	scImageIOM isNil ifTrue: [
+		scImageIOM := SCImageIOM new.
+		scImageIOM dataElementsDictionary: self dataElementsDictionary.
+		scImageIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scImageIOM timeOfSecondaryCapture: aTMValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> timeSource [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -2992,7 +4227,7 @@ RawData_IOD >> timeSource [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeSource: aSHValue [
+MultiframeTrueColorSC_IOD >> timeSource: aSHValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -3005,7 +4240,7 @@ RawData_IOD >> timeSource: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timezoneOffsetFromUTC [
+MultiframeTrueColorSC_IOD >> timezoneOffsetFromUTC [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -3017,7 +4252,7 @@ RawData_IOD >> timezoneOffsetFromUTC [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timezoneOffsetFromUTC: aSHValue [
+MultiframeTrueColorSC_IOD >> timezoneOffsetFromUTC: aSHValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -3030,7 +4265,7 @@ RawData_IOD >> timezoneOffsetFromUTC: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> triggerSourceOrType [
+MultiframeTrueColorSC_IOD >> triggerSourceOrType [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -3042,7 +4277,7 @@ RawData_IOD >> triggerSourceOrType [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> triggerSourceOrType: aLOValue [
+MultiframeTrueColorSC_IOD >> triggerSourceOrType: aLOValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -3055,7 +4290,7 @@ RawData_IOD >> triggerSourceOrType: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> triggerSourceorType [
+MultiframeTrueColorSC_IOD >> triggerSourceorType [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -3067,7 +4302,7 @@ RawData_IOD >> triggerSourceorType [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> triggerSourceorType: aLOValue [
+MultiframeTrueColorSC_IOD >> triggerSourceorType: aLOValue [
 
 	synchronizationIOM isNil ifTrue: [
 		synchronizationIOM := SynchronizationIOM new.
@@ -3076,5 +4311,30 @@ RawData_IOD >> triggerSourceorType: aLOValue [
 	].
 
 	synchronizationIOM triggerSourceOrType: aLOValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> videoImageFormatAcquired [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^scEquipmentIOM videoImageFormatAcquired
+]
+
+{ #category : #'accessing IOM data elements' }
+MultiframeTrueColorSC_IOD >> videoImageFormatAcquired: aSHValue [
+
+	scEquipmentIOM isNil ifTrue: [
+		scEquipmentIOM := SCEquipmentIOM new.
+		scEquipmentIOM dataElementsDictionary: self dataElementsDictionary.
+		scEquipmentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	scEquipmentIOM videoImageFormatAcquired: aSHValue
 
 ]

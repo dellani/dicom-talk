@@ -56,8 +56,7 @@ SC_IOD class >> SOPClassUID [
 
 { #category : #'class initialization' }
 SC_IOD class >> initialize [
-
-	super initialize.
+	super initialize
 ]
 
 { #category : #comparing }

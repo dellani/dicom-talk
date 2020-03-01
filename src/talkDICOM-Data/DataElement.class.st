@@ -1,5 +1,5 @@
 "
-This class is an Abstract Class that represents a General DICOM Data Element.
+This class is a general abstraction of DICOM data element.
 
 Instance Variables:
 	groupNumber		<Integer>			16 bit Integer corresponting to the group number of the element
@@ -40,8 +40,7 @@ Class {
 		'type',
 		'dataBytes',
 		'length',
-		'encoder',
-		'dataElementLength'
+		'encoder'
 	],
 	#classInstVars : [
 		'badCharacters',
@@ -424,15 +423,6 @@ DataElement >> dataElementLength [
 ]
 
 { #category : #accessing }
-DataElement >> dataElementLength: aValue [
-	"Data Length of the message field in bytes
-
-	PRD 04-10.2001"
-
-	dataElementLength := aValue
-]
-
-{ #category : #accessing }
 DataElement >> description [
 	"Text description of the Message Field - PRD 04.2001"
 
@@ -551,6 +541,11 @@ DataElement >> isDicomDataElement [
 "
 
 	^ true
+]
+
+{ #category : #testing }
+DataElement >> isSequence [
+	^ false
 ]
 
 { #category : #testing }

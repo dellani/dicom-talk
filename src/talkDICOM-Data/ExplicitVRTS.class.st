@@ -23,6 +23,48 @@ ExplicitVRTS class >> bitpolisher [
 	^ self subclassResponsibility
 ]
 
+{ #category : #'blitz!' }
+ExplicitVRTS class >> blitzDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
+	"See comments on the super class method implementation
+
+	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017"
+
+	| elementTag dataElementDefinition valueRepresentation |
+	elementTag := self readDicomDataElementTag: pdvStream.
+	elementTag isPixelData ifTrue: [ 	pdvStream position: pdvStream position - 4. 
+ ].
+
+	"Store the VR encoded in pdvStream to decode data elements unknown to this implementation"
+	valueRepresentation := (pdvStream next: 2) asString asByteString.
+	dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: valueRepresentation.
+	"This should not happen, but just in case, use the VR encoded in the pdv stream if it is other than UN.
+	If the VR encoded in the PDV stream is UN, first try to decode the data element using the information
+	from the data elements directory."
+	^ dataElementDefinition vr = valueRepresentation
+		ifFalse: [ valueRepresentation = 'UN'
+				ifTrue: [ [ self decodeKnownTagFromUnknownDataElementDefinition: dataElementDefinition pdvstream: pdvStream transferSyntax: self ]
+						on: DataElementEncodingError
+						do: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
+								tag: elementTag;
+								name: dataElementDefinition name;
+								vm: '1';
+								description:
+									'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
+										, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
+								yourself.
+							dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
+				ifFalse: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
+						tag: elementTag;
+						name: dataElementDefinition name;
+						vm: '1';
+						description:
+							'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
+								, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
+						yourself.
+					dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
+		ifTrue: [ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ]
+]
+
 { #category : #'encoding requirements' }
 ExplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 
@@ -37,6 +79,9 @@ ExplicitVRTS class >> dataElementFrom: pdvStream dataElementsDefinition: dataEle
 
 	| elementTag dataElementDefinition valueRepresentation |
 	elementTag := self readDicomDataElementTag: pdvStream.
+
+	"elementTag hash = 16r2005143A ifTrue: [ self halt ]."
+	"elementTag hash = 16r20051490 ifTrue: [ self halt ]."
 
 	"Store the VR encoded in pdvStream to decode data elements unknown to this implementation"
 	valueRepresentation := (pdvStream next: 2) asString asByteString.
@@ -234,7 +279,7 @@ ExplicitVRTS class >> dicomUIDataElementFrom: pdvStream definition: dataElementD
 
 { #category : #'data elements' }
 ExplicitVRTS class >> dicomUNDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement sqDataElementDefinition |
+	| length newDataElement sqDataElementDefinition value |
 	newDataElement := dataElementDefinition copy.
 	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
 	length := self get32BitUnsignedValueFromByteStream: pdvStream.
@@ -256,7 +301,18 @@ ExplicitVRTS class >> dicomUNDataElementFrom: pdvStream definition: dataElementD
 				yourself.
 			pdvStream position: pdvStream position - 4.
 			newDataElement := LittleEndianImplicitVRTS dicomSQDataElementFrom: pdvStream definition: sqDataElementDefinition.
-			newDataElement encoder: LittleEndianImplicitVRTS]
+			"newDataElement encoder: LittleEndianImplicitVRTS"
+
+			value := newDataElement value.
+			newDataElement := SQDataElement new
+				tag: dataElementDefinition tag;
+				name: (self privateDataElementNameFrom: dataElementDefinition tag vr: 'SQ') asSymbol;
+				vm: dataElementDefinition vm;
+				description: dataElementDefinition description;
+				type: dataElementDefinition type;
+				yourself.
+			newDataElement encoder: self.
+			newDataElement value: value	]
 		ifFalse: [ "In the case of a complete unknown data-set being decoded, 
 			check if the read lenght is really valid"
 			length + 12 > pdvStream size

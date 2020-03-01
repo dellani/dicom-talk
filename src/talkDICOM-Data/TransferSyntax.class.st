@@ -24,6 +24,19 @@ TransferSyntax class >> bitpolisher [
 	^ self subclassResponsibility
 ]
 
+{ #category : #'blitz!' }
+TransferSyntax class >> blitzDataElementFrom: dicomPDVStream dataElementsDefinition: dataElementsDefinition [
+	"Parse the given byte stream and decode an DICOM data element from. If the 
+	data element to be decoded is not present in the data elements definition dictionary, 
+	then decode it as of the unknown type. Return an instance of one of the 
+	DataElement subclasses corresponding to the decoded DICOM data element. 
+	PS 3.5-2000 Section 7
+
+	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016"
+
+	^self subclassResponsibility
+]
+
 { #category : #'byte/value handling' }
 TransferSyntax class >> byteArrayFromString: aString [
 	"Return a ByteArray containing the aString byte representation - PRD 02-11.2001

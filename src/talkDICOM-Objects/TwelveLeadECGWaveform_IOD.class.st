@@ -54,8 +54,7 @@ TwelveLeadECGWaveform_IOD class >> SOPClassUID [
 
 { #category : #'class initialization' }
 TwelveLeadECGWaveform_IOD class >> initialize [
-
-	super initialize.
+	super initialize
 ]
 
 { #category : #comparing }

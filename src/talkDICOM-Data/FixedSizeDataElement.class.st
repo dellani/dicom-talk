@@ -97,20 +97,22 @@ FixedSizeDataElement >> printValueOn: aStream [
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> raiseElementSizeError [
 	| errorMessage |
-	errorMessage := WriteStream on: String new.
-	errorMessage nextPutAll: 'Type ', self type, ' Data element ', (self name notNil ifTrue: [self name] ifFalse: ['unknown']), ' #['.
-	self groupNumber notNil ifTrue: [self groupNumber printOn: errorMessage base: 16] ifFalse: [errorMessage nextPutAll: 'unknown'].
-	errorMessage nextPutAll: ', '.
-	self elementNumber notNil ifTrue: [self elementNumber printOn: errorMessage base: 16] ifFalse: [errorMessage nextPutAll: 'unknown'].
-	errorMessage nextPutAll: '] has less data bytes then its element byte size and could not be decoded'.
+
+	errorMessage	 := String new: 10 streamContents: [ :writeStream |
+		writeStream 
+			nextPutAll: 'Fixed size, type ';
+			nextPutAll: self type;
+			nextPutAll: ' data element ''';
+			nextPutAll: (self name notNil ifTrue: [self name] ifFalse: ['unknown']), ''' ';
+			nextPutAll: self tag printString;
+			nextPutAll: ' has less data bytes than its single value byte size. It will not be decoded'.
+	].
 
 	^self type ~= '3' ifTrue: [
-		DataElementEncodingError signalWithDataElement: self.
-		"Error raiseSignal: errorMessage contents"
-	] ifFalse: [
+		DataElementEncodingError signalWithDataElement: self message: errorMessage]
+	ifFalse: [
 		Transcript show: errorMessage contents; cr.
-		nil
-	].
+		nil	]
 ]
 
 { #category : #'field value storing' }
@@ -130,7 +132,9 @@ FixedSizeDataElement >> value [
 
 	| orderedCollection |
 	^ self dataBytes notEmpty
-		ifTrue: [ self dataBytes size >= self byteSize
+		ifTrue: [
+			"Transcript show: self name printString, ', data bytes size = ', self dataBytes size printString."
+			self dataBytes size >= self byteSize
 				ifTrue: [ orderedCollection := self decodeValue.
 					orderedCollection size = 1
 						ifTrue: [ orderedCollection at: 1 ]

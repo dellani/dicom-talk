@@ -1,27 +1,25 @@
 Class {
-	#name : #'RawData_IOD',
+	#name : #'KeyObjectSelectionDocument_IOD',
 	#superclass : #DicomIOD,
 	#instVars : [
 		'patientIOM',
 		'generalStudyIOM',
 		'patientStudyIOM',
-		'generalSeriesIOM',
-		'frameOfReferenceIOM',
-		'synchronizationIOM',
 		'generalEquipmentIOM',
-		'acquisitionContextIOM',
+		'srDocumentContentIOM',
 		'sopCommonIOM'
 	],
 	#category : #'talkDICOM-Objects'
 }
 
 { #category : #accessing }
-RawData_IOD class >> DicomIODName [
-	^ 'Raw Data IOD'
+KeyObjectSelectionDocument_IOD class >> DicomIODName [
+
+	^'KO IOD'
 ]
 
 { #category : #accessing }
-RawData_IOD class >> InformationObjectModules [
+KeyObjectSelectionDocument_IOD class >> InformationObjectModules [
 
 	^InformationObjectModules
 		ifNil: 
@@ -29,72 +27,63 @@ RawData_IOD class >> InformationObjectModules [
 			InformationObjectModules
 				"Patient IE"
 				add: PatientIOM initialize;
-				"add: ClinicalTrialSubjectIOM initialize;"
 
 				"Study IE"
 				add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
-				"add: ClinicalTrialStudyIOM initialize;"
 
 				"Series IE"
-				add: GeneralSeriesIOM initialize;
-				"add: ClinicalTrialSeriesIOM initialize;"
-
-				"Frame of Reference IE"
-				add: FrameOfReferenceIOM initialize;
-				add: SynchronizationIOM initialize;
 
 				"Equipment IE"
 				add: GeneralEquipmentIOM initialize;
 
-				"Image IE"
-				add: AcquisitionContextIOM initialize;
-				"add: SpecimenIOM initialize;"
-				"add: RawDataIOM initialize;"
+				"Document"
+				add: SRDocumentContentIOM initialize;
 				add: SOPCommonIOM initialize;
+
 				yourself]
 ]
 
-{ #category : #'class initialization' }
-RawData_IOD class >> SOPClassUID [
-	^ '1.2.840.10008.5.1.4.1.1.66'
+{ #category : #accessing }
+KeyObjectSelectionDocument_IOD class >> SOPClassUID [
+
+	^'1.2.840.10008.5.1.4.1.1.88.59'
 ]
 
-{ #category : #'class initialization' }
-RawData_IOD class >> initialize [
-	super initialize
+{ #category : #initialization }
+KeyObjectSelectionDocument_IOD class >> initialize [
+
+	InformationObjectModules := nil.
+	super initialize.
 ]
 
-{ #category : #comparing }
-RawData_IOD >> < dicomIOD [
-	"PRD - March 05th, 2004"
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+KeyObjectSelectionDocument_IOD >> UID [
 
-	^self instanceNumber asNumber < dicomIOD instanceNumber asNumber
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM uID
 ]
 
-{ #category : #comparing }
-RawData_IOD >> <= dicomIOD [
-	"PRD - March 05th, 2004"
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+KeyObjectSelectionDocument_IOD >> UID: aUIValue [
 
-	^self instanceNumber asNumber <= dicomIOD instanceNumber asNumber
-]
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
 
-{ #category : #comparing }
-RawData_IOD >> > dicomIOD [
-	"PRD - March 05th, 2004"
+	srDocumentContentIOM uID: aUIValue
 
-	^self instanceNumber asNumber > dicomIOD instanceNumber asNumber
-]
-
-{ #category : #comparing }
-RawData_IOD >> >= dicomIOD [
-	"PRD - March 05th, 2004"
-
-	^self instanceNumber asNumber >= dicomIOD instanceNumber asNumber
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> accessionNumber [
+KeyObjectSelectionDocument_IOD >> accessionNumber [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -106,7 +95,7 @@ RawData_IOD >> accessionNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> accessionNumber: aSHValue [
+KeyObjectSelectionDocument_IOD >> accessionNumber: aSHValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -119,109 +108,7 @@ RawData_IOD >> accessionNumber: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextDescription [
-
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^acquisitionContextIOM acquisitionContextDescription
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextDescription: aLTValue [
-
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
-	].
-
-	acquisitionContextIOM acquisitionContextDescription: aLTValue
-
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> acquisitionContextIOM [
-
-	^acquisitionContextIOM
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> acquisitionContextIOM: aAcquisitionContextIOM [
-
-	acquisitionContextIOM := aAcquisitionContextIOM.
-	acquisitionContextIOM encoder: self encoder.
-
-	acquisitionContextIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
-		acquisitionContextIOM dataElementsDictionary keysAndValuesDo: [:key :value |
-			self dataElementsDictionary at: key put: value].
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-	].
-
-	acquisitionContextIOM dataElementsValues == self dataElementsValues ifFalse: [
-		acquisitionContextIOM dataElementsValues keysAndValuesDo: [:key :value |
-			self dataElementsValues at: key put: value].
-		acquisitionContextIOM dataElementsValues: self dataElementsValues
-	].
-
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextSequence [
-
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^acquisitionContextIOM acquisitionContextSequence
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionContextSequence: aSQValue [
-
-	acquisitionContextIOM isNil ifTrue: [
-		acquisitionContextIOM := AcquisitionContextIOM new.
-		acquisitionContextIOM dataElementsDictionary: self dataElementsDictionary.
-		acquisitionContextIOM dataElementsValues: self dataElementsValues.
-	].
-
-	acquisitionContextIOM acquisitionContextSequence: aSQValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionTimeSynchronized [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^synchronizationIOM acquisitionTimeSynchronized
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> acquisitionTimeSynchronized: aCSValue [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	synchronizationIOM acquisitionTimeSynchronized: aCSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> additionalPatientHistory [
+KeyObjectSelectionDocument_IOD >> additionalPatientHistory [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -233,7 +120,7 @@ RawData_IOD >> additionalPatientHistory [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> additionalPatientHistory: aLTValue [
+KeyObjectSelectionDocument_IOD >> additionalPatientHistory: aLTValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -246,7 +133,7 @@ RawData_IOD >> additionalPatientHistory: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> additionalPatientsHistory [
+KeyObjectSelectionDocument_IOD >> additionalPatientsHistory [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -258,7 +145,7 @@ RawData_IOD >> additionalPatientsHistory [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> additionalPatientsHistory: aLTValue [
+KeyObjectSelectionDocument_IOD >> additionalPatientsHistory: aLTValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -271,7 +158,7 @@ RawData_IOD >> additionalPatientsHistory: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> admittingDiagnosesDescription [
+KeyObjectSelectionDocument_IOD >> admittingDiagnosesDescription [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -283,7 +170,7 @@ RawData_IOD >> admittingDiagnosesDescription [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> admittingDiagnosesDescription: aLOValue [
+KeyObjectSelectionDocument_IOD >> admittingDiagnosesDescription: aLOValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -295,33 +182,8 @@ RawData_IOD >> admittingDiagnosesDescription: aLOValue [
 
 ]
 
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> aquisitionTimeSynchronized [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^synchronizationIOM acquisitionTimeSynchronized
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> aquisitionTimeSynchronized: aCSValue [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	synchronizationIOM acquisitionTimeSynchronized: aCSValue
-
-]
-
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> authorizationEquipmentCertificationNumber [
+KeyObjectSelectionDocument_IOD >> authorizationEquipmentCertificationNumber [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -333,7 +195,7 @@ RawData_IOD >> authorizationEquipmentCertificationNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> authorizationEquipmentCertificationNumber: aLOValue [
+KeyObjectSelectionDocument_IOD >> authorizationEquipmentCertificationNumber: aLOValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -346,32 +208,157 @@ RawData_IOD >> authorizationEquipmentCertificationNumber: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> bodyPartExamined [
+KeyObjectSelectionDocument_IOD >> conceptCodeSequence [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^generalSeriesIOM bodyPartExamined
+	^srDocumentContentIOM conceptCodeSequence
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> bodyPartExamined: aCSValue [
+KeyObjectSelectionDocument_IOD >> conceptCodeSequence: aSQValue [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	generalSeriesIOM bodyPartExamined: aCSValue
+	srDocumentContentIOM conceptCodeSequence: aSQValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> dateOfLastCalibration [
+KeyObjectSelectionDocument_IOD >> conceptNameCodeSequence [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM conceptNameCodeSequence
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> conceptNameCodeSequence: aSQValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM conceptNameCodeSequence: aSQValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> contentSequence [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM contentSequence
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> contentSequence: aSQValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM contentSequence: aSQValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> contentTemplateSequence [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM contentTemplateSequence
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> contentTemplateSequence: aSQValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM contentTemplateSequence: aSQValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> continuityOfContent [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM continuityOfContent
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> continuityOfContent: aCSValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM continuityOfContent: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> date [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM date
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> date: aDAValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM date: aDAValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> dateOfLastCalibration [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -383,7 +370,7 @@ RawData_IOD >> dateOfLastCalibration [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> dateOfLastCalibration: aDAValue [
+KeyObjectSelectionDocument_IOD >> dateOfLastCalibration: aDAValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -396,7 +383,32 @@ RawData_IOD >> dateOfLastCalibration: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> deviceSerialNumber [
+KeyObjectSelectionDocument_IOD >> dateTime [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM dateTime
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> dateTime: aDTValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM dateTime: aDTValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> deviceSerialNumber [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -408,7 +420,7 @@ RawData_IOD >> deviceSerialNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> deviceSerialNumber: aLOValue [
+KeyObjectSelectionDocument_IOD >> deviceSerialNumber: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -421,7 +433,7 @@ RawData_IOD >> deviceSerialNumber: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> ethnicGroup [
+KeyObjectSelectionDocument_IOD >> ethnicGroup [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -433,7 +445,7 @@ RawData_IOD >> ethnicGroup [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> ethnicGroup: aSHValue [
+KeyObjectSelectionDocument_IOD >> ethnicGroup: aSHValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -446,7 +458,7 @@ RawData_IOD >> ethnicGroup: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> ethnnicGroup [
+KeyObjectSelectionDocument_IOD >> ethnnicGroup [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -458,7 +470,7 @@ RawData_IOD >> ethnnicGroup [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> ethnnicGroup: aSHValue [
+KeyObjectSelectionDocument_IOD >> ethnnicGroup: aSHValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -471,65 +483,13 @@ RawData_IOD >> ethnnicGroup: aSHValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> frameOfReferenceIOM [
-
-	^frameOfReferenceIOM
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> frameOfReferenceIOM: aFrameOfReferenceIOM [
-
-	frameOfReferenceIOM := aFrameOfReferenceIOM.
-	frameOfReferenceIOM encoder: self encoder.
-
-	frameOfReferenceIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
-		frameOfReferenceIOM dataElementsDictionary keysAndValuesDo: [:key :value |
-			self dataElementsDictionary at: key put: value].
-		frameOfReferenceIOM dataElementsDictionary: self dataElementsDictionary.
-	].
-
-	frameOfReferenceIOM dataElementsValues == self dataElementsValues ifFalse: [
-		frameOfReferenceIOM dataElementsValues keysAndValuesDo: [:key :value |
-			self dataElementsValues at: key put: value].
-		frameOfReferenceIOM dataElementsValues: self dataElementsValues
-	].
-
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> frameOfReferenceUID [
-
-	frameOfReferenceIOM isNil ifTrue: [
-		frameOfReferenceIOM := FrameOfReferenceIOM new.
-		frameOfReferenceIOM dataElementsDictionary: self dataElementsDictionary.
-		frameOfReferenceIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^frameOfReferenceIOM frameOfReferenceUID
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> frameOfReferenceUID: aUIValue [
-
-	frameOfReferenceIOM isNil ifTrue: [
-		frameOfReferenceIOM := FrameOfReferenceIOM new.
-		frameOfReferenceIOM dataElementsDictionary: self dataElementsDictionary.
-		frameOfReferenceIOM dataElementsValues: self dataElementsValues.
-	].
-
-	frameOfReferenceIOM frameOfReferenceUID: aUIValue
-
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> generalEquipmentIOM [
+KeyObjectSelectionDocument_IOD >> generalEquipmentIOM [
 
 	^generalEquipmentIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalEquipmentIOM: aGeneralEquipmentIOM [
+KeyObjectSelectionDocument_IOD >> generalEquipmentIOM: aGeneralEquipmentIOM [
 
 	generalEquipmentIOM := aGeneralEquipmentIOM.
 	generalEquipmentIOM encoder: self encoder.
@@ -550,40 +510,13 @@ RawData_IOD >> generalEquipmentIOM: aGeneralEquipmentIOM [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalSeriesIOM [
-
-	^generalSeriesIOM
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> generalSeriesIOM: aGeneralSeriesIOM [
-
-	generalSeriesIOM := aGeneralSeriesIOM.
-	generalSeriesIOM encoder: self encoder.
-
-	generalSeriesIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
-		generalSeriesIOM dataElementsDictionary keysAndValuesDo: [:key :value |
-			self dataElementsDictionary at: key put: value].
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-	].
-
-	generalSeriesIOM dataElementsValues == self dataElementsValues ifFalse: [
-		generalSeriesIOM dataElementsValues keysAndValuesDo: [:key :value |
-			self dataElementsValues at: key put: value].
-		generalSeriesIOM dataElementsValues: self dataElementsValues
-	].
-
-
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> generalStudyIOM [
+KeyObjectSelectionDocument_IOD >> generalStudyIOM [
 
 	^generalStudyIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> generalStudyIOM: aGeneralStudyIOM [
+KeyObjectSelectionDocument_IOD >> generalStudyIOM: aGeneralStudyIOM [
 
 	generalStudyIOM := aGeneralStudyIOM.
 	generalStudyIOM encoder: self encoder.
@@ -604,7 +537,57 @@ RawData_IOD >> generalStudyIOM: aGeneralStudyIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceAvailability [
+KeyObjectSelectionDocument_IOD >> graphicData [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM graphicData
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> graphicData: aFLValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM graphicData: aFLValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> graphicType [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM graphicType
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> graphicType: aCSValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM graphicType: aCSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> instanceAvailability [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -616,7 +599,7 @@ RawData_IOD >> instanceAvailability [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceAvailability: aCSValue [
+KeyObjectSelectionDocument_IOD >> instanceAvailability: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -629,7 +612,7 @@ RawData_IOD >> instanceAvailability: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationDate [
+KeyObjectSelectionDocument_IOD >> instanceCreationDate [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -641,7 +624,7 @@ RawData_IOD >> instanceCreationDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationDate: aDAValue [
+KeyObjectSelectionDocument_IOD >> instanceCreationDate: aDAValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -654,7 +637,7 @@ RawData_IOD >> instanceCreationDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationTime [
+KeyObjectSelectionDocument_IOD >> instanceCreationTime [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -666,7 +649,7 @@ RawData_IOD >> instanceCreationTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreationTime: aTMValue [
+KeyObjectSelectionDocument_IOD >> instanceCreationTime: aTMValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -679,7 +662,7 @@ RawData_IOD >> instanceCreationTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreatorUID [
+KeyObjectSelectionDocument_IOD >> instanceCreatorUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -691,7 +674,7 @@ RawData_IOD >> instanceCreatorUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceCreatorUID: aUIValue [
+KeyObjectSelectionDocument_IOD >> instanceCreatorUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -704,7 +687,7 @@ RawData_IOD >> instanceCreatorUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceNumber [
+KeyObjectSelectionDocument_IOD >> instanceNumber [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -716,7 +699,7 @@ RawData_IOD >> instanceNumber [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> instanceNumber: aISValue [
+KeyObjectSelectionDocument_IOD >> instanceNumber: aISValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -729,7 +712,7 @@ RawData_IOD >> instanceNumber: aISValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionAddress [
+KeyObjectSelectionDocument_IOD >> institutionAddress [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -741,7 +724,7 @@ RawData_IOD >> institutionAddress [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionAddress: aSTValue [
+KeyObjectSelectionDocument_IOD >> institutionAddress: aSTValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -754,7 +737,7 @@ RawData_IOD >> institutionAddress: aSTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionName [
+KeyObjectSelectionDocument_IOD >> institutionName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -766,7 +749,7 @@ RawData_IOD >> institutionName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionName: aLOValue [
+KeyObjectSelectionDocument_IOD >> institutionName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -779,7 +762,7 @@ RawData_IOD >> institutionName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionalDepartmentName [
+KeyObjectSelectionDocument_IOD >> institutionalDepartmentName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -791,7 +774,7 @@ RawData_IOD >> institutionalDepartmentName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> institutionalDepartmentName: aLOValue [
+KeyObjectSelectionDocument_IOD >> institutionalDepartmentName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -804,57 +787,7 @@ RawData_IOD >> institutionalDepartmentName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> largestPixelValueInSeries [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM largestPixelValueInSeries
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> largestPixelValueInSeries: aSSValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM largestPixelValueInSeries: aSSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> laterality [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM laterality
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> laterality: aCSValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM laterality: aCSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturer [
+KeyObjectSelectionDocument_IOD >> manufacturer [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -866,7 +799,7 @@ RawData_IOD >> manufacturer [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturer: aLOValue [
+KeyObjectSelectionDocument_IOD >> manufacturer: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -879,7 +812,7 @@ RawData_IOD >> manufacturer: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturerModelName [
+KeyObjectSelectionDocument_IOD >> manufacturerModelName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -891,7 +824,7 @@ RawData_IOD >> manufacturerModelName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> manufacturerModelName: aLOValue [
+KeyObjectSelectionDocument_IOD >> manufacturerModelName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -904,7 +837,7 @@ RawData_IOD >> manufacturerModelName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> manufacturersModelName [
+KeyObjectSelectionDocument_IOD >> manufacturersModelName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -916,7 +849,7 @@ RawData_IOD >> manufacturersModelName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> manufacturersModelName: aLOValue [
+KeyObjectSelectionDocument_IOD >> manufacturersModelName: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -929,32 +862,32 @@ RawData_IOD >> manufacturersModelName: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> modality [
+KeyObjectSelectionDocument_IOD >> measuredValueSequence [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^generalSeriesIOM modality
+	^srDocumentContentIOM measuredValueSequence
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> modality: aCSValue [
+KeyObjectSelectionDocument_IOD >> measuredValueSequence: aSQValue [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	generalSeriesIOM modality: aCSValue
+	srDocumentContentIOM measuredValueSequence: aSQValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> nameOfPhysiciansReadingStudy [
+KeyObjectSelectionDocument_IOD >> nameOfPhysiciansReadingStudy [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -966,7 +899,7 @@ RawData_IOD >> nameOfPhysiciansReadingStudy [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> nameOfPhysiciansReadingStudy: aPNValue [
+KeyObjectSelectionDocument_IOD >> nameOfPhysiciansReadingStudy: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -979,32 +912,32 @@ RawData_IOD >> nameOfPhysiciansReadingStudy: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> numberOfSeriesRelatedInstances [
+KeyObjectSelectionDocument_IOD >> observationDateTime [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^generalSeriesIOM numberOfSeriesRelatedInstances
+	^srDocumentContentIOM observationDateTime
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> numberOfSeriesRelatedInstances: aISValue [
+KeyObjectSelectionDocument_IOD >> observationDateTime: aDTValue [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	generalSeriesIOM numberOfSeriesRelatedInstances: aISValue
+	srDocumentContentIOM observationDateTime: aDTValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> occupation [
+KeyObjectSelectionDocument_IOD >> occupation [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1016,7 +949,7 @@ RawData_IOD >> occupation [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> occupation: aSHValue [
+KeyObjectSelectionDocument_IOD >> occupation: aSHValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1029,32 +962,7 @@ RawData_IOD >> occupation: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> operatorsName [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM operatorsName
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> operatorsName: aPNValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM operatorsName: aPNValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> otherPatientNames [
+KeyObjectSelectionDocument_IOD >> otherPatientNames [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1066,7 +974,7 @@ RawData_IOD >> otherPatientNames [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> otherPatientNames: aPNValue [
+KeyObjectSelectionDocument_IOD >> otherPatientNames: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1079,7 +987,7 @@ RawData_IOD >> otherPatientNames: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsIDs [
+KeyObjectSelectionDocument_IOD >> otherPatientsIDs [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1091,7 +999,7 @@ RawData_IOD >> otherPatientsIDs [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsIDs: aLOValue [
+KeyObjectSelectionDocument_IOD >> otherPatientsIDs: aLOValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1104,7 +1012,7 @@ RawData_IOD >> otherPatientsIDs: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsNames [
+KeyObjectSelectionDocument_IOD >> otherPatientsNames [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1116,7 +1024,7 @@ RawData_IOD >> otherPatientsNames [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> otherPatientsNames: aPNValue [
+KeyObjectSelectionDocument_IOD >> otherPatientsNames: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1129,7 +1037,7 @@ RawData_IOD >> otherPatientsNames: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientAge [
+KeyObjectSelectionDocument_IOD >> patientAge [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1141,7 +1049,7 @@ RawData_IOD >> patientAge [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientAge: aASValue [
+KeyObjectSelectionDocument_IOD >> patientAge: aASValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1154,7 +1062,7 @@ RawData_IOD >> patientAge: aASValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthDate [
+KeyObjectSelectionDocument_IOD >> patientBirthDate [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1166,7 +1074,7 @@ RawData_IOD >> patientBirthDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthDate: aDAValue [
+KeyObjectSelectionDocument_IOD >> patientBirthDate: aDAValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1179,7 +1087,7 @@ RawData_IOD >> patientBirthDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthTime [
+KeyObjectSelectionDocument_IOD >> patientBirthTime [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1191,7 +1099,7 @@ RawData_IOD >> patientBirthTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientBirthTime: aTMValue [
+KeyObjectSelectionDocument_IOD >> patientBirthTime: aTMValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1204,7 +1112,7 @@ RawData_IOD >> patientBirthTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientComments [
+KeyObjectSelectionDocument_IOD >> patientComments [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1216,7 +1124,7 @@ RawData_IOD >> patientComments [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientComments: aLTValue [
+KeyObjectSelectionDocument_IOD >> patientComments: aLTValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1229,7 +1137,7 @@ RawData_IOD >> patientComments: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientID [
+KeyObjectSelectionDocument_IOD >> patientID [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1241,7 +1149,7 @@ RawData_IOD >> patientID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientID: aLOValue [
+KeyObjectSelectionDocument_IOD >> patientID: aLOValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1254,13 +1162,13 @@ RawData_IOD >> patientID: aLOValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientIOM [
+KeyObjectSelectionDocument_IOD >> patientIOM [
 
 	^patientIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientIOM: aPatientIOM [
+KeyObjectSelectionDocument_IOD >> patientIOM: aPatientIOM [
 
 	patientIOM := aPatientIOM.
 	patientIOM encoder: self encoder.
@@ -1281,7 +1189,7 @@ RawData_IOD >> patientIOM: aPatientIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientName [
+KeyObjectSelectionDocument_IOD >> patientName [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1293,7 +1201,7 @@ RawData_IOD >> patientName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientName: aPNValue [
+KeyObjectSelectionDocument_IOD >> patientName: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1306,32 +1214,7 @@ RawData_IOD >> patientName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientPosition [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM patientPosition
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> patientPosition: aCSValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM patientPosition: aCSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSex [
+KeyObjectSelectionDocument_IOD >> patientSex [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1343,7 +1226,7 @@ RawData_IOD >> patientSex [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSex: aCSValue [
+KeyObjectSelectionDocument_IOD >> patientSex: aCSValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1356,7 +1239,7 @@ RawData_IOD >> patientSex: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSize [
+KeyObjectSelectionDocument_IOD >> patientSize [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1368,7 +1251,7 @@ RawData_IOD >> patientSize [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientSize: aDSValue [
+KeyObjectSelectionDocument_IOD >> patientSize: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1381,13 +1264,13 @@ RawData_IOD >> patientSize: aDSValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientStudyIOM [
+KeyObjectSelectionDocument_IOD >> patientStudyIOM [
 
 	^patientStudyIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> patientStudyIOM: aPatientStudyIOM [
+KeyObjectSelectionDocument_IOD >> patientStudyIOM: aPatientStudyIOM [
 
 	patientStudyIOM := aPatientStudyIOM.
 	patientStudyIOM encoder: self encoder.
@@ -1408,7 +1291,7 @@ RawData_IOD >> patientStudyIOM: aPatientStudyIOM [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientWeight [
+KeyObjectSelectionDocument_IOD >> patientWeight [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1420,7 +1303,7 @@ RawData_IOD >> patientWeight [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> patientWeight: aDSValue [
+KeyObjectSelectionDocument_IOD >> patientWeight: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1433,7 +1316,7 @@ RawData_IOD >> patientWeight: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsAge [
+KeyObjectSelectionDocument_IOD >> patientsAge [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1445,7 +1328,7 @@ RawData_IOD >> patientsAge [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsAge: aASValue [
+KeyObjectSelectionDocument_IOD >> patientsAge: aASValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1458,7 +1341,7 @@ RawData_IOD >> patientsAge: aASValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthDate [
+KeyObjectSelectionDocument_IOD >> patientsBirthDate [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1470,7 +1353,7 @@ RawData_IOD >> patientsBirthDate [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthDate: aDAValue [
+KeyObjectSelectionDocument_IOD >> patientsBirthDate: aDAValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1483,7 +1366,7 @@ RawData_IOD >> patientsBirthDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthTime [
+KeyObjectSelectionDocument_IOD >> patientsBirthTime [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1495,7 +1378,7 @@ RawData_IOD >> patientsBirthTime [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsBirthTime: aTMValue [
+KeyObjectSelectionDocument_IOD >> patientsBirthTime: aTMValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1508,7 +1391,7 @@ RawData_IOD >> patientsBirthTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsName [
+KeyObjectSelectionDocument_IOD >> patientsName [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1520,7 +1403,7 @@ RawData_IOD >> patientsName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsName: aPNValue [
+KeyObjectSelectionDocument_IOD >> patientsName: aPNValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1533,7 +1416,7 @@ RawData_IOD >> patientsName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSex [
+KeyObjectSelectionDocument_IOD >> patientsSex [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1545,7 +1428,7 @@ RawData_IOD >> patientsSex [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSex: aCSValue [
+KeyObjectSelectionDocument_IOD >> patientsSex: aCSValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1558,7 +1441,7 @@ RawData_IOD >> patientsSex: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSize [
+KeyObjectSelectionDocument_IOD >> patientsSize [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1570,7 +1453,7 @@ RawData_IOD >> patientsSize [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsSize: aDSValue [
+KeyObjectSelectionDocument_IOD >> patientsSize: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1583,7 +1466,7 @@ RawData_IOD >> patientsSize: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsWeight [
+KeyObjectSelectionDocument_IOD >> patientsWeight [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1595,7 +1478,7 @@ RawData_IOD >> patientsWeight [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> patientsWeight: aDSValue [
+KeyObjectSelectionDocument_IOD >> patientsWeight: aDSValue [
 
 	patientStudyIOM isNil ifTrue: [
 		patientStudyIOM := PatientStudyIOM new.
@@ -1607,208 +1490,33 @@ RawData_IOD >> patientsWeight: aDSValue [
 
 ]
 
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performedActionItemSequence [
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> personName [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^generalSeriesIOM performedProtocolCodeSequence
+	^srDocumentContentIOM personName
 ]
 
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performedActionItemSequence: aSQValue [
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> personName: aPNValue [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	generalSeriesIOM performedProtocolCodeSequence: aSQValue
+	srDocumentContentIOM personName: aPNValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepDescription [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performedProcedureStepDescription
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepDescription: aLOValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performedProcedureStepDescription: aLOValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepID [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performedProcedureStepID
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepID: aSHValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performedProcedureStepID: aSHValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartDate [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performedProcedureStepStartDate
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartDate: aDAValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performedProcedureStepStartDate: aDAValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartTime [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performedProcedureStepStartTime
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProcedureStepStartTime: aTMValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performedProcedureStepStartTime: aTMValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProtocolCodeSequence [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performedProtocolCodeSequence
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performedProtocolCodeSequence: aSQValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performedProtocolCodeSequence: aSQValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performingPhysicianName [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performingPhysicianName
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> performingPhysicianName: aPNValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performingPhysicianName: aPNValue
-
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performingPhysiciansName [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM performingPhysicianName
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> performingPhysiciansName: aPNValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM performingPhysicianName: aPNValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> physiciansOfRecord [
+KeyObjectSelectionDocument_IOD >> physiciansOfRecord [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1820,7 +1528,7 @@ RawData_IOD >> physiciansOfRecord [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> physiciansOfRecord: aPNValue [
+KeyObjectSelectionDocument_IOD >> physiciansOfRecord: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1833,7 +1541,7 @@ RawData_IOD >> physiciansOfRecord: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> pixelPaddingValue [
+KeyObjectSelectionDocument_IOD >> pixelPaddingValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -1845,7 +1553,7 @@ RawData_IOD >> pixelPaddingValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> pixelPaddingValue: aSSValue [
+KeyObjectSelectionDocument_IOD >> pixelPaddingValue: aSSValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -1858,50 +1566,7 @@ RawData_IOD >> pixelPaddingValue: aSSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> positionReferenceIndicator [
-
-	frameOfReferenceIOM isNil ifTrue: [
-		frameOfReferenceIOM := FrameOfReferenceIOM new.
-		frameOfReferenceIOM dataElementsDictionary: self dataElementsDictionary.
-		frameOfReferenceIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^frameOfReferenceIOM positionReferenceIndicator
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> positionReferenceIndicator: aLOValue [
-
-	frameOfReferenceIOM isNil ifTrue: [
-		frameOfReferenceIOM := FrameOfReferenceIOM new.
-		frameOfReferenceIOM dataElementsDictionary: self dataElementsDictionary.
-		frameOfReferenceIOM dataElementsValues: self dataElementsValues.
-	].
-
-	frameOfReferenceIOM positionReferenceIndicator: aLOValue
-
-]
-
-{ #category : #printing }
-RawData_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self bodyPartExamined isNil 
-		ifFalse: [self bodyPartExamined printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
-
-	"self instanceCreationTime isNil 
-		ifFalse: [self instanceCreationTime printString printOn: aStream paddedWith: Character space to: 16r0014]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0014]."
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> procedureCodeSequence [
+KeyObjectSelectionDocument_IOD >> procedureCodeSequence [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1913,7 +1578,7 @@ RawData_IOD >> procedureCodeSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> procedureCodeSequence: aSQValue [
+KeyObjectSelectionDocument_IOD >> procedureCodeSequence: aSQValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -1926,32 +1591,7 @@ RawData_IOD >> procedureCodeSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> protocolName [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM protocolName
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> protocolName: aLOValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM protocolName: aLOValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> rETIRED_OtherPatientIDs [
+KeyObjectSelectionDocument_IOD >> rETIRED_OtherPatientIDs [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1963,7 +1603,7 @@ RawData_IOD >> rETIRED_OtherPatientIDs [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> rETIRED_OtherPatientIDs: aLOValue [
+KeyObjectSelectionDocument_IOD >> rETIRED_OtherPatientIDs: aLOValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1976,7 +1616,57 @@ RawData_IOD >> rETIRED_OtherPatientIDs: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPatientSequence [
+KeyObjectSelectionDocument_IOD >> referencedDateTime [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM referencedDateTime
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> referencedDateTime: aDTValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM referencedDateTime: aDTValue
+
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+KeyObjectSelectionDocument_IOD >> referencedDatetime [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM referencedDateTime
+]
+
+{ #category : #'accessing IOM data elements - talkDICOM names' }
+KeyObjectSelectionDocument_IOD >> referencedDatetime: aDTValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM referencedDateTime: aDTValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> referencedPatientSequence [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -1988,7 +1678,7 @@ RawData_IOD >> referencedPatientSequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPatientSequence: aSQValue [
+KeyObjectSelectionDocument_IOD >> referencedPatientSequence: aSQValue [
 
 	patientIOM isNil ifTrue: [
 		patientIOM := PatientIOM new.
@@ -2001,57 +1691,57 @@ RawData_IOD >> referencedPatientSequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPerformedProcedureStepSequence [
+KeyObjectSelectionDocument_IOD >> referencedSOPSequence [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^generalSeriesIOM referencedPerformedProcedureStepSequence
+	^srDocumentContentIOM referencedSOPSequence
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedPerformedProcedureStepSequence: aSQValue [
+KeyObjectSelectionDocument_IOD >> referencedSOPSequence: aSQValue [
 
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	generalSeriesIOM referencedPerformedProcedureStepSequence: aSQValue
-
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referencedStudyComponentSequence [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM referencedPerformedProcedureStepSequence
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referencedStudyComponentSequence: aSQValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM referencedPerformedProcedureStepSequence: aSQValue
+	srDocumentContentIOM referencedSOPSequence: aSQValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedStudySequence [
+KeyObjectSelectionDocument_IOD >> referencedSamplePositions [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM referencedSamplePositions
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> referencedSamplePositions: aULValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM referencedSamplePositions: aULValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> referencedStudySequence [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2063,7 +1753,7 @@ RawData_IOD >> referencedStudySequence [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referencedStudySequence: aSQValue [
+KeyObjectSelectionDocument_IOD >> referencedStudySequence: aSQValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2076,7 +1766,32 @@ RawData_IOD >> referencedStudySequence: aSQValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referringPhysicianName [
+KeyObjectSelectionDocument_IOD >> referencedTimeOffsets [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM referencedTimeOffsets
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> referencedTimeOffsets: aDSValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM referencedTimeOffsets: aDSValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> referringPhysicianName [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2088,7 +1803,7 @@ RawData_IOD >> referringPhysicianName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> referringPhysicianName: aPNValue [
+KeyObjectSelectionDocument_IOD >> referringPhysicianName: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2101,7 +1816,7 @@ RawData_IOD >> referringPhysicianName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referringPhysiciansName [
+KeyObjectSelectionDocument_IOD >> referringPhysiciansName [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2113,7 +1828,7 @@ RawData_IOD >> referringPhysiciansName [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> referringPhysiciansName: aPNValue [
+KeyObjectSelectionDocument_IOD >> referringPhysiciansName: aPNValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2126,32 +1841,7 @@ RawData_IOD >> referringPhysiciansName: aPNValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> requestAttributesSequence [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM requestAttributesSequence
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> requestAttributesSequence: aSQValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM requestAttributesSequence: aSQValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationComment [
+KeyObjectSelectionDocument_IOD >> sOPAuthorizationComment [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2163,7 +1853,7 @@ RawData_IOD >> sOPAuthorizationComment [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationComment: aLTValue [
+KeyObjectSelectionDocument_IOD >> sOPAuthorizationComment: aLTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2176,7 +1866,7 @@ RawData_IOD >> sOPAuthorizationComment: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationDateTime [
+KeyObjectSelectionDocument_IOD >> sOPAuthorizationDateTime [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2188,7 +1878,7 @@ RawData_IOD >> sOPAuthorizationDateTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPAuthorizationDateTime: aDTValue [
+KeyObjectSelectionDocument_IOD >> sOPAuthorizationDateTime: aDTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2201,7 +1891,7 @@ RawData_IOD >> sOPAuthorizationDateTime: aDTValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPClassUID [
+KeyObjectSelectionDocument_IOD >> sOPClassUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2213,7 +1903,7 @@ RawData_IOD >> sOPClassUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPClassUID: aUIValue [
+KeyObjectSelectionDocument_IOD >> sOPClassUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2226,7 +1916,7 @@ RawData_IOD >> sOPClassUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceStatus [
+KeyObjectSelectionDocument_IOD >> sOPInstanceStatus [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2238,7 +1928,7 @@ RawData_IOD >> sOPInstanceStatus [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceStatus: aCSValue [
+KeyObjectSelectionDocument_IOD >> sOPInstanceStatus: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2251,7 +1941,7 @@ RawData_IOD >> sOPInstanceStatus: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceUID [
+KeyObjectSelectionDocument_IOD >> sOPInstanceUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2263,7 +1953,7 @@ RawData_IOD >> sOPInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> sOPInstanceUID: aUIValue [
+KeyObjectSelectionDocument_IOD >> sOPInstanceUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2276,157 +1966,7 @@ RawData_IOD >> sOPInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDate [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM seriesDate
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDate: aDAValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM seriesDate: aDAValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDescription [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM seriesDescription
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesDescription: aLOValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM seriesDescription: aLOValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesInstanceUID [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM seriesInstanceUID
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesInstanceUID: aUIValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM seriesInstanceUID: aUIValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesNumber [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM seriesNumber
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesNumber: aISValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM seriesNumber: aISValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesTime [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM seriesTime
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> seriesTime: aTMValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM seriesTime: aTMValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> smallestPixelValueInSeries [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^generalSeriesIOM smallestPixelValueInSeries
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> smallestPixelValueInSeries: aSSValue [
-
-	generalSeriesIOM isNil ifTrue: [
-		generalSeriesIOM := GeneralSeriesIOM new.
-		generalSeriesIOM dataElementsDictionary: self dataElementsDictionary.
-		generalSeriesIOM dataElementsValues: self dataElementsValues.
-	].
-
-	generalSeriesIOM smallestPixelValueInSeries: aSSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> softwareVersions [
+KeyObjectSelectionDocument_IOD >> softwareVersions [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2438,7 +1978,7 @@ RawData_IOD >> softwareVersions [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> softwareVersions: aLOValue [
+KeyObjectSelectionDocument_IOD >> softwareVersions: aLOValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2451,7 +1991,7 @@ RawData_IOD >> softwareVersions: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationComment [
+KeyObjectSelectionDocument_IOD >> sopAuthorizationComment [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2463,7 +2003,7 @@ RawData_IOD >> sopAuthorizationComment [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationComment: aLTValue [
+KeyObjectSelectionDocument_IOD >> sopAuthorizationComment: aLTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2476,7 +2016,7 @@ RawData_IOD >> sopAuthorizationComment: aLTValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationDateAndTime [
+KeyObjectSelectionDocument_IOD >> sopAuthorizationDateAndTime [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2488,7 +2028,7 @@ RawData_IOD >> sopAuthorizationDateAndTime [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopAuthorizationDateAndTime: aDTValue [
+KeyObjectSelectionDocument_IOD >> sopAuthorizationDateAndTime: aDTValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2501,7 +2041,7 @@ RawData_IOD >> sopAuthorizationDateAndTime: aDTValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopClassUID [
+KeyObjectSelectionDocument_IOD >> sopClassUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2513,7 +2053,7 @@ RawData_IOD >> sopClassUID [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopClassUID: aUIValue [
+KeyObjectSelectionDocument_IOD >> sopClassUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2526,13 +2066,13 @@ RawData_IOD >> sopClassUID: aUIValue [
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> sopCommonIOM [
+KeyObjectSelectionDocument_IOD >> sopCommonIOM [
 
 	^sopCommonIOM
 ]
 
 { #category : #'accessing IOM' }
-RawData_IOD >> sopCommonIOM: aSOPCommonIOM [
+KeyObjectSelectionDocument_IOD >> sopCommonIOM: aSOPCommonIOM [
 
 	sopCommonIOM := aSOPCommonIOM.
 	sopCommonIOM encoder: self encoder.
@@ -2553,7 +2093,7 @@ RawData_IOD >> sopCommonIOM: aSOPCommonIOM [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceStatus [
+KeyObjectSelectionDocument_IOD >> sopInstanceStatus [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2565,7 +2105,7 @@ RawData_IOD >> sopInstanceStatus [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceStatus: aCSValue [
+KeyObjectSelectionDocument_IOD >> sopInstanceStatus: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2578,7 +2118,7 @@ RawData_IOD >> sopInstanceStatus: aCSValue [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceUID [
+KeyObjectSelectionDocument_IOD >> sopInstanceUID [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2590,7 +2130,7 @@ RawData_IOD >> sopInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> sopInstanceUID: aUIValue [
+KeyObjectSelectionDocument_IOD >> sopInstanceUID: aUIValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2603,7 +2143,7 @@ RawData_IOD >> sopInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> spatialResolution [
+KeyObjectSelectionDocument_IOD >> spatialResolution [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2615,7 +2155,7 @@ RawData_IOD >> spatialResolution [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> spatialResolution: aDSValue [
+KeyObjectSelectionDocument_IOD >> spatialResolution: aDSValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2628,7 +2168,7 @@ RawData_IOD >> spatialResolution: aDSValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> specificCharacterSet [
+KeyObjectSelectionDocument_IOD >> specificCharacterSet [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2640,7 +2180,7 @@ RawData_IOD >> specificCharacterSet [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> specificCharacterSet: aCSValue [
+KeyObjectSelectionDocument_IOD >> specificCharacterSet: aCSValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -2652,8 +2192,35 @@ RawData_IOD >> specificCharacterSet: aCSValue [
 
 ]
 
+{ #category : #'accessing IOM' }
+KeyObjectSelectionDocument_IOD >> srDocumentContentIOM [
+
+	^srDocumentContentIOM
+]
+
+{ #category : #'accessing IOM' }
+KeyObjectSelectionDocument_IOD >> srDocumentContentIOM: aSRDocumentContentIOM [
+
+	srDocumentContentIOM := aSRDocumentContentIOM.
+	srDocumentContentIOM encoder: self encoder.
+
+	srDocumentContentIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
+		srDocumentContentIOM dataElementsDictionary keysAndValuesDo: [:key :value |
+			self dataElementsDictionary at: key put: value].
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+	].
+
+	srDocumentContentIOM dataElementsValues == self dataElementsValues ifFalse: [
+		srDocumentContentIOM dataElementsValues keysAndValuesDo: [:key :value |
+			self dataElementsValues at: key put: value].
+		srDocumentContentIOM dataElementsValues: self dataElementsValues
+	].
+
+
+]
+
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> stationName [
+KeyObjectSelectionDocument_IOD >> stationName [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2665,7 +2232,7 @@ RawData_IOD >> stationName [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> stationName: aSHValue [
+KeyObjectSelectionDocument_IOD >> stationName: aSHValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2678,7 +2245,7 @@ RawData_IOD >> stationName: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDate [
+KeyObjectSelectionDocument_IOD >> studyDate [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2690,7 +2257,7 @@ RawData_IOD >> studyDate [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDate: aDAValue [
+KeyObjectSelectionDocument_IOD >> studyDate: aDAValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2703,7 +2270,7 @@ RawData_IOD >> studyDate: aDAValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDescription [
+KeyObjectSelectionDocument_IOD >> studyDescription [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2715,7 +2282,7 @@ RawData_IOD >> studyDescription [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyDescription: aLOValue [
+KeyObjectSelectionDocument_IOD >> studyDescription: aLOValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2728,7 +2295,7 @@ RawData_IOD >> studyDescription: aLOValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyID [
+KeyObjectSelectionDocument_IOD >> studyID [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2740,7 +2307,7 @@ RawData_IOD >> studyID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyID: aSHValue [
+KeyObjectSelectionDocument_IOD >> studyID: aSHValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2753,7 +2320,7 @@ RawData_IOD >> studyID: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyInstanceUID [
+KeyObjectSelectionDocument_IOD >> studyInstanceUID [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2765,7 +2332,7 @@ RawData_IOD >> studyInstanceUID [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyInstanceUID: aUIValue [
+KeyObjectSelectionDocument_IOD >> studyInstanceUID: aUIValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2778,7 +2345,7 @@ RawData_IOD >> studyInstanceUID: aUIValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyTime [
+KeyObjectSelectionDocument_IOD >> studyTime [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2790,7 +2357,7 @@ RawData_IOD >> studyTime [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> studyTime: aTMValue [
+KeyObjectSelectionDocument_IOD >> studyTime: aTMValue [
 
 	generalStudyIOM isNil ifTrue: [
 		generalStudyIOM := GeneralStudyIOM new.
@@ -2803,159 +2370,82 @@ RawData_IOD >> studyTime: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationChannel [
+KeyObjectSelectionDocument_IOD >> temporalRangeType [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^synchronizationIOM synchronizationChannel
+	^srDocumentContentIOM temporalRangeType
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationChannel: aUSValue [
+KeyObjectSelectionDocument_IOD >> temporalRangeType: aCSValue [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	synchronizationIOM synchronizationChannel: aUSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationFrameOfReferenceUID [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^synchronizationIOM synchronizationFrameOfReferenceUID
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationFrameOfReferenceUID: aUIValue [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	synchronizationIOM synchronizationFrameOfReferenceUID: aUIValue
-
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> synchronizationFrameofReferenceUID [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^synchronizationIOM synchronizationFrameOfReferenceUID
-]
-
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> synchronizationFrameofReferenceUID: aUIValue [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	synchronizationIOM synchronizationFrameOfReferenceUID: aUIValue
-
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> synchronizationIOM [
-
-	^synchronizationIOM
-]
-
-{ #category : #'accessing IOM' }
-RawData_IOD >> synchronizationIOM: aSynchronizationIOM [
-
-	synchronizationIOM := aSynchronizationIOM.
-	synchronizationIOM encoder: self encoder.
-
-	synchronizationIOM dataElementsDictionary == self dataElementsDictionary ifFalse: [
-		synchronizationIOM dataElementsDictionary keysAndValuesDo: [:key :value |
-			self dataElementsDictionary at: key put: value].
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-	].
-
-	synchronizationIOM dataElementsValues == self dataElementsValues ifFalse: [
-		synchronizationIOM dataElementsValues keysAndValuesDo: [:key :value |
-			self dataElementsValues at: key put: value].
-		synchronizationIOM dataElementsValues: self dataElementsValues
-	].
-
+	srDocumentContentIOM temporalRangeType: aCSValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationTrigger [
+KeyObjectSelectionDocument_IOD >> textValue [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^synchronizationIOM synchronizationTrigger
+	^srDocumentContentIOM textValue
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> synchronizationTrigger: aCSValue [
+KeyObjectSelectionDocument_IOD >> textValue: aUTValue [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	synchronizationIOM synchronizationTrigger: aCSValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> timeDistributionProtocol [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^synchronizationIOM timeDistributionProtocol
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> timeDistributionProtocol: aCSValue [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	synchronizationIOM timeDistributionProtocol: aCSValue
+	srDocumentContentIOM textValue: aUTValue
 
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeOfLastCalibration [
+KeyObjectSelectionDocument_IOD >> time [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	^srDocumentContentIOM time
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> time: aTMValue [
+
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
+	].
+
+	srDocumentContentIOM time: aTMValue
+
+]
+
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> timeOfLastCalibration [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2967,7 +2457,7 @@ RawData_IOD >> timeOfLastCalibration [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeOfLastCalibration: aTMValue [
+KeyObjectSelectionDocument_IOD >> timeOfLastCalibration: aTMValue [
 
 	generalEquipmentIOM isNil ifTrue: [
 		generalEquipmentIOM := GeneralEquipmentIOM new.
@@ -2980,32 +2470,7 @@ RawData_IOD >> timeOfLastCalibration: aTMValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timeSource [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	^synchronizationIOM timeSource
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> timeSource: aSHValue [
-
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
-	].
-
-	synchronizationIOM timeSource: aSHValue
-
-]
-
-{ #category : #'accessing IOM data elements' }
-RawData_IOD >> timezoneOffsetFromUTC [
+KeyObjectSelectionDocument_IOD >> timezoneOffsetFromUTC [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -3017,7 +2482,7 @@ RawData_IOD >> timezoneOffsetFromUTC [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> timezoneOffsetFromUTC: aSHValue [
+KeyObjectSelectionDocument_IOD >> timezoneOffsetFromUTC: aSHValue [
 
 	sopCommonIOM isNil ifTrue: [
 		sopCommonIOM := SOPCommonIOM new.
@@ -3030,51 +2495,51 @@ RawData_IOD >> timezoneOffsetFromUTC: aSHValue [
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> triggerSourceOrType [
+KeyObjectSelectionDocument_IOD >> uID [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^synchronizationIOM triggerSourceOrType
+	^srDocumentContentIOM uID
 ]
 
 { #category : #'accessing IOM data elements' }
-RawData_IOD >> triggerSourceOrType: aLOValue [
+KeyObjectSelectionDocument_IOD >> uID: aUIValue [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	synchronizationIOM triggerSourceOrType: aLOValue
+	srDocumentContentIOM uID: aUIValue
 
 ]
 
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> triggerSourceorType [
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> valueType [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	^synchronizationIOM triggerSourceOrType
+	^srDocumentContentIOM valueType
 ]
 
-{ #category : #'accessing IOM data elements - talkDICOM names' }
-RawData_IOD >> triggerSourceorType: aLOValue [
+{ #category : #'accessing IOM data elements' }
+KeyObjectSelectionDocument_IOD >> valueType: aCSValue [
 
-	synchronizationIOM isNil ifTrue: [
-		synchronizationIOM := SynchronizationIOM new.
-		synchronizationIOM dataElementsDictionary: self dataElementsDictionary.
-		synchronizationIOM dataElementsValues: self dataElementsValues.
+	srDocumentContentIOM isNil ifTrue: [
+		srDocumentContentIOM := SRDocumentContentIOM new.
+		srDocumentContentIOM dataElementsDictionary: self dataElementsDictionary.
+		srDocumentContentIOM dataElementsValues: self dataElementsValues.
 	].
 
-	synchronizationIOM triggerSourceOrType: aLOValue
+	srDocumentContentIOM valueType: aCSValue
 
 ]

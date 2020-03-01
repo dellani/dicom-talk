@@ -33,16 +33,13 @@ Class {
 
 { #category : #accessing }
 NM_IOD class >> DicomIODName [
-
-	^'MR IOD'
+	^ 'NM IOD'
 ]
 
 { #category : #accessing }
 NM_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -67,19 +64,17 @@ NM_IOD class >> InformationObjectModules [
 				add: OverlayPlaneIOM initialize;
 				add: CurveIOM initialize;
 				add: VOILUTIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }
 NM_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.20'
+	^ '1.2.840.10008.5.1.4.1.1.20'
 ]
 
 { #category : #'class initialization' }
 NM_IOD class >> initialize [
-
-	super initialize.
+	super initialize
 ]
 
 { #category : #comparing }

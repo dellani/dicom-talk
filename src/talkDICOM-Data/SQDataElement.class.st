@@ -289,6 +289,7 @@ SQDataElement >> decodeUndefinedLengthSequenceItem: readStream sequenceItemClass
 	itemLength = 16r00000000
 		ifTrue: [ sequenceItem := classOfSequenceItem new.
 			sequenceItem pdvBytesStream: readWriteStream encoder: itemEncoder dataElementsDefinition: sequenceItem dataElementsDefinition.
+			sequenceItem encoder: itemEncoder.
 			valueCache add: sequenceItem ]
 		ifFalse: [ Error signal: 'Error decoding a sequence item of undefined length: ' , 'the legth of the item delimitation data element is not zero' ]
 ]
@@ -313,6 +314,11 @@ SQDataElement >> getItemLength: readStream [
 	located after the Data Element Tag bytes - PRD 10.2001"
 
 	^ encoder get32BitUnsignedValueFromByteStream: readStream
+]
+
+{ #category : #testing }
+SQDataElement >> isSequence [
+	^ true
 ]
 
 { #category : #'field bytes' }

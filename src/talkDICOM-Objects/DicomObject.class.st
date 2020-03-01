@@ -873,52 +873,70 @@ DicomObject >> asSmalltalkCode [
 	^smalltalkCodeStream contents
 ]
 
-{ #category : #accessing }
-DicomObject >> bsonDictionary: aDictionary [
-	"Contains a reference to the object class that represents the DICOM Transfer Syntax being used
-	Also takes care of the encoding of all stored data elements.
+{ #category : #parsing }
+DicomObject >> blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntaxEncoder [
+	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
+	PRD 04-10.2001, 05.2002
 
-	PRD 05.2001, 07.2003"
-
-	| dataElement |
-
-	"self encoder: LittleEndianExplicitVRTS."
-	self dataElementsValues: Dictionary new.
-
-	"Create *DataElement instances with the stored data element values"
-	aDictionary keysAndValuesDo: 
-							[:key :value |
-							"dataElementValues shall not contain any unknown data element value,
-				 			since only the values of known data elements are cached by its accessors"
-							dataElement := self newDataElementNamed: key asSymbol.
-							dataElement encoder: self encoder.
-							self dataElementsValues 
-								at: key put: (dataElement dataElementValueFrom: value)].
-]
-
-{ #category : #'bson-constants' }
-DicomObject >> bsonType [
-	^3
-]
-
-{ #category : #'bson-writing' }
-DicomObject >> bsonWriteOn: aBsonStream [ 
+	Now the parsing doesn't ignore anymore the unknown data elements, 
+	storing then in the data elements dictionary together with the known ones.
+	PRD January 10th, 2003
 	
-	| keys dataElementValue |
+	The parser will dinamically add groups of 'private creator' data elements
+	to the data elements definition of the DICOM object in order to be able
+	to parse these - PRD September 11, 2017"
 
-	keys := self dataElementsDictionary keys.
-	keys do: [:key | 
-			"'key' is the name of the data element as a String."
-			dataElementValue := (self dataElementsDictionary at: key) value.
-			self dataElementsValues at: key put: dataElementValue.
+	| dataElementsDefinition |
+	self encoder: aDicomTransferSyntaxEncoder.
+	self dataElementsDictionary: Dictionary new.
+	dataElementsDefinition := Dictionary withAll: self dataElementsDefinition.
+	self
+		blitzPDVBytesStream: dicomPDVStream
+		encoder: aDicomTransferSyntaxEncoder
+		dataElementsDefinition: dataElementsDefinition
+]
 
-			"Remove data element whose value was decoded from dataElementsDictionary.
-			Since the dictionary instance may be shared as a variable instance among 
-			several instances of subclasses of Object, remove the keys instead of
-			creating a new and empty instance of Dictionary."
-			self dataElementsDictionary removeKey: key
-	].
-	aBsonStream nextDictionaryPut: self dataElementsValues
+{ #category : #parsing }
+DicomObject >> blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntaxEncoder dataElementsDefinition: dataElementsDefinition [
+	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
+	PRD 04-10.2001, 05.2002
+
+	Now the parsing doesn't ignore anymore the unknown data elements, 
+	storing then in the data elements dictionary together with the known ones.
+	PRD January 10th, 2003
+	
+	Implementation now includes a dictionary of private creator groups of 
+	data elements - PRD Septebmer 2017"
+
+	| aDicomDataElement |
+	self halt.
+	[ dicomPDVStream atEnd ]
+		whileFalse: [ aDicomDataElement := aDicomTransferSyntaxEncoder
+				blitzDataElementFrom: dicomPDVStream
+				dataElementsDefinition: dataElementsDefinition.
+
+			"group lenght data elements are not used and DICOM Data Set Trailing Padding is ignored"
+			aDicomDataElement elementNumber = 16r0000 | (aDicomDataElement groupNumber = 16rFFFC)
+				ifFalse: [ "If the data element is private, check if the private creators group of it is known"
+					aDicomDataElement tag isPrivate
+						ifTrue: [ aDicomDataElement tag isPrivateCreator
+								ifTrue: [ aDicomDataElement := LODataElement new "See DICOM Part 5 Section 7.8.1"
+																			tag: aDicomDataElement tag;
+																			name: aDicomDataElement name;
+																			vm: 1;
+																			description: aDicomDataElement description;
+																			type: '1';
+																			encoder: aDicomTransferSyntaxEncoder;
+																			value: aDicomDataElement value; yourself.
+									dataElementsDefinition
+										at: aDicomDataElement tag
+										ifAbsent: [ self loadPrivateCreatorsGroup: aDicomDataElement into: dataElementsDefinition ] ] ].
+					self dataElementsDictionary
+						at: aDicomDataElement name
+						ifPresent: [ Transcript
+								show: 'Warning: data element ' , aDicomDataElement name asString , ' already parsed, skipping';
+								cr ]
+						ifAbsentPut: [ aDicomDataElement ] ] ]
 ]
 
 { #category : #utilities }
@@ -1106,31 +1124,6 @@ DicomObject >> dataElementsDictionaryByTag [
 		yourself"
 ]
 
-{ #category : #'bson-writing' }
-DicomObject >> dataElementsDictionaryOhneGroupLengthDataElements [
-	"Answer an OrderedCollection with the *DataElements found in the 
-	DicomObject instance withouth the group length data dlements, as
-	it is the case with the method 'dataElementsCollection'
-	PRD 05-12.2001, 02-06.2002, February 4th, 2016"
-
-	"Create DataElement instances with the stored data element values. 'Key' stores 
-	the name of the data element as a String, need to be converted to a instance of class Symbol."
-
-	| dataElement keys |
-	keys := self dataElementsValues keys.
-	keys
-		do: [ :key | 
-			dataElement := self newDataElementNamed: key asSymbol.
-			dataElement encoder: self encoder.
-			dataElement value: (self dataElementsValues at: key).
-			self dataElementsDictionary at: key put: dataElement.
-			"Remove all values encoded as data element instances. Since the dictionary 
-			instance Object, remove the keys instead of creating a new and empty instance of 
-			Dictionary."
-			self dataElementsValues removeKey: key ].
-	^ self dataElementsDictionary
-]
-
 { #category : #accessing }
 DicomObject >> dataElementsValues [
 	^dataElementsValues
@@ -1139,69 +1132,6 @@ DicomObject >> dataElementsValues [
 { #category : #accessing }
 DicomObject >> dataElementsValues: anObject [
 	dataElementsValues := anObject
-]
-
-{ #category : #'bson-writing' }
-DicomObject >> dataElementsValuesDictionaryOhneGroupLengthAndPrivateDataElements [
-	"Return an instance of Dictionary (dataElementsValues) with the
-	values stored by the data elements of this DICOM object, withouth
-	the group length data dlements.
-
-	PRD - March 10, 2016."
-
-	| dataElementValue dataElementName dataElement |
-	
-	self dataElementsDefinition do: [:dataElementDefinition |
-		dataElementName := dataElementDefinition name asString.
-		dataElement := self dataElementsDictionary at: dataElementName ifAbsent: [nil].
-		dataElement notNil ifTrue: [
-			dataElementValue := dataElement bsonValue.
-			"'key' is the name of the data element as a String."
-			self dataElementsValues at: dataElementName put: dataElementValue.
-
-			"Remove data element whose value was decoded from dataElementsDictionary.
-			Since the dictionary instance may be shared as a variable instance among 
-			several instances of subclasses of Object, remove the keys instead of
-			creating a new and empty instance of Dictionary."
-			self dataElementsDictionary removeKey: dataElementName
-		].
-	].
-	^self dataElementsValues
-]
-
-{ #category : #'bson-writing' }
-DicomObject >> dataElementsValuesDictionaryOhneGroupLengthDataElements [
-	"Return an instance of Dictionary (dataElementsValues) with the
-	values stored by the data elements of this DICOM object, withouth
-	the group length data dlements.
-
-	PRD - March 10, 2016."
-
-	| keys dataElementValue dataElement |
-
-	[
-		keys := self dataElementsDictionary keys.
-		keys do: [:key | 
-			"'key' is the name of the data element as a String."
-			dataElement := self dataElementsDictionary at: key.
-			dataElementValue := dataElement bsonValue.
-			self dataElementsValues at: key put: dataElementValue.
-
-			"Remove data element whose value was decoded from dataElementsDictionary.
-			Since the dictionary instance may be shared as a variable instance among 
-			several instances of subclasses of Object, remove the keys instead of
-			creating a new and empty instance of Dictionary."
-			self dataElementsDictionary removeKey: key]
-	] on: DataElementError
-		do: [ :anError | 
-			Transcript show: 'Error decoding value from data element ', 
-				anError dataElement name printString, ' ', anError dataElement tag printString; cr.
-			anError resume.
-			"self logMessage: 'Transaction couldn''t be completed: rolling back started'.
-			self logMessage: '	Transaction rollback complete'.
-			self logMessage: anError description" ].
-
-	^self dataElementsValues
 ]
 
 { #category : #accessing }

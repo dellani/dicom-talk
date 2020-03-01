@@ -305,6 +305,13 @@ DataElementTag >> isItemTag [
 ]
 
 { #category : #testing }
+DataElementTag >> isPixelData [
+	"Am I a PixelData (0x7FE0 0x0010), DoubleFloatPixelData (0x7FE0 0x0009) or FloatPixelData (0x7FE0 0x0009)?"
+
+	^ self tag = 16r7FE00010 | (self tag = 16r7FE00009) | (self tag = 16r7FE00008)
+]
+
+{ #category : #testing }
 DataElementTag >> isPrivate [
 	"Am I a Private Data Element Tag?"
 
