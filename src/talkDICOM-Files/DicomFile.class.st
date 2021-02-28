@@ -412,11 +412,9 @@ DicomFile >> isPart10Format: aByteArray [
 	"Check if the contents of a DICOM file are encoded with the CTN enconding rules 
 	or in the rules defined in the Part 10 of the DICOM Standard.
 
-	PRD 01.2001"
+	PRD 01.2001 - 02.2021"
 
-	^ aByteArray size > 132
-		ifTrue: [ ^ self dicomPrefix = (aByteArray copyFrom: 129 to: 132) asString ]
-		ifFalse: [ false ]
+	^ self dicomPrefix = (aByteArray copyFrom: 129 to: 132) asString
 ]
 
 { #category : #accessing }
@@ -585,19 +583,25 @@ DicomFile >> readDicomMetaInformationHeader: dicomPDVStream [
 
 { #category : #reading }
 DicomFile >> readFrom: aFilename [
-	"Read an DICOM IOD from the file represented by *aFileName'. 
+	"Read a DICOM IOD from aFilename. 
 	PRD 12.2001 - 01.2002, 02.2017, August 30, 2017
 	
 	FileStream and its subclasses were deprecated in Pharo 7.
 	Code updated in order to work with the new expected behavior.
-	PRD 02.2020"
+	PRD 02.2020
 
-	| readStream |
-	readStream := aFilename asFileReference binaryReadStream.
-	[ self readFromByteStream: readStream ]
-		ensure: [ readStream
-				close;
-				release ].
+	Check if aFilename really points to a file
+	PRD 02.2021"
+
+	| readStream fileReference |
+
+	(fileReference := aFilename asFileReference) isFile ifTrue: [
+		readStream := fileReference binaryReadStream.
+		[ self readFromByteStream: readStream. ] ensure: [ readStream close; release ]
+	]
+	ifFalse: [ 
+		Error signal: aFilename, ' is not a file!'
+	].
 	^ self dicomIOD
 ]
 
@@ -606,12 +610,18 @@ DicomFile >> readFromByteStream: readStream [
 	"Read an DICOM IOD from the file represented by *aFileName'. 
 	PRD 12.2001 - 02.2020"
 
-	^ readStream size > 132
-		ifTrue: [ readStream next: 128.
-			(readStream next: 4) asString asByteString = self dicomPrefix
-				ifTrue: [ self readFromPart10FormatedDicomFile: readStream ]
-				ifFalse: [ self readFromCTNFormatedDicomFile: readStream ]	"asByteString" ]
-		ifFalse: [ self readFromCTNFormatedDicomFile: readStream ]
+	^ readStream size > 132 ifTrue: [
+		(self isPart10Format: (readStream next: 132)) ifTrue: [
+			self readFromPart10FormatedDicomFile: readStream
+		]
+		ifFalse: [
+			self readFromCTNFormatedDicomFile: readStream 
+		]
+	]
+	ifFalse: [
+		self readFromCTNFormatedDicomFile: readStream
+	]
+
 ]
 
 { #category : #'private - reading / writing' }

@@ -327,7 +327,7 @@ DataElementTag >> isPrivateCreator [
 ]
 
 { #category : #testing }
-DataElementTag >> isSequenceDelimitaionElementTag [
+DataElementTag >> isSequenceDelimitationElementTag [
 	"Am I a Sequence Delimitation Element Tag?"
 
 	^ self tag = 16rFFFEE0DD

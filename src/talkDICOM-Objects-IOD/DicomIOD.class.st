@@ -1,3 +1,17 @@
+"
+bsonDictionary: aDictionary
+
+	| iom |
+
+	super bsonDictionary: aDictionary.
+	self informationObjectModules do: 
+			[:each |
+			iom := each new.
+			iom encoder: self encoder.
+			iom dataElementsDictionary: self dataElementsDictionary.
+			iom dataElementsValues: self dataElementsValues.
+			self perform: (each moduleName , ':') asSymbol with: iom].
+"
 Class {
 	#name : #DicomIOD,
 	#superclass : #DicomObject,
@@ -728,23 +742,6 @@ DicomIOD >> asDicomImage [
 	^self subclassResponsibility
 ]
 
-{ #category : #parsing }
-DicomIOD >> blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntax [
-
-	"encoder := aDicomTransferSyntax."
-
-	| iom |
-	super blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntax.
-	self informationObjectModules do: 
-			[:each |
-			iom := each new.
-			iom encoder: aDicomTransferSyntax.
-			iom dataElementsDictionary: self dataElementsDictionary.
-			iom dataElementsValues: self dataElementsValues.
-			self perform: (each moduleName , ':') asSymbol with: iom].
-	self checkIOD
-]
-
 { #category : #checking }
 DicomIOD >> checkIOD [
 	"Check the consistency of the DICOM IOD. 
@@ -864,14 +861,20 @@ DicomIOD >> newStudyInstanceUID [
 
 { #category : #parsing }
 DicomIOD >> pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntax [
-	| iom |
 	super pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntax.
+	self populateIOMDictionaries: aDicomTransferSyntax.
+	self checkIOD
+]
+
+{ #category : #'parsing - private' }
+DicomIOD >> populateIOMDictionaries: aDicomTransferSyntax [
+	| iom |
+
 	self informationObjectModules
 		do: [ :each | 
 			iom := each new.
 			iom encoder: aDicomTransferSyntax.
 			iom dataElementsDictionary: self dataElementsDictionary.
 			iom dataElementsValues: self dataElementsValues.
-			self perform: (each moduleName , ':') asSymbol with: iom ].
-	self checkIOD
+			self perform: (each moduleName , ':') asSymbol with: iom ]
 ]

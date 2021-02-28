@@ -873,72 +873,6 @@ DicomObject >> asSmalltalkCode [
 	^smalltalkCodeStream contents
 ]
 
-{ #category : #parsing }
-DicomObject >> blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntaxEncoder [
-	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
-	PRD 04-10.2001, 05.2002
-
-	Now the parsing doesn't ignore anymore the unknown data elements, 
-	storing then in the data elements dictionary together with the known ones.
-	PRD January 10th, 2003
-	
-	The parser will dinamically add groups of 'private creator' data elements
-	to the data elements definition of the DICOM object in order to be able
-	to parse these - PRD September 11, 2017"
-
-	| dataElementsDefinition |
-	self encoder: aDicomTransferSyntaxEncoder.
-	self dataElementsDictionary: Dictionary new.
-	dataElementsDefinition := Dictionary withAll: self dataElementsDefinition.
-	self
-		blitzPDVBytesStream: dicomPDVStream
-		encoder: aDicomTransferSyntaxEncoder
-		dataElementsDefinition: dataElementsDefinition
-]
-
-{ #category : #parsing }
-DicomObject >> blitzPDVBytesStream: dicomPDVStream encoder: aDicomTransferSyntaxEncoder dataElementsDefinition: dataElementsDefinition [
-	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
-	PRD 04-10.2001, 05.2002
-
-	Now the parsing doesn't ignore anymore the unknown data elements, 
-	storing then in the data elements dictionary together with the known ones.
-	PRD January 10th, 2003
-	
-	Implementation now includes a dictionary of private creator groups of 
-	data elements - PRD Septebmer 2017"
-
-	| aDicomDataElement |
-	self halt.
-	[ dicomPDVStream atEnd ]
-		whileFalse: [ aDicomDataElement := aDicomTransferSyntaxEncoder
-				blitzDataElementFrom: dicomPDVStream
-				dataElementsDefinition: dataElementsDefinition.
-
-			"group lenght data elements are not used and DICOM Data Set Trailing Padding is ignored"
-			aDicomDataElement elementNumber = 16r0000 | (aDicomDataElement groupNumber = 16rFFFC)
-				ifFalse: [ "If the data element is private, check if the private creators group of it is known"
-					aDicomDataElement tag isPrivate
-						ifTrue: [ aDicomDataElement tag isPrivateCreator
-								ifTrue: [ aDicomDataElement := LODataElement new "See DICOM Part 5 Section 7.8.1"
-																			tag: aDicomDataElement tag;
-																			name: aDicomDataElement name;
-																			vm: 1;
-																			description: aDicomDataElement description;
-																			type: '1';
-																			encoder: aDicomTransferSyntaxEncoder;
-																			value: aDicomDataElement value; yourself.
-									dataElementsDefinition
-										at: aDicomDataElement tag
-										ifAbsent: [ self loadPrivateCreatorsGroup: aDicomDataElement into: dataElementsDefinition ] ] ].
-					self dataElementsDictionary
-						at: aDicomDataElement name
-						ifPresent: [ Transcript
-								show: 'Warning: data element ' , aDicomDataElement name asString , ' already parsed, skipping';
-								cr ]
-						ifAbsentPut: [ aDicomDataElement ] ] ]
-]
-
 { #category : #utilities }
 DicomObject >> copyDataElementsFrom: aDicomObject [
 	"Copy all the data element values from the given IOD to self - PRD - August 29th, 2003"
@@ -1189,46 +1123,32 @@ DicomObject >> initialize [
 { #category : #parsing }
 DicomObject >> loadPrivateCreatorsGroup: aDicomDataElement into: dataElementsDefinition [
 	| elementsCollection xx newEntry newTag newName |
-	elementsCollection := DicomRegistry PrivateCreatorsDataDictionary at: aDicomDataElement value trimBoth ifAbsent: [ nil ].
-	elementsCollection notNil
-		ifTrue: [ "Transcript
-				show: 'Loading private creators group ' , aDicomDataElement value;
-				cr."
-			xx := aDicomDataElement tag elementNumber bitShift: 8.
-			aDicomDataElement name: (TransferSyntax privateCreatorDataElementNameFrom: aDicomDataElement tag) asSymbol.
-			elementsCollection
-				do: [ :entry | 
-					newEntry := entry copy.
-					newTag := DataElementTag new
-						groupNumber: entry tag groupNumber;
-						elementNumber: (xx bitXor: entry tag elementNumber);
-						yourself.
-					newName := String
-						new: 10
-						streamContents: [ :stream | 
-							stream
-								nextPutAll: newEntry name asString;
-								nextPut: Character space.
-							newTag printOn: stream ].
+	elementsCollection := DicomRegistry PrivateCreatorsDataDictionary
+		at: aDicomDataElement value trimBoth
+		ifAbsent: [ nil ].
+	elementsCollection ifNil: [ ^ self ].
 
-					"newName := String
-						new: 10
-						streamContents: [ :stream | 
-							stream
-								nextPutAll: aDicomDataElement value asLowercase;
-								nextPut: $-;
-								nextPutAll: newEntry name asString ]."
-					newEntry name: newName asSymbol.
-					"Transcript
-						show: 'Adding element ';
-						show: entry name printString;
-						tab;
-						show: entry tag printString;
-						tab;
-						show: newTag printString;
-						cr."
-					newEntry tag: newTag.
-					dataElementsDefinition at: newTag put: newEntry ] ]
+	xx := aDicomDataElement tag elementNumber bitShift: 8.
+	aDicomDataElement name: (TransferSyntax 
+		privateCreatorDataElementNameFrom: aDicomDataElement tag) asSymbol.
+
+	elementsCollection do: [ :entry | 
+		newEntry := entry copy.
+		newTag := DataElementTag new
+			groupNumber: entry tag groupNumber;
+			elementNumber: (xx bitXor: entry tag elementNumber);
+			yourself.
+		newName := String
+			new: 10
+			streamContents: [ :stream | 
+				stream
+					nextPutAll: newEntry name asString;
+					nextPut: Character space.
+				newTag printOn: stream ].
+		newEntry name: newName asSymbol.
+		newEntry tag: newTag.
+		dataElementsDefinition at: newTag put: newEntry
+	]
 ]
 
 { #category : #'data elements' }

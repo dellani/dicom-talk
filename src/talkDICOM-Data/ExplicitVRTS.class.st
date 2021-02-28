@@ -23,48 +23,6 @@ ExplicitVRTS class >> bitpolisher [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'blitz!' }
-ExplicitVRTS class >> blitzDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
-
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017"
-
-	| elementTag dataElementDefinition valueRepresentation |
-	elementTag := self readDicomDataElementTag: pdvStream.
-	elementTag isPixelData ifTrue: [ 	pdvStream position: pdvStream position - 4. 
- ].
-
-	"Store the VR encoded in pdvStream to decode data elements unknown to this implementation"
-	valueRepresentation := (pdvStream next: 2) asString asByteString.
-	dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: valueRepresentation.
-	"This should not happen, but just in case, use the VR encoded in the pdv stream if it is other than UN.
-	If the VR encoded in the PDV stream is UN, first try to decode the data element using the information
-	from the data elements directory."
-	^ dataElementDefinition vr = valueRepresentation
-		ifFalse: [ valueRepresentation = 'UN'
-				ifTrue: [ [ self decodeKnownTagFromUnknownDataElementDefinition: dataElementDefinition pdvstream: pdvStream transferSyntax: self ]
-						on: DataElementEncodingError
-						do: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
-								tag: elementTag;
-								name: dataElementDefinition name;
-								vm: '1';
-								description:
-									'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
-										, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
-								yourself.
-							dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
-				ifFalse: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
-						tag: elementTag;
-						name: dataElementDefinition name;
-						vm: '1';
-						description:
-							'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
-								, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
-						yourself.
-					dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
-		ifTrue: [ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ]
-]
-
 { #category : #'encoding requirements' }
 ExplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 
@@ -191,6 +149,22 @@ ExplicitVRTS class >> decodeKnownTagFromUnknownDataElementDefinition: dataElemen
 			newDataElement encoder: self.
 			newDataElement value: value ].
 	^ newDataElement
+]
+
+{ #category : #'data elements - private' }
+ExplicitVRTS class >> decodeValueRepresentation: dicomPDVStream [
+	"Decode the data element value representation representation 
+	 encoded in the DICOM PDV Stream.
+
+	PRD February 28, 2021"
+
+	^ String
+		new: 2
+		streamContents: [ :aStream | 
+			aStream
+				nextPut: (Character value: dicomPDVStream next);
+				nextPut: (Character value: dicomPDVStream next) ].
+
 ]
 
 { #category : #'data elements' }
@@ -655,13 +629,7 @@ ExplicitVRTS class >> nextDataElement: dicomPDVStream [
 	| valueRepresentation |
 	"Skip the group number and element number 4 bytes"
 	dicomPDVStream next: 4.
-	"valueRepresentation := (dicomPDVStream next: 2) asString asByteString."
-	valueRepresentation := String
-		new: 2
-		streamContents: [ :aStream | 
-			aStream
-				nextPut: (Character value: dicomPDVStream next);
-				nextPut: (Character value: dicomPDVStream next) ].
+	valueRepresentation := self decodeValueRepresentation: dicomPDVStream.
 	"This method is called from nextDataElement:, it reads the data element length from the
 	byte stream and returns a ByteArray with all the data element bytes. 
 	Return the position in the dicomPDV byte array where starts the next data Element.
@@ -689,7 +657,7 @@ ExplicitVRTS class >> nextDataElementAS: dicomPDVStream [
 
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
 	dicomPDVStream position: dicomPDVStream position - 8.
-	^dicomPDVStream next: 8 + length
+	^ dicomPDVStream next: 8 + length
 ]
 
 { #category : #'next data element' }
@@ -699,7 +667,7 @@ ExplicitVRTS class >> nextDataElementAT: dicomPDVStream [
 
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
 	dicomPDVStream position: dicomPDVStream position - 8.
-	^dicomPDVStream next: 8 + length
+	^ dicomPDVStream next: 8 + length
 ]
 
 { #category : #'next data element' }
@@ -908,7 +876,7 @@ ExplicitVRTS class >> nextDataElementSQ: dicomPDVStream [
 	].
 
 	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitaionElementTag ifTrue: [ 
+	tag isSequenceDelimitationElementTag ifTrue: [ 
 		"***** Sequence Delimitation Element Tag Found!!!!"
 		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
 		itemLenght = 16r00000000 ifTrue: [

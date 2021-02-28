@@ -44,20 +44,6 @@ ImplicitVRTS class >> bitpolisher [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'blitz!' }
-ImplicitVRTS class >> blitzDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
-
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017, 09.2017"
-
-	| elementTag dataElementDefinition |
-	elementTag := self readDicomDataElementTag: pdvStream.
-	"elementTag groupNumber = 16r0019 & (elementTag elementNumber = 16r0010)
-		ifTrue: [ self halt ]."
-	dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: 'UN'.
-	^ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self
-]
-
 { #category : #'encoding requirements' }
 ImplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 
@@ -548,7 +534,7 @@ ImplicitVRTS class >> nextDataElement: dicomPDVStream [
 		tag := self readDicomDataElementTag: dicomPDVStream.
 	].
 	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitaionElementTag ifTrue: [ 
+	tag isSequenceDelimitationElementTag ifTrue: [ 
 		"***** Sequence Delimitation Element Tag Found!!!!"
 		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
 		itemLenght = 16r00000000			"**** The lenght value shall be equal to 16r00000000 ****"

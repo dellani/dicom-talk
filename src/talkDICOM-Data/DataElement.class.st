@@ -166,6 +166,24 @@ DataElement class >> fromTextLine: textLine [
 	^ dataElements
 ]
 
+{ #category : #examples }
+DataElement class >> importDCMTK_DICOM_Dictionary [
+	"Import DCMTK dicom.dic registry of DICOM data elements"
+
+	| inputStream collection line |
+	collection := OrderedCollection new.
+	inputStream := '/home/dellani/sandbox/dcmdata-3.6.0/data//dicom.dic'
+		asFileReference readStream.
+	[ inputStream atEnd ]
+		whileFalse: [ line := inputStream nextLine.
+			(line includes: $#)
+				ifFalse: [ collection addAll: (DataElement fromTextLine: line) ] ].
+	inputStream
+		close;
+		release.
+	^ collection inspect
+]
+
 { #category : #'instance creation' }
 DataElement class >> newVR: aString [
 

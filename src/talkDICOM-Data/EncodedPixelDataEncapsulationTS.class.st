@@ -43,7 +43,7 @@ EncodedPixelDataEncapsulationTS class >> dicomOBUnLenDataElementFrom: dicomPDVSt
 		"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
 		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)"].
 	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitaionElementTag ifTrue: [ 
+	tag isSequenceDelimitationElementTag ifTrue: [ 
 		"***** Sequence Delimitation Element Tag Found!!!!"
 		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
 		itemLenght = 16r00000000 ifTrue: [
@@ -110,7 +110,7 @@ EncodedPixelDataEncapsulationTS class >> dicomOWUnLenDataElementFrom: dicomPDVSt
 		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
 	].
 	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitaionElementTag ifTrue: [ 
+	tag isSequenceDelimitationElementTag ifTrue: [ 
 		"***** Sequence Delimitation Element Tag Found!!!!"
 		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
 		itemLenght = 16r00000000 ifTrue: [
@@ -275,7 +275,7 @@ EncodedPixelDataEncapsulationTS class >> nextDataElementOB: dicomPDVStream [
 			tag := self readDicomDataElementTag: dicomPDVStream.
 		].
 
-		tag isSequenceDelimitaionElementTag ifTrue: [ 
+		tag isSequenceDelimitationElementTag ifTrue: [ 
 		"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
 			"***** Sequence Delimitation Element Tag Found!!!!"
 			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
@@ -324,7 +324,7 @@ EncodedPixelDataEncapsulationTS class >> nextDataElementOW: dicomPDVStream [
 			tag := self readDicomDataElementTag: dicomPDVStream.
 		].
 		"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-		tag isSequenceDelimitaionElementTag ifTrue: [ 
+		tag isSequenceDelimitationElementTag ifTrue: [ 
 			"***** Sequence Delimitation Element Tag Found!!!!"
 			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
 			itemLenght = 16r00000000 ifTrue: [
