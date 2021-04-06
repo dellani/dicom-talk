@@ -24,8 +24,7 @@ SHDataElement class >> initialize [
 
 { #category : #accessing }
 SHDataElement class >> valueRepresentationString [
-
-	^'SH'
+	^ 'SH'
 ]
 
 { #category : #'to deprecate' }

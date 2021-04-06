@@ -18,8 +18,7 @@ ISDataElement class >> initialize [
 
 { #category : #accessing }
 ISDataElement class >> valueRepresentationString [
-
-	^'IS'
+	^ 'IS'
 ]
 
 { #category : #'to deprecate' }

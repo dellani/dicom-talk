@@ -12,8 +12,7 @@ UNDataElement class >> initialize [
 
 { #category : #accessing }
 UNDataElement class >> valueRepresentationString [
-
-	^'UN'
+	^ 'UN'
 ]
 
 { #category : #'instance creation' }

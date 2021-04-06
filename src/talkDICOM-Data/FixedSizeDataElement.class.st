@@ -4,6 +4,11 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
+{ #category : #accessing }
+FixedSizeDataElement class >> valueRepresentationString [
+	^ self subclassResponsibility
+]
+
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> byteSize [
 	^ self subclassResponsibility

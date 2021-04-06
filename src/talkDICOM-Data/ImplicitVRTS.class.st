@@ -4,41 +4,6 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
-{ #category : #deprecated }
-ImplicitVRTS class >> _dataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
-
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017"
-
-	| elementTag dataElementDefinition |
-	elementTag := self readDicomDataElementTag: pdvStream.
-
-	"dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: 'UN'."
-	dataElementDefinition := dataElementsDefinition
-		at: elementTag
-		ifAbsent: [ "Item delimitation data element for an unknown group?"
-			elementTag isGroupLengthDataElement
-				ifTrue: [ ULDataElement new
-						tag: elementTag;
-						name: (self privateGroupLengthDataElementNameFrom: elementTag) asSymbol;
-						vm: '1';
-						description: 'Private Group Length Data Element with tag equal to: ' , elementTag printString;
-						type: '3';
-						yourself ]
-				ifFalse: [ "Check if the data element tag is otherwise known, if not, create one instance based on the known VR"
-					"elementTag = (DataElementTag new groupNumber: 16r400; elementNumber: 16r561; yourself) ifTrue: [self halt]."
-					DicomRegistry DataDictionary
-						at: elementTag
-						ifAbsent: [ UNDataElement new
-								tag: elementTag;
-								name: (self privateDataElementNameFrom: elementTag) asSymbol;
-								vm: '1';
-								description: 'Private Data Element with tag equal to: ' , elementTag printString;
-								type: '3';
-								yourself ] ] ].
-	^ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self
-]
-
 { #category : #'class variables' }
 ImplicitVRTS class >> bitpolisher [
 	^ self subclassResponsibility
@@ -62,14 +27,6 @@ ImplicitVRTS class >> dataElementFrom: pdvStream dataElementsDefinition: dataEle
 		ifTrue: [ self halt ]."
 	dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: 'UN'.
 	^ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self
-]
-
-{ #category : #deprecated }
-ImplicitVRTS class >> dataElementHeaderLenght: aDataElement [
-	"Return the number of bytes used in the header (group number + 
-	element number + length) of a DICOM Data Element - PRD 05-11.2001"
-
-	^ 8
 ]
 
 { #category : #'data elements' }

@@ -876,7 +876,7 @@ ExplicitVRTS class >> pdvBytesFromAEDataElement: dicomAEDataElement on: aByteStr
 	
 	PRD - February 07th, 2003"
 
-	aByteStream 
+	aByteStream
 		nextPutAll: (self byteArrayFromValue: dicomAEDataElement groupNumber size: 2);
 		nextPutAll: (self byteArrayFromValue: dicomAEDataElement elementNumber size: 2);
 		nextPutAll: (self byteArrayFromString: dicomAEDataElement vr);
@@ -1237,90 +1237,27 @@ ExplicitVRTS class >> pdvBytesFromUTDataElement: dicomUTDataElement on: aByteStr
 		nextPutAll: dicomUTDataElement dataBytes
 ]
 
-{ #category : #deprecated }
-ExplicitVRTS class >> primordial_nextDataElementSQ: dicomPDVStream [
-	"PRD - 03.2017"
-
-	| tag itemLenght writeStream length |
-
-	dicomPDVStream next: 2.		"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-	dicomPDVStream position: dicomPDVStream position - 12.
-	length = 16rFFFFFFFF ifFalse: [ ^ dicomPDVStream next: 12 + length ].
-
-	"**** Ok, we have an data element of undefined lenght. 
-	Let's search where the data element's end position begins *******"
-	writeStream := WriteStream on: ByteArray new.
-	writeStream nextPutAll: (dicomPDVStream next: 12).
-
-	"******* Repeatedly looks for the Item Tag *******"
-	tag := self readDicomDataElementTag: dicomPDVStream.
-	[ tag isItemTag ] whileTrue: [
-		dicomPDVStream position: dicomPDVStream position - 4.
-		writeStream nextPutAll: (dicomPDVStream next: 4).
-
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		itemLenght  = 16rFFFFFFFF ifTrue: [		"**** Items with undefined lenght.... ****"
-			dicomPDVStream position: dicomPDVStream position - 4.
-			writeStream nextPutAll: (dicomPDVStream next: 4).
-
-			"**** Searches for the Item Delimitation Element Tag *****"
-			tag := self readDicomDataElementTag: dicomPDVStream.
-			[ tag isItemDelimitationElementTag ] whileFalse: [
-				dicomPDVStream position: dicomPDVStream position - 4.
-				"****** recursive call 'undefinedNextDataElement: dicomPDVStream' ******"
-				writeStream nextPutAll: (self nextDataElement: dicomPDVStream).
-				tag := self readDicomDataElementTag: dicomPDVStream.
-			].
-			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
-			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-			"**** The lenght of an item delimitaion element tag shall
-			      be equal to 0x00000000 ****"
-			itemLenght = 16r00000000 ifFalse: [
-				Error signal: 
-					'Decoding error: Found Item Delimitation Element Tag with length different than 16r00000000!'
-			]
-			ifTrue: [
-				dicomPDVStream position: dicomPDVStream position - 8.
-				writeStream nextPutAll: (dicomPDVStream next: 8).
-			]
-		]
-		ifFalse: [
-			dicomPDVStream position: dicomPDVStream position - 4.
-			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
-		].
-		tag := self readDicomDataElementTag: dicomPDVStream.
-	].
-
-	tag isSequenceDelimitationElementTag ifTrue: [ 
-		"***** Sequence Delimitation Element Tag Found!!!! The lenght of
-		       an sequence delimitaion element tag shall be equal to 0x00000000 ****"
-		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-		itemLenght = 16r00000000 ifFalse: [
-				Error signal: 
-					'Decoding error: Found Sequence Delimitation Element Tag with length different than 16r00000000!'
-		] ifTrue: [
-			dicomPDVStream position: dicomPDVStream position - 8.
-			writeStream nextPutAll: (dicomPDVStream next: 8).
-		].
-	]
-	ifFalse: [
-		Error signal: 
-			'Decoding error: Sequence Delimitation Element Tag not found!'
-	].
-	^ writeStream contents
-]
-
 { #category : #'data elements' }
 ExplicitVRTS class >> privateCreatorDataElementNameFrom: dataElementTag vr: valueRepresentation [
-	| elementName |
-	elementName := WriteStream on: String new.
-	elementName nextPutAll: 'privateCreatorDataElement' , valueRepresentation , '['.
-	(dataElementTag groupNumber ) printOn: elementName base: 16.
-	elementName nextPutAll: ','.
-	(dataElementTag elementNumber) printOn: elementName base: 16.
-	elementName nextPutAll: ']'.
-	^ elementName contents
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream
+				nextPutAll: 'privateCreatorDataElement';
+				nextPutAll: valueRepresentation;
+				nextPutAll: '['.
+			dataElementTag groupNumber
+				printOn: aStream
+				base: 16
+				length: 4
+				padded: true.
+			aStream nextPutAll: ','.
+			dataElementTag elementNumber
+				printOn: aStream
+				base: 16
+				length: 4
+				padded: true.
+			aStream nextPutAll: ']' ]
 ]
 
 { #category : #'byte/value handling' }

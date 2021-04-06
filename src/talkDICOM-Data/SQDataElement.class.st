@@ -155,8 +155,7 @@ SQDataElement class >> newWith: aDicomTagNameSymbol tag: aTagGroupElementValueAr
 
 { #category : #accessing }
 SQDataElement class >> valueRepresentationString [
-
-	^'SQ'
+	^ 'SQ'
 ]
 
 { #category : #'instance creation' }

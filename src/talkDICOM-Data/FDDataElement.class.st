@@ -12,8 +12,7 @@ FDDataElement class >> initialize [
 
 { #category : #accessing }
 FDDataElement class >> valueRepresentationString [
-
-	^'FD'
+	^ 'FD'
 ]
 
 { #category : #'to deprecate' }

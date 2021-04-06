@@ -127,3 +127,8 @@ PrivateCreatorDataElement class >> fromTextLine: textLine [
 				type: '1'"
 	^ dataElements
 ]
+
+{ #category : #accessing }
+PrivateCreatorDataElement class >> valueRepresentationString [
+	^ self subclassResponsibility
+]

@@ -25,8 +25,7 @@ UTDataElement class >> initialize [
 
 { #category : #accessing }
 UTDataElement class >> valueRepresentationString [
-
-	^'UT'
+	^ 'UT'
 ]
 
 { #category : #'instance creation' }

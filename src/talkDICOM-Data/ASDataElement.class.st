@@ -12,8 +12,7 @@ ASDataElement class >> initialize [
 
 { #category : #accessing }
 ASDataElement class >> valueRepresentationString [
-
-	^'AS'
+	^ 'AS'
 ]
 
 { #category : #'to deprecate' }

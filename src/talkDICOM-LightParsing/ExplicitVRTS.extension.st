@@ -27,10 +27,8 @@ ExplicitVRTS class >> skipNextAEDataElement: dicomPDVStream [
 	 PRD February 28, 2021"
 
 	| length |
-
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
-	dicomPDVStream position: dicomPDVStream position + length.
-
+	dicomPDVStream position: dicomPDVStream position + length
 ]
 
 { #category : #'*talkDICOM-LightParsing' }
@@ -41,10 +39,8 @@ ExplicitVRTS class >> skipNextASDataElement: dicomPDVStream [
 	 PRD February 28, 2021"
 
 	| length |
-
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
-	dicomPDVStream position: dicomPDVStream position + length.
-
+	dicomPDVStream position: dicomPDVStream position + length
 ]
 
 { #category : #'*talkDICOM-LightParsing' }

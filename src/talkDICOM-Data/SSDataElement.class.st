@@ -12,8 +12,7 @@ SSDataElement class >> initialize [
 
 { #category : #accessing }
 SSDataElement class >> valueRepresentationString [
-
-	^'SS'
+	^ 'SS'
 ]
 
 { #category : #'to deprecate' }

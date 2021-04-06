@@ -12,8 +12,7 @@ LTDataElement class >> initialize [
 
 { #category : #accessing }
 LTDataElement class >> valueRepresentationString [
-
-	^'LT'
+	^ 'LT'
 ]
 
 { #category : #'instance creation' }

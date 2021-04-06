@@ -12,8 +12,7 @@ OWDataElement class >> initialize [
 
 { #category : #accessing }
 OWDataElement class >> valueRepresentationString [
-
-	^'OW'
+	^ 'OW'
 ]
 
 { #category : #'instance creation' }

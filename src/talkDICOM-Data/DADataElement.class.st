@@ -12,8 +12,7 @@ DADataElement class >> initialize [
 
 { #category : #accessing }
 DADataElement class >> valueRepresentationString [
-
-	^'DA'
+	^ 'DA'
 ]
 
 { #category : #'to deprecate' }

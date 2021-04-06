@@ -19,8 +19,7 @@ CSDataElement class >> initialize [
 
 { #category : #accessing }
 CSDataElement class >> valueRepresentationString [
-
-	^'CS'
+	^ 'CS'
 ]
 
 { #category : #'instance creation' }

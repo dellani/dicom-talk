@@ -356,10 +356,10 @@ EncodedPixelDataEncapsulationTS class >> pdvBytesFromOBDataElement: dicomOBDataE
 	(dicomOBDataElement groupNumber = 16r7FE0)
 		& (dicomOBDataElement elementNumber = 16r0010) 
 			ifTrue: "***** If true then assume that it is already encoded and encapsulate it ******"
-				[self encapsulateOBPixelDataElement: dicomOBDataElement
-					on: aByteStream]
+				[ self encapsulateOBPixelDataElement: dicomOBDataElement
+					on: aByteStream ]
 			ifFalse: "***** If not, proceed normally, as defined in the super class method *******"
-				[super pdvBytesFromOBDataElement: dicomOBDataElement on: aByteStream]
+				[ super pdvBytesFromOBDataElement: dicomOBDataElement on: aByteStream ]
 ]
 
 { #category : #'PDV bytes' }

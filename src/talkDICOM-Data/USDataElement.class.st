@@ -12,8 +12,7 @@ USDataElement class >> initialize [
 
 { #category : #accessing }
 USDataElement class >> valueRepresentationString [
-
-	^'US'
+	^ 'US'
 ]
 
 { #category : #'to deprecate' }

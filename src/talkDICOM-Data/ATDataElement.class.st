@@ -12,8 +12,7 @@ ATDataElement class >> initialize [
 
 { #category : #accessing }
 ATDataElement class >> valueRepresentationString [
-
-	^'AT'
+	^ 'AT'
 ]
 
 { #category : #'to deprecate' }

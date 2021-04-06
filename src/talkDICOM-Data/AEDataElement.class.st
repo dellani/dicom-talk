@@ -12,8 +12,7 @@ AEDataElement class >> initialize [
 
 { #category : #accessing }
 AEDataElement class >> valueRepresentationString [
-
-	^'AE'
+	^ 'AE'
 ]
 
 { #category : #'to deprecate' }

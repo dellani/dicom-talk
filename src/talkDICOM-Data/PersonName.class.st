@@ -7,14 +7,12 @@ Class {
 
 { #category : #'instance creation' }
 PersonName class >> fromDictionary: aDictionary [
-
-	^(super new: 5) fromDictionary: aDictionary
+	^ (super new: 5) fromDictionary: aDictionary
 ]
 
 { #category : #'instance creation' }
 PersonName class >> new [
-
-	^super new: 5
+	^ super new: 5
 ]
 
 { #category : #printing }

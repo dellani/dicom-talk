@@ -12,8 +12,7 @@ ULDataElement class >> initialize [
 
 { #category : #accessing }
 ULDataElement class >> valueRepresentationString [
-
-	^'UL'
+	^ 'UL'
 ]
 
 { #category : #deprecated }

@@ -12,8 +12,7 @@ OBDataElement class >> initialize [
 
 { #category : #accessing }
 OBDataElement class >> valueRepresentationString [
-
-	^'OB'
+	^ 'OB'
 ]
 
 { #category : #'instance creation' }

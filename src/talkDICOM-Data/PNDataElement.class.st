@@ -22,8 +22,7 @@ PNDataElement class >> initialize [
 
 { #category : #accessing }
 PNDataElement class >> valueRepresentationString [
-
-	^'PN'
+	^ 'PN'
 ]
 
 { #category : #'instance creation' }

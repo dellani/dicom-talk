@@ -12,8 +12,7 @@ FLDataElement class >> initialize [
 
 { #category : #accessing }
 FLDataElement class >> valueRepresentationString [
-
-	^'FL'
+	^ 'FL'
 ]
 
 { #category : #'to deprecate' }

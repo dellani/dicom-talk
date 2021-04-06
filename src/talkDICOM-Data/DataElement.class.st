@@ -177,7 +177,7 @@ DataElement class >> importDCMTK_DICOM_Dictionary [
 	[ inputStream atEnd ]
 		whileFalse: [ line := inputStream nextLine.
 			(line includes: $#)
-				ifFalse: [ collection addAll: (DataElement fromTextLine: line) ] ].
+				ifFalse: [ collection addAll: (self fromTextLine: line) ] ].
 	inputStream
 		close;
 		release.
@@ -279,8 +279,7 @@ DataElement class >> newWith: aDicomTagNameSymbol tag: aTagGroupElementValueArra
 
 { #category : #accessing }
 DataElement class >> valueRepresentationString [
-
-	^self subclassResponsibility
+	^ self subclassResponsibility
 ]
 
 { #category : #comparing }

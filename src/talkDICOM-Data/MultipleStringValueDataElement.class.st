@@ -4,6 +4,11 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
+{ #category : #accessing }
+MultipleStringValueDataElement class >> valueRepresentationString [
+	^ self subclassResponsibility
+]
+
 { #category : #'field value retrieving' }
 MultipleStringValueDataElement >> byteSize [
 	^ self subclassResponsibility
@@ -51,6 +56,7 @@ MultipleStringValueDataElement >> printValueOn: aStream [
 				aStream
 					nextPutAll: ' // ';
 					nextPutAll: (valueCollection at: index) ] ]
+		ifFalse: [ '#EMPTYVALUE' ]
 ]
 
 { #category : #'field value storing' }

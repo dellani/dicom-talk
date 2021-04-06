@@ -12,8 +12,7 @@ TMDataElement class >> initialize [
 
 { #category : #accessing }
 TMDataElement class >> valueRepresentationString [
-
-	^'TM'
+	^ 'TM'
 ]
 
 { #category : #'instance creation' }

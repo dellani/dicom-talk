@@ -12,8 +12,7 @@ SLDataElement class >> initialize [
 
 { #category : #accessing }
 SLDataElement class >> valueRepresentationString [
-
-	^'SL'
+	^ 'SL'
 ]
 
 { #category : #'to deprecate' }

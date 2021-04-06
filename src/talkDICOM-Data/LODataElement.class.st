@@ -23,8 +23,7 @@ LODataElement class >> initialize [
 
 { #category : #accessing }
 LODataElement class >> valueRepresentationString [
-
-	^'LO'
+	^ 'LO'
 ]
 
 { #category : #'to deprecate' }

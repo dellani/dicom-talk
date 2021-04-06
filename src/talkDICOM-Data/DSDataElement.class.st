@@ -5,28 +5,6 @@ Class {
 }
 
 { #category : #'class initialization' }
-DSDataElement class >> _initialize [
-
-	self dataElementCharacterRepertoire at: 16r30 put: 16r30 asCharacter;
-									 at: 16r31 put: 16r31 asCharacter;
-									 at: 16r32 put: 16r32 asCharacter;
-									 at: 16r33 put: 16r33 asCharacter;
-									 at: 16r34 put: 16r34 asCharacter;
-									 at: 16r35 put: 16r35 asCharacter;
-									 at: 16r36 put: 16r36 asCharacter;
-									 at: 16r37 put: 16r37 asCharacter;
-									 at: 16r38 put: 16r38 asCharacter;
-									 at: 16r39 put: 16r39 asCharacter;
-									at: 16r002E put: 16r002E asCharacter; 	"."
-									at: 16r002B put: 16r002B asCharacter; 	"+"
-									at: 16r002D put: 16r002D asCharacter; 	"-"
-									at: 16r0065 put: 16r0065 asCharacter;	"e"
-									at: 16r0045 put: 16r0045 asCharacter. 	"E"
-									
-	self dataElementClasses at: self valueRepresentationString put: self
-]
-
-{ #category : #'class initialization' }
 DSDataElement class >> initialize [
 	dataElementCharacterRepertoire := nil.
 	self dataElementCharacterRepertoire
@@ -50,8 +28,7 @@ DSDataElement class >> initialize [
 
 { #category : #accessing }
 DSDataElement class >> valueRepresentationString [
-
-	^'DS'
+	^ 'DS'
 ]
 
 { #category : #'to deprecate' }

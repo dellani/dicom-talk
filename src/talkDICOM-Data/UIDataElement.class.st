@@ -15,8 +15,7 @@ UIDataElement class >> initialize [
 
 { #category : #accessing }
 UIDataElement class >> valueRepresentationString [
-
-	^'UI'
+	^ 'UI'
 ]
 
 { #category : #'to deprecate' }

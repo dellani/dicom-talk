@@ -27,8 +27,7 @@ STDataElement class >> initialize [
 
 { #category : #accessing }
 STDataElement class >> valueRepresentationString [
-
-	^'ST'
+	^ 'ST'
 ]
 
 { #category : #'to deprecate' }

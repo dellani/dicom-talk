@@ -33,7 +33,6 @@ Class {
 
 { #category : #initialize }
 JPEGEncodedPixelDataEncapsulationTS class >> initialize [
-
-	UID := '1.2.840.10008.1.2.4.70'.		"DICOM Lossless JPEG Image Compression"
-	self registerMyself.
+	UID := '1.2.840.10008.1.2.4.70'.	"DICOM Lossless JPEG Image Compression"
+	self registerMyself
 ]

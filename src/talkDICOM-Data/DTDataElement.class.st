@@ -12,8 +12,7 @@ DTDataElement class >> initialize [
 
 { #category : #accessing }
 DTDataElement class >> valueRepresentationString [
-
-	^'DT'
+	^ 'DT'
 ]
 
 { #category : #'field value retrieving' }

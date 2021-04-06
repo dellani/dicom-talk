@@ -83,56 +83,6 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
-{ #category : #deprecated }
-LittleEndianExplicitVRTS class >> _dicomOWDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement byteArray |
-	newDataElement := dataElementDefinition copy.
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 12."
-	byteArray := pdvStream next: newDataElement length.
-
-	"Swap byte order"
-	1 to: length by: 2 do: [ :index | 
-		byteArray swapByteAt: index with: index + 1
-		"byte1 := byteArray at: index.
-		byteArray at: index put: (byteArray at: index + 1).
-		byteArray at: index + 1 put: byte1" ].
-	newDataElement dataBytes: byteArray.
-	^ newDataElement
-]
-
-{ #category : #'PDV bytes' }
-LittleEndianExplicitVRTS class >> _pdvBytesFromOWDataElement: dicomOWDataElement on: aByteStream [
-	"Put the byte-coding of a DICOM OW Data Element in to a ByteStream.
-	
-	PRD - February 07th, 2003"
-
-	| dataBytes |
-
-	aByteStream nextPutAll: (self byteArrayFromValue: dicomOWDataElement groupNumber size: 2).
-	aByteStream nextPutAll: (self byteArrayFromValue: dicomOWDataElement elementNumber size: 2).
-	aByteStream nextPutAll: (self byteArrayFromString: dicomOWDataElement vr).
-	aByteStream nextPut: 16r00.
-	aByteStream nextPut: 16r00.
-	aByteStream nextPutAll: (self byteArrayFromValue: dicomOWDataElement length size: 4).
-
-	dataBytes := dicomOWDataElement dataBytes.
-	dicomOWDataElement length odd ifTrue: [
-		1 to: dicomOWDataElement length - 1 by: 2 do: [:index |
-			aByteStream nextPut: (dataBytes at: index + 1).
-			aByteStream nextPut: (dataBytes at: index).
-		].
-	] ifFalse: [ 
-		1 to: dicomOWDataElement length by: 2 do: [:index |
-			aByteStream nextPut: (dataBytes at: index + 1).
-			aByteStream nextPut: (dataBytes at: index).
-		].
-	].
-]
-
 { #category : #'class variables' }
 LittleEndianExplicitVRTS class >> bitpolisher [
 	^ LittleEndianBitPolisher
@@ -170,21 +120,18 @@ LittleEndianExplicitVRTS class >> dicomOWDataElementFrom: pdvStream definition: 
 
 { #category : #initialize }
 LittleEndianExplicitVRTS class >> initialize [
-
-	UID := '1.2.840.10008.1.2.1'.		"DICOM Explicit VR Little Endian Transfer Syntax UID"
-	self registerMyself.
+	UID := '1.2.840.10008.1.2.1'.	"DICOM Explicit VR Little Endian Transfer Syntax UID"
+	self registerMyself
 ]
 
 { #category : #testing }
 LittleEndianExplicitVRTS class >> isBigEndian [
-
-	^false
+	^ false
 ]
 
 { #category : #testing }
 LittleEndianExplicitVRTS class >> isLittleEndian [
-
-	^true
+	^ true
 ]
 
 { #category : #'PDV bytes' }
@@ -222,10 +169,8 @@ LittleEndianExplicitVRTS class >> pdvBytesFromOWDataElement: dicomOWDataElement 
 
 { #category : #'byte/value handling' }
 LittleEndianExplicitVRTS class >> readDicomDataElementTag: aStream [
-	"Read data element tag from the given byte stream, which is enconded as 
-	a pair of 16 bit integers.
-	
-	PRD 03.2017"
+	"March 2017: Read data element tag from the given byte stream, which is enconded as 
+	a pair of 16 bit integers - PRD"
 
 	| tag |
 	tag := DataElementTag new.
