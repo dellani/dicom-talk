@@ -32,15 +32,6 @@ DicomIOM class >> moduleName [
 	^moduleName.
 ]
 
-{ #category : #checking }
-DicomIOM >> checkIOM [
-	"Do some basic checking in the IOM data 
-
-	PRD 01.2002"
-
-	^true.
-]
-
 { #category : #copying }
 DicomIOM >> copyFrom: aDicomObject [
 	"Copy all the data element from the given DICOM Object to self.

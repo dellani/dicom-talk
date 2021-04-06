@@ -100,12 +100,6 @@ ConstrastBolusIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-ConstrastBolusIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #'accessing - talkDICOM names' }
 ConstrastBolusIOM >> contrastBolusAdministrationRoute [
 

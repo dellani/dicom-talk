@@ -87,16 +87,6 @@ PatientIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-PatientIOM >> checkIOM [
-
-	^true
-	"self patientID isEmpty
-		ifTrue: 
-			[self patientID: Date today asSeconds printString
-						, Time now asSeconds printString]."
-]
-
 { #category : #accessing }
 PatientIOM >> ethnicGroup [
 

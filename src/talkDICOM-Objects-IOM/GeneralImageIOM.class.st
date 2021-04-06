@@ -297,12 +297,6 @@ GeneralImageIOM >> burnedInAnnotation: aCSValue [
 
 ]
 
-{ #category : #checking }
-GeneralImageIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 GeneralImageIOM >> contentDate [
 

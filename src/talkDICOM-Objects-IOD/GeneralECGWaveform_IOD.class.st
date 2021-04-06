@@ -26,10 +26,8 @@ GeneralECGWaveform_IOD class >> DicomIODName [
 
 { #category : #accessing }
 GeneralECGWaveform_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -43,7 +41,7 @@ GeneralECGWaveform_IOD class >> InformationObjectModules [
 				add: AcquisitionContextIOM initialize;
 				add: WaveformAnnotationIOM initialize;
 				add: SOPCommonIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }

@@ -124,12 +124,6 @@ GeneralStudyIOM >> accessionNumber: aSHValue [
 
 ]
 
-{ #category : #checking }
-GeneralStudyIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 GeneralStudyIOM >> nameOfPhysiciansReadingStudy [
 

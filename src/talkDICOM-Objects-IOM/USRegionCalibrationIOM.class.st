@@ -23,16 +23,6 @@ USRegionCalibrationIOM class >> initialize [
 				sequenceItemClass: UltrasoundRegionsSequenceItem)
 ]
 
-{ #category : #checking }
-USRegionCalibrationIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 USRegionCalibrationIOM >> sequenceOfUltrasoundRegions [
 

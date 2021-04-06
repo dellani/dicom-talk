@@ -43,16 +43,6 @@ ModalityLUTIOM class >> initialize [
 				type: '1C')
 ]
 
-{ #category : #checking }
-ModalityLUTIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 ModalityLUTIOM >> modalityLUTSequence [
 

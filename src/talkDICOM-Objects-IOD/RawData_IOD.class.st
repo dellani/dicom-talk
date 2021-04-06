@@ -22,37 +22,30 @@ RawData_IOD class >> DicomIODName [
 
 { #category : #accessing }
 RawData_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
-				"Patient IE"
 				add: PatientIOM initialize;
 				"add: ClinicalTrialSubjectIOM initialize;"
-
-				"Study IE"
-				add: GeneralStudyIOM initialize;
+					"Study IE"
+					add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
 				"add: ClinicalTrialStudyIOM initialize;"
-
-				"Series IE"
-				add: GeneralSeriesIOM initialize;
+					"Series IE"
+					add: GeneralSeriesIOM initialize;
 				"add: ClinicalTrialSeriesIOM initialize;"
-
-				"Frame of Reference IE"
-				add: FrameOfReferenceIOM initialize;
+					"Frame of Reference IE"
+					add: FrameOfReferenceIOM initialize;
 				add: SynchronizationIOM initialize;
-
 				"Equipment IE"
-				add: GeneralEquipmentIOM initialize;
-
+					add: GeneralEquipmentIOM initialize;
 				"Image IE"
-				add: AcquisitionContextIOM initialize;
+					add: AcquisitionContextIOM initialize;
 				"add: SpecimenIOM initialize;"
-				"add: RawDataIOM initialize;"
-				add: SOPCommonIOM initialize;
-				yourself]
+					"add: RawDataIOM initialize;"
+					add: SOPCommonIOM initialize;
+				yourself
+			"Patient IE" ]
 ]
 
 { #category : #'class initialization' }
@@ -1883,21 +1876,18 @@ RawData_IOD >> positionReferenceIndicator: aLOValue [
 ]
 
 { #category : #printing }
-RawData_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self bodyPartExamined isNil 
-		ifFalse: [self bodyPartExamined printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
-
-	"self instanceCreationTime isNil 
-		ifFalse: [self instanceCreationTime printString printOn: aStream paddedWith: Character space to: 16r0014]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0014]."
+RawData_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

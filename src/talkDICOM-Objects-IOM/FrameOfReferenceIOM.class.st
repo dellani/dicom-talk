@@ -28,12 +28,6 @@ FrameOfReferenceIOM class >> initialize [
 				type: '2')
 ]
 
-{ #category : #checking }
-FrameOfReferenceIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 FrameOfReferenceIOM >> frameOfReferenceUID [
 

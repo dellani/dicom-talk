@@ -114,16 +114,6 @@ SRDocumentGeneralIOM class >> initialize [
 				sequenceItemClass: PertinentOtherEvidenceSequenceItem)
 ]
 
-{ #category : #checking }
-SRDocumentGeneralIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 SRDocumentGeneralIOM >> completionFlag [
 

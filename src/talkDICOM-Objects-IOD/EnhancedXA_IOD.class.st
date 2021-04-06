@@ -24,57 +24,49 @@ EnhancedXA_IOD class >> DicomIODName [
 
 { #category : #accessing }
 EnhancedXA_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
-				"Patient IE"
 				add: PatientIOM initialize;
 				"add: ClinicalTrialSubjectIOM initialize;"
-
-				"Study IE"
-				add: GeneralStudyIOM initialize;
+					"Study IE"
+					add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
 				"add: ClinicalTrialStudyIOM initialize;"
-
-				"Series IE"
-				add: GeneralSeriesIOM initialize;
+					"Series IE"
+					add: GeneralSeriesIOM initialize;
 				"add: XAXRFSeriesIOM initialize;"
-				"add: ClinicalTrialSeriesIOM initialize;"
-
-				"Frame of Reference IE"
-				add: FrameOfReferenceIOM initialize;
+					"add: ClinicalTrialSeriesIOM initialize;"
+					"Frame of Reference IE"
+					add: FrameOfReferenceIOM initialize;
 				add: SynchronizationIOM initialize;
-
 				"Equipment IE"
-				add: GeneralEquipmentIOM initialize;
+					add: GeneralEquipmentIOM initialize;
 				"add: EnhancedGeneralEquipmentIOM initialize;"
-
-				"Image IE"
-				add: ImagePixelIOM initialize;
+					"Image IE"
+					add: ImagePixelIOM initialize;
 				"add: EnhancedConstrastBolusIOM initialize;"
-				"add: MaskIOM initialize;"
-				"add: DeviceIOM initialize;"
-				"add: InterventionIOM initialize;"
-				add: AcquisitionContextIOM initialize;
+					"add: MaskIOM initialize;"
+					"add: DeviceIOM initialize;"
+					"add: InterventionIOM initialize;"
+					add: AcquisitionContextIOM initialize;
 				"add: MultiFrameFunctionalGroupsIOM initialize;"
-				"add: MultiFrameDimensionIOM initialize;"
-				"add: CardiacSynchronizationIOM initialize;"
-				"add: RespiratorySynchronizationIOM initialize;"
-				"add: SpecimenIOM initialize;"
-				"add: XRayFiltrationIOM initialize;"
-				"add: XRayGridIOM initialize;"
-				"add: EnhancedXAXRFImageIOM initialize;"
-				"add: XAXRFAcquisitionIOM initialize;"
-				"add: XRayImageIntensifierIOM initialize;"
-				"add: XRayDetectorIOM initialize;"
-				"add: XAXRFMultiFramePresentationIOM initialize;"
-				add: SOPCommonIOM initialize;
+					"add: MultiFrameDimensionIOM initialize;"
+					"add: CardiacSynchronizationIOM initialize;"
+					"add: RespiratorySynchronizationIOM initialize;"
+					"add: SpecimenIOM initialize;"
+					"add: XRayFiltrationIOM initialize;"
+					"add: XRayGridIOM initialize;"
+					"add: EnhancedXAXRFImageIOM initialize;"
+					"add: XAXRFAcquisitionIOM initialize;"
+					"add: XRayImageIntensifierIOM initialize;"
+					"add: XRayDetectorIOM initialize;"
+					"add: XAXRFMultiFramePresentationIOM initialize;"
+					add: SOPCommonIOM initialize;
 				"add: CommonInstanceReferenceIOM initialize;"
-				"add: FrameExtractionIOM initialize;"
-
-				yourself]
+					"add: FrameExtractionIOM initialize;"
+					yourself
+			"Patient IE" ]
 ]
 
 { #category : #accessing }
@@ -2284,21 +2276,18 @@ EnhancedXA_IOD >> positionReferenceIndicator: aLOValue [
 ]
 
 { #category : #printing }
-EnhancedXA_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self bodyPartExamined isNil 
-		ifFalse: [self bodyPartExamined printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
-
-	"self instanceCreationTime isNil 
-		ifFalse: [self instanceCreationTime printString printOn: aStream paddedWith: Character space to: 16r0014]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0014]."
+EnhancedXA_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

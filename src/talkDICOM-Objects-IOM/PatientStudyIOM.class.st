@@ -149,12 +149,6 @@ PatientStudyIOM >> admittingDiagnosesDescription: aLOValue [
 
 ]
 
-{ #category : #checking }
-PatientStudyIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 PatientStudyIOM >> occupation [
 

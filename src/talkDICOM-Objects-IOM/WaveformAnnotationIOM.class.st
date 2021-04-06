@@ -22,16 +22,6 @@ WaveformAnnotationIOM class >> initialize [
 				sequenceItemClass: WaveformAnnotationSequenceItem)
 ]
 
-{ #category : #checking }
-WaveformAnnotationIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 WaveformAnnotationIOM >> waveformAnnotationSequence [
 

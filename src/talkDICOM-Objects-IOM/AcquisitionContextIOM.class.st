@@ -92,13 +92,3 @@ AcquisitionContextIOM >> acquisitionContextSequence: aSQValue [
 	].
 
 ]
-
-{ #category : #checking }
-AcquisitionContextIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]

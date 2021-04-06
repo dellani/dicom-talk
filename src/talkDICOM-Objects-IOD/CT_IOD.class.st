@@ -28,10 +28,8 @@ CT_IOD class >> DicomIODName [
 
 { #category : #accessing }
 CT_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -47,7 +45,7 @@ CT_IOD class >> InformationObjectModules [
 				add: CTImageIOM initialize;
 				add: OverlayPlaneIOM initialize;
 				add: VOILUTIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }
@@ -3657,20 +3655,22 @@ CT_IOD >> positionReferenceIndicator: aLOValue [
 ]
 
 { #category : #printing }
-CT_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-
-	self sliceLocation isNil 
-		ifFalse: [self sliceLocation printOn: aStream paddedWith: Character space to: 16r000D]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0010].
-	self sliceThickness isNil 
-		ifFalse: [self sliceThickness asNumber asFloat printString printOn: aStream paddedWith: Character space to: 16r0010]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0010].
+CT_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self sliceLocation
+				ifNil: [ String new padLeftTo: 16r0010 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0010 ]);
+		nextPutAll:
+			(self sliceThickness
+				ifNil: [ String new padLeftTo: 16r0010 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0010 ])
 ]
 
 { #category : #'accessing IOM data elements' }

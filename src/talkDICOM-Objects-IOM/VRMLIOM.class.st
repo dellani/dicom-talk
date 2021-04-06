@@ -32,16 +32,6 @@ VRMLIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-VRMLIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 VRMLIOM >> dataOfVRMLText [
 

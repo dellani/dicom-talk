@@ -559,12 +559,6 @@ MRImageIOM >> cardiacNumberofImages: aISValue [
 
 ]
 
-{ #category : #checking }
-MRImageIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 MRImageIOM >> dBdt [
 

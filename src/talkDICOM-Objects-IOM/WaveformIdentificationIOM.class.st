@@ -113,16 +113,6 @@ WaveformIdentificationIOM >> acquisitionDatetime: aDTValue [
 
 ]
 
-{ #category : #checking }
-WaveformIdentificationIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 WaveformIdentificationIOM >> contentDate [
 

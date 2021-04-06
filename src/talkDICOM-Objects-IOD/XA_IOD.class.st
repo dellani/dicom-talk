@@ -28,56 +28,49 @@ XA_IOD class >> DicomIODName [
 
 { #category : #accessing }
 XA_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
-				"Patient IE"
 				add: PatientIOM initialize;
 				"add: ClinicalTrialSubjectIOM initialize;"
-
-				"Study IE"
-				add: GeneralStudyIOM initialize;
+					"Study IE"
+					add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
 				"add: ClinicalTrialStudyIOM initialize;"
-
-				"Series IE"
-				add: GeneralSeriesIOM initialize;
+					"Series IE"
+					add: GeneralSeriesIOM initialize;
 				"add: ClinicalTrialSeriesIOM initialize;"
-
-				"Frame of Reference IE"
-				add: SynchronizationIOM initialize;
-
+					"Frame of Reference IE"
+					add: SynchronizationIOM initialize;
 				"Equipment IE"
-				add: GeneralEquipmentIOM initialize;
-
+					add: GeneralEquipmentIOM initialize;
 				"Image IE"
-				add: GeneralImageIOM initialize;
+					add: GeneralImageIOM initialize;
 				"add: GeneralReferenceIOM initialize;"
-				add: ImagePixelIOM initialize;
+					add: ImagePixelIOM initialize;
 				add: ConstrastBolusIOM initialize;
 				"add: CineIOM initialize;"
-				add: MultiFrameIOM initialize;
+					add: MultiFrameIOM initialize;
 				"add: FramePointersIOM initialize;"
-				"add: MaskIOM initialize;"
-				"add: DisplayShutterIOM initialize;"
-				"add: DeviceIOM initialize;"
-				"add: InterventionIOM initialize;"
-				"add: SpecimenIOM initialize;"
-				"add: XRayImageIOM initialize;"
-				"add: XRayAcquisitionIOM initialize;"
-				"add: XRayCollimatorIOM initialize;"
-				"add: XRayTableIOM initialize;"
-				"add: XAPositionerIOM initialize;"
-				add: OverlayPlaneIOM initialize;
+					"add: MaskIOM initialize;"
+					"add: DisplayShutterIOM initialize;"
+					"add: DeviceIOM initialize;"
+					"add: InterventionIOM initialize;"
+					"add: SpecimenIOM initialize;"
+					"add: XRayImageIOM initialize;"
+					"add: XRayAcquisitionIOM initialize;"
+					"add: XRayCollimatorIOM initialize;"
+					"add: XRayTableIOM initialize;"
+					"add: XAPositionerIOM initialize;"
+					add: OverlayPlaneIOM initialize;
 				"add: MultiFrameOverlayIOM initialize;"
-				add: ModalityLUTIOM initialize;
+					add: ModalityLUTIOM initialize;
 				add: VOILUTIOM initialize;
 				add: SOPCommonIOM initialize;
 				"add: CommonInstanceReferenceIOM initialize;"
-				"add: FrameExtractionIOM initialize;"
-				yourself]
+					"add: FrameExtractionIOM initialize;"
+					yourself
+			"Patient IE" ]
 ]
 
 { #category : #'class initialization' }
@@ -3268,21 +3261,18 @@ XA_IOD >> planarConfiguration: aUSValue [
 ]
 
 { #category : #printing }
-XA_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self bodyPartExamined isNil 
-		ifFalse: [self bodyPartExamined printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
-
-	"self instanceCreationTime isNil 
-		ifFalse: [self instanceCreationTime printString printOn: aStream paddedWith: Character space to: 16r0014]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0014]."
+XA_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

@@ -126,16 +126,6 @@ SynchronizationIOM >> aquisitionTimeSynchronized: aCSValue [
 
 ]
 
-{ #category : #checking }
-SynchronizationIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 SynchronizationIOM >> synchronizationChannel [
 

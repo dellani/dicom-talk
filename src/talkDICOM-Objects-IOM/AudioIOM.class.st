@@ -184,16 +184,6 @@ AudioIOM >> audioType: aUSValue [
 
 ]
 
-{ #category : #checking }
-AudioIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #'accessing - talkDICOM names' }
 AudioIOM >> numberOfChannels [
 

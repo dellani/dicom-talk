@@ -20,28 +20,21 @@ KeyObjectSelectionDocument_IOD class >> DicomIODName [
 
 { #category : #accessing }
 KeyObjectSelectionDocument_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
-				"Patient IE"
 				add: PatientIOM initialize;
-
 				"Study IE"
-				add: GeneralStudyIOM initialize;
+					add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
-
 				"Series IE"
-
-				"Equipment IE"
-				add: GeneralEquipmentIOM initialize;
-
+					"Equipment IE"
+					add: GeneralEquipmentIOM initialize;
 				"Document"
-				add: SRDocumentContentIOM initialize;
+					add: SRDocumentContentIOM initialize;
 				add: SOPCommonIOM initialize;
-
-				yourself]
+				yourself
+			"Patient IE" ]
 ]
 
 { #category : #accessing }

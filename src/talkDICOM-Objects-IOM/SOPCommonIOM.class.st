@@ -130,12 +130,6 @@ SOPCommonIOM >> authorizationEquipmentCertificationNumber: aLOValue [
 
 ]
 
-{ #category : #checking }
-SOPCommonIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 SOPCommonIOM >> instanceAvailability [
 

@@ -202,12 +202,6 @@ GeneralSeriesIOM >> bodyPartExamined: aCSValue [
 
 ]
 
-{ #category : #checking }
-GeneralSeriesIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 GeneralSeriesIOM >> largestPixelValueInSeries [
 

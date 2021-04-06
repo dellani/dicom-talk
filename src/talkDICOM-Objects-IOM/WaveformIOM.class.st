@@ -23,16 +23,6 @@ WaveformIOM class >> initialize [
 				sequenceItemClass: WaveformSequenceItem)
 ]
 
-{ #category : #checking }
-WaveformIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 WaveformIOM >> waveformSequence [
 

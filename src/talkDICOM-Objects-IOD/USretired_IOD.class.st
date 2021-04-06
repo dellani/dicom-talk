@@ -34,10 +34,8 @@ USretired_IOD class >> DicomIODName [
 
 { #category : #accessing }
 USretired_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -59,7 +57,7 @@ USretired_IOD class >> InformationObjectModules [
 				add: CurveIOM initialize;
 				add: AudioIOM initialize;
 				add: VOILUTIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }
@@ -4920,6 +4918,21 @@ USretired_IOD >> primaryAnatomicStructureSequence: aSQValue [
 
 	usImageIOM primaryAnatomicStructureSequence: aSQValue
 
+]
+
+{ #category : #printing }
+USretired_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

@@ -70,16 +70,6 @@ SCEquipmentIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-SCEquipmentIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 SCEquipmentIOM >> conversionType [
 

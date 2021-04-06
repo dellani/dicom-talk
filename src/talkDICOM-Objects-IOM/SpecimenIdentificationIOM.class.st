@@ -29,16 +29,6 @@ SpecimenIdentificationIOM class >> initialize [
 				sequenceItemClass: SpecimenSequenceItem)
 ]
 
-{ #category : #checking }
-SpecimenIdentificationIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 SpecimenIdentificationIOM >> rETIRED_SpecimenAccessionNumber [
 

@@ -49,12 +49,6 @@ ImagePlaneIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-ImagePlaneIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 ImagePlaneIOM >> imageOrientationPatient [
 

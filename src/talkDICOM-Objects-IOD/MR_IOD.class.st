@@ -4230,34 +4230,22 @@ MR_IOD >> positionReferenceIndicator: aLOValue [
 ]
 
 { #category : #printing }
-MR_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	aStream nextPutAll: (self instanceNumber isNil 
-		ifFalse: [self instanceNumber padRightTo: 16r0007 with: Character space]
-		ifTrue: [ByteString new: 16r0007 withAll: Character space]).
-
-	aStream nextPutAll: (self sliceLocation isNil 
-		ifFalse: [self sliceLocation padRightTo: 16r000D with: Character space]
-		ifTrue: [ByteString new: 16r0010 withAll: Character space]).
-
-	aStream nextPutAll: (self sliceThickness isNil 
-		ifFalse: [self sliceThickness padRightTo: 16r0010 with: Character space]
-		ifTrue: [ByteString new: 16r0010 withAll: Character space]).
-
-
-
-	"self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-
-	self sliceLocation isNil 
-		ifFalse: [self sliceLocation printOn: aStream paddedWith: Character space to: 16r000D]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0010].
-	self sliceThickness isNil 
-		ifFalse: [self sliceThickness asNumber asFloat printString printOn: aStream paddedWith: Character space to: 16r0010]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0010]."
+MR_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self sliceLocation
+				ifNil: [ String new padLeftTo: 16r000D ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r000D ]);
+		nextPutAll:
+			(self sliceThickness
+				ifNil: [ String new padLeftTo: 16r0010 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0010 ])
 ]
 
 { #category : #'accessing IOM data elements' }

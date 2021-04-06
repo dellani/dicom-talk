@@ -29,10 +29,8 @@ CR_IOD class >> DicomIODName [
 
 { #category : #accessing }
 CR_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -49,7 +47,7 @@ CR_IOD class >> InformationObjectModules [
 				add: CurveIOM initialize;
 				add: ModalityLUTIOM initialize;
 				add: VOILUTIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }
@@ -4161,21 +4159,18 @@ CR_IOD >> plateType: aSHValue [
 ]
 
 { #category : #printing }
-CR_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self bodyPartExamined isNil 
-		ifFalse: [self bodyPartExamined printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
-
-	"self instanceCreationTime isNil 
-		ifFalse: [self instanceCreationTime printString printOn: aStream paddedWith: Character space to: 16r0014]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0014]."
+CR_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

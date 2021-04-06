@@ -105,12 +105,6 @@ OverlayPlaneIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-OverlayPlaneIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 OverlayPlaneIOM >> overlayBitPosition [
 

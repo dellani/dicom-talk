@@ -742,18 +742,6 @@ DicomIOD >> asDicomImage [
 	^self subclassResponsibility
 ]
 
-{ #category : #checking }
-DicomIOD >> checkIOD [
-	"Check the consistency of the DICOM IOD. 
-	At a first moment, each IOM is checked individually.
-
-	PRD 06-07.2001 - 01.2002"
-
-	self informationObjectModules do: 
-			[:each |
-			(self perform: each moduleName asSymbol) checkIOM	"*** Inocuous code - some exception handling code must be writen for this ******"]
-]
-
 { #category : #printing }
 DicomIOD >> dataElementsTable [
 "
@@ -863,7 +851,6 @@ DicomIOD >> newStudyInstanceUID [
 DicomIOD >> pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntax [
 	super pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntax.
 	self populateIOMDictionaries: aDicomTransferSyntax.
-	self checkIOD
 ]
 
 { #category : #'parsing - private' }

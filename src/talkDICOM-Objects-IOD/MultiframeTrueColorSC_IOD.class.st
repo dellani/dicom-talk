@@ -29,27 +29,26 @@ MultiframeTrueColorSC_IOD class >> InformationObjectModules [
 	^ InformationObjectModules
 		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
-				"Patient IE"
 				add: PatientIOM initialize;
 				"Study IE"
-				add: GeneralStudyIOM initialize;
+					add: GeneralStudyIOM initialize;
 				add: PatientStudyIOM initialize;
 				"Series IE"
-				add: GeneralSeriesIOM initialize;
+					add: GeneralSeriesIOM initialize;
 				"Frame of Reference IE"
-				add: FrameOfReferenceIOM initialize;
+					add: FrameOfReferenceIOM initialize;
 				add: SynchronizationIOM initialize;
 				"Equipment IE"
-				add: GeneralEquipmentIOM initialize;
+					add: GeneralEquipmentIOM initialize;
 				add: SCEquipmentIOM initialize;
 				"Image IE"
-				add: GeneralImageIOM initialize;
+					add: GeneralImageIOM initialize;
 				add: ImagePixelIOM initialize;
 				add: MultiFrameIOM initialize;
 				add: SCImageIOM initialize;
 				add: SOPCommonIOM initialize;
 				yourself
-			 ]
+			"Patient IE" ]
 ]
 
 { #category : #initialization }
@@ -2704,6 +2703,21 @@ MultiframeTrueColorSC_IOD >> positionReferenceIndicator: aLOValue [
 
 	frameOfReferenceIOM positionReferenceIndicator: aLOValue
 
+]
+
+{ #category : #printing }
+MultiframeTrueColorSC_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

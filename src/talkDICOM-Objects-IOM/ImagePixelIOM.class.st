@@ -317,12 +317,6 @@ ImagePixelIOM >> bluePaletteColorLookupTableDescriptor: aSSValue [
 
 ]
 
-{ #category : #checking }
-ImagePixelIOM >> checkIOM [
-
-	^true.
-]
-
 { #category : #accessing }
 ImagePixelIOM >> columns [
 

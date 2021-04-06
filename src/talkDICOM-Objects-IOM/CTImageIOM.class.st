@@ -289,16 +289,6 @@ CTImageIOM >> bitsStored: aUSValue [
 
 ]
 
-{ #category : #checking }
-CTImageIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 CTImageIOM >> convolutionKernel [
 

@@ -44,12 +44,6 @@ VOILUTIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-VOILUTIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 VOILUTIOM >> vOILUTSequence [
 

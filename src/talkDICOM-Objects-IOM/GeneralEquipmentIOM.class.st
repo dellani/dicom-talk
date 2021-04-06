@@ -98,12 +98,6 @@ GeneralEquipmentIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-GeneralEquipmentIOM >> checkIOM [
-
-	^true
-]
-
 { #category : #accessing }
 GeneralEquipmentIOM >> dateOfLastCalibration [
 

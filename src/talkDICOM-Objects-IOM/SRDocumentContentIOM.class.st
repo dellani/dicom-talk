@@ -208,16 +208,6 @@ SRDocumentContentIOM >> UID: aUIValue [
 
 ]
 
-{ #category : #checking }
-SRDocumentContentIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 SRDocumentContentIOM >> conceptCodeSequence [
 

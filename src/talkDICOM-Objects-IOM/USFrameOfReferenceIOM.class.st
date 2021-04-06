@@ -98,16 +98,6 @@ USFrameOfReferenceIOM class >> initialize [
 				type: '3')
 ]
 
-{ #category : #checking }
-USFrameOfReferenceIOM >> checkIOM [
-"
-	Do some basic checking in the IOM data
-	PRD 01.2002
-"
-
-	^true.
-]
-
 { #category : #accessing }
 USFrameOfReferenceIOM >> physicalDeltaX [
 

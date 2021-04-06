@@ -27,10 +27,8 @@ SC_IOD class >> DicomIODName [
 
 { #category : #accessing }
 SC_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -45,7 +43,7 @@ SC_IOD class >> InformationObjectModules [
 				add: OverlayPlaneIOM initialize;
 				add: ModalityLUTIOM initialize;
 				add: VOILUTIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }
@@ -2898,17 +2896,18 @@ SC_IOD >> planarConfiguration: aUSValue [
 ]
 
 { #category : #printing }
-SC_IOD >> printOn: aStream [ 
-
-	aStream nextPutAll: self modality, ' Image #'.
-
-	self instanceNumber isNil 
-		ifFalse: [self instanceNumber printOn: aStream paddedWith: Character space to: 16r0007]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0007].
-	
-	self imageComments isNil 
-		ifFalse: [self imageComments printOn: aStream paddedWith: Character space to: 16r0012]
-		ifTrue: [String new printOn: aStream paddedWith: Character space to: 16r0012].
+SC_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self imageComments
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
 ]
 
 { #category : #'accessing IOM data elements' }

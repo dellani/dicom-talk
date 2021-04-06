@@ -16,14 +16,12 @@ BasicDirectoryIOD class >> DicomIODName [
 
 { #category : #accessing }
 BasicDirectoryIOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: FileSetIOM initialize;
 				add: DirectoryInformationIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }

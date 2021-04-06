@@ -34,10 +34,8 @@ GrayscaleSoftcopyPresentationState_IOD class >> DicomIODName [
 
 { #category : #accessing }
 GrayscaleSoftcopyPresentationState_IOD class >> InformationObjectModules [
-
-	^InformationObjectModules
-		ifNil: 
-			[InformationObjectModules := OrderedCollection new.
+	^ InformationObjectModules
+		ifNil: [ InformationObjectModules := OrderedCollection new.
 			InformationObjectModules
 				add: PatientIOM initialize;
 				add: GeneralStudyIOM initialize;
@@ -59,7 +57,7 @@ GrayscaleSoftcopyPresentationState_IOD class >> InformationObjectModules [
 				add: SoftcopyVOI_LUT_IOM initialize;
 				add: SoftcopyPresentationLUTIOM initialize;
 				add: SOPCommonIOM initialize;
-				yourself]
+				yourself ]
 ]
 
 { #category : #accessing }

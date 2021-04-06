@@ -4339,6 +4339,21 @@ NM_IOD >> positionReferenceIndicator: aLOValue [
 
 ]
 
+{ #category : #printing }
+NM_IOD >> printOn: aStream [
+	aStream
+		nextPutAll: self modality;
+		nextPutAll: ' Image #';
+		nextPutAll:
+			(self instanceNumber
+				ifNil: [ String new padLeftTo: 16r0007 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0007 ]);
+		nextPutAll:
+			(self bodyPartExamined
+				ifNil: [ String new padLeftTo: 16r0012 ]
+				ifNotNil: [ :arg | arg padLeftTo: 16r0012 ])
+]
+
 { #category : #'accessing IOM data elements' }
 NM_IOD >> procedureCodeSequence [
 
