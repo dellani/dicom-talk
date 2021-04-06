@@ -60,12 +60,12 @@ UNDataElement >> printValueOn: aStream [
 	                  I store to aStream;
 	 April 06, 2021: New implementation - PRD"
 
-	| elementValue |
-	(elementValue := self value) isString
-		ifTrue: [ elementValue copyFrom: 1 to: (16 min: elementValue size).
-			elementValue size > 16
-				ifTrue: [ aStream nextPutAll: ' (...)' ] ]
-		ifFalse: [ aStream nextPutAll: '#!STRING' ]
+	aStream
+		nextPutAll:
+			(ByteString
+				fromByteArray: (self dataBytes copyFrom: 1 to: (16 min: self dataBytes size))).
+	self dataBytes size > 16
+		ifTrue: [ aStream nextPutAll: ' (...)' ]
 ]
 
 { #category : #'field value retrieving' }
