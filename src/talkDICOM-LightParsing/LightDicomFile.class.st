@@ -34,12 +34,3 @@ LightDicomFile class >> initialize [
 
 	super initialize.
 ]
-
-{ #category : #'private - reading / writing' }
-LightDicomFile >> parseIOD: iodClass readStream: readStream encoder: transferSyntaxEncoder [
-	self
-		dicomIOD:
-			(iodClass new
-				lightPDVBytesStream: readStream
-				encoder: transferSyntaxEncoder)
-]

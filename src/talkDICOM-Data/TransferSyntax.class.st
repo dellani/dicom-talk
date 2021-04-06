@@ -19,6 +19,63 @@ TransferSyntax class >> UID [
 	^UID.
 ]
 
+{ #category : #'data elements' }
+TransferSyntax class >> _primordial_dicomSQUnLenDataElementFrom: dicomPDVStream definition: dataElementDefinition [
+	"Answer back an instance of SQDataElement from the Presentation Data
+	Value byte stream with undefined lenght. PS 3.5-2000 Section 7.5.
+
+	PRD 10-11.2001, 03-05.2002, 05.2003"
+
+	| tag itemLenght writeStream itemStream dicomSQDataElement |
+
+	writeStream := WriteStream on: ByteArray new.
+
+	"**** Ok, we have an data element of undefined lenght. Let's search where
+			the data element's end position begins *******"
+	"******* Repeatedly looks for the Item Tag *******"
+	tag := self readDicomDataElementTag: dicomPDVStream.
+	[ tag isItemTag ] whileTrue: [
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: 4).
+
+			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+			itemLenght = 16rFFFFFFFF ifTrue: [	"**** Items with undefined lenght.... ****"
+					"**** Here we convert the undefined length sequence items to defined length sequence items ****"
+					itemStream := WriteStream on: ByteArray new.
+
+					"**** Searches for the Item Delimitation Element Tag *****"
+					tag := self readDicomDataElementTag: dicomPDVStream.
+					[ tag isItemDelimitationElementTag ] whileFalse: [
+							dicomPDVStream position: dicomPDVStream position - 4.
+							"****** recursive call 'nextDataElement: dicomPDVStream' ******"
+							itemStream nextPutAll: (self nextDataElement: dicomPDVStream).
+							tag := self readDicomDataElementTag: dicomPDVStream].
+
+					"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
+					itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+					itemLenght = 16r00000000
+						ifFalse: [self halt]
+						ifTrue: 
+							[writeStream nextPutAll: (self byteArrayFromValue: itemStream size size: 4).
+							writeStream nextPutAll: itemStream contents ]	"**** The lenght value shall be equal to 16r00000000 ****"	"**** Problems? ****"]
+				ifFalse: 
+					[dicomPDVStream position: dicomPDVStream position - 4.
+					writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)].
+
+			tag := self readDicomDataElementTag: dicomPDVStream ].
+	tag isSequenceDelimitationElementTag ifTrue: [ 
+		"***** Sequence Delimitation Element Tag Found!!!!"
+			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+			itemLenght = 16r00000000
+				ifTrue: 
+					[dicomSQDataElement := dataElementDefinition copy.
+					dicomSQDataElement length: writeStream size.
+					dicomSQDataElement dataBytes: writeStream contents.]
+				ifFalse: [self halt]	"***** More Problems.... *****"]
+		ifFalse: [self halt].	"***** More Problems.... *****"
+	^dicomSQDataElement
+]
+
 { #category : #'class variables' }
 TransferSyntax class >> bitpolisher [
 	^ self subclassResponsibility
@@ -102,96 +159,28 @@ TransferSyntax class >> dataElementFrom: dicomPDVStream dataElementsDefinition: 
 	^self subclassResponsibility
 ]
 
-{ #category : #deprecated }
-TransferSyntax class >> dataElementHeaderLenght: aDataElement [
-	"Return the number of bytes used in the header 	(group number
-	+ element number + vr + length) of a DICOM Data Element
-
-	 PRD 05-11.2001"
-
-	^self subclassResponsibility
-]
-
 { #category : #'data elements' }
 TransferSyntax class >> dicomSQDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
+	| length newDataElement writeStream pdvBytes |
 	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	length = 16rFFFFFFFF
-		ifTrue: [ newDataElement := self dicomSQUnLenDataElementFrom: pdvStream definition: dataElementDefinition ]
-		ifFalse: [ newDataElement := dataElementDefinition copy.
-			newDataElement length: length.
-			newDataElement dataBytes: (pdvStream next: length) ].
+	length = 16rFFFFFFFF ifTrue: [
+		newDataElement := dataElementDefinition copy.
+		newDataElement length: 16rFFFFFFFF.
+
+		writeStream := WriteStream on: ByteArray new.
+		pdvBytes := self nextDataElementOfUndefinedLenght: pdvStream writeStream: writeStream.
+		newDataElement dataBytes: pdvBytes.
+		"pdvBytes := self dicomSQUnLenDataElementFrom: pdvStream writeStream: writeStream."
+		"pdvBytes := self dicomSQUnLenDataElementFrom: pdvStream definition: dataElementDefinition."
+		"newDataElement := self dicomSQUnLenDataElementFrom: pdvStream definition: dataElementDefinition"
+
+	 ] ifFalse: [
+		newDataElement := dataElementDefinition copy.
+		newDataElement length: length.
+		newDataElement dataBytes: (pdvStream next: length)
+	].
 	newDataElement encoder: self.
 	^ newDataElement
-]
-
-{ #category : #deprecated }
-TransferSyntax class >> dicomSQUnLenDataElementFrom: dicomPDVStream [
-	"Return an instance of SQDataElement from the Presentation Data Value
-	byte stream with undefined lenght. PS 3.5-2000 Section 7.5.
-
-	PRD 10-11.2001, 03-05.2002, 05.2003"
-
-	| tag itemLenght writeStream itemStream aDicomSQDataElement |
-	writeStream := WriteStream on: ByteArray new.
-
-	"******* Repeatedly looks for the Item Tag *******"
-	"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-	elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-	[groupNumber = 16rFFFE & (elementNumber = 16rE000)] whileTrue: ["
-	tag := self readDicomDataElementTag: dicomPDVStream.
-	[tag isItemTag] whileTrue: [
-			dicomPDVStream position: dicomPDVStream position - 4.
-			writeStream nextPutAll: (dicomPDVStream next: 4).
-			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-			itemLenght = 16rFFFFFFFF
-				ifTrue: 
-					["**** Items with undefined lenght.... ****"
-					"**** Here we convert the undefined length sequence items to defined length sequence items ****"
-					itemStream := WriteStream on: ByteArray new.
-
-					"**** Searches for the Item Delimitation Element Tag *****"
-					"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-					elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-					[groupNumber = 16rFFFE & (elementNumber = 16rE00D)] whileFalse: [ "
-					tag := self readDicomDataElementTag: dicomPDVStream.
-					[tag isItemDelimitationElementTag] whileFalse: [
-							dicomPDVStream position: dicomPDVStream position - 4.
-							"****** recursive call 'undefinedNextDataElement: dicomPDVStream' ******"
-							itemStream nextPutAll: (self nextDataElement: dicomPDVStream).
-							"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-							elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2"
-							tag := self readDicomDataElementTag: dicomPDVStream].
-
-					"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
-					itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-					itemLenght = 16r00000000
-						ifFalse: [self halt]
-						ifTrue: 
-							[writeStream nextPutAll: (self byteArrayFromValue: itemStream size size: 4).
-							writeStream nextPutAll: itemStream contents]	"**** The lenght value shall be equal to 16r00000000 ****"	"**** Problems? ****"]
-				ifFalse: 
-					[dicomPDVStream position: dicomPDVStream position - 4.
-					writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)].
-
-
-			"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-			elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2]."
-			tag := self readDicomDataElementTag: dicomPDVStream].
-
-		"groupNumber = 16rFFFE & (elementNumber = 16rE0DD) ifTrue: [ "
-		tag isSequenceDelimitationElementTag ifTrue: [ 
-			"***** Sequence Delimitation Element Tag Found!!!!"
-			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-			itemLenght = 16r00000000
-				ifTrue: 
-					[aDicomSQDataElement := SQDataElement new.
-					aDicomSQDataElement length: writeStream size.
-					aDicomSQDataElement dataBytes: writeStream contents.
-					"aDicomSQDataElement dataElementLength: aDicomSQDataElement length + 12"]
-				ifFalse: [self halt]	"***** More Problems.... *****"]
-		ifFalse: [self halt].	"***** More Problems.... *****"
-	^aDicomSQDataElement
 ]
 
 { #category : #'data elements' }
@@ -202,64 +191,136 @@ TransferSyntax class >> dicomSQUnLenDataElementFrom: dicomPDVStream definition: 
 	PRD 10-11.2001, 03-05.2002, 05.2003"
 
 	| tag itemLenght writeStream itemStream dicomSQDataElement |
+
 	writeStream := WriteStream on: ByteArray new.
 
+	"**** Ok, we have an data element of undefined lenght. Let's search where
+			the data element's end position begins *******"
 	"******* Repeatedly looks for the Item Tag *******"
-	"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-	elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-	[groupNumber = 16rFFFE & (elementNumber = 16rE000)] whileTrue: ["
 	tag := self readDicomDataElementTag: dicomPDVStream.
-	[tag isItemTag] whileTrue: [
+	[ tag isItemTag ] whileTrue: [
+		dicomPDVStream position: dicomPDVStream position - 4.
+		writeStream nextPutAll: (dicomPDVStream next: 4).
+
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16rFFFFFFFF ifTrue: [	"**** Items with undefined lenght.... ****"
+			"**** Here we convert the undefined length sequence items to defined length sequence items ****"
+			itemStream := WriteStream on: ByteArray new.
+
+			"**** Searches for the Item Delimitation Element Tag *****"
+			tag := self readDicomDataElementTag: dicomPDVStream.
+			[ tag isItemDelimitationElementTag ] whileFalse: [
+				dicomPDVStream position: dicomPDVStream position - 4.
+				"****** recursive call 'nextDataElement: dicomPDVStream' ******"
+				itemStream nextPutAll: (self nextDataElement: dicomPDVStream).
+				tag := self readDicomDataElementTag: dicomPDVStream
+			].
+
+			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
+			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+			"**** The lenght of an item delimitaion element tag shall
+			      be equal to 0x00000000 ****"
+			itemLenght = 16r00000000 ifFalse: [
+				Error signal: 
+					'Decoding error: Found Item Delimitation Element Tag with length different than 16r00000000!'
+			] ifTrue: [
+				writeStream nextPutAll: (self byteArrayFromValue: itemStream size size: 4).
+				writeStream nextPutAll: itemStream contents
+			]	
+		] 
+		ifFalse: [
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
+		].
+
+		tag := self readDicomDataElementTag: dicomPDVStream
+	].
+
+	tag isSequenceDelimitationElementTag ifTrue: [ 
+		"***** Sequence Delimitation Element Tag Found!!!! The lenght of
+		       an sequence delimitaion element tag shall be equal to 0x00000000 ****"
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16r00000000 ifFalse: [
+			Error signal: 
+				'Decoding error: Found Sequence Delimitation Element Tag with length different than 16r00000000!'
+		] ifTrue: [
+			dicomSQDataElement := dataElementDefinition copy.
+			dicomSQDataElement length: writeStream size.
+			dicomSQDataElement dataBytes: writeStream contents.
+		]
+	] ifFalse: [
+		Error signal: 
+			'Decoding error: Sequence Delimitation Element Tag not found!'
+	].
+
+	^ dicomSQDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> dicomSQUnLenDataElementFrom: dicomPDVStream writeStream: writeStream [
+	"Answer back an instance of SQDataElement from the Presentation Data
+	Value byte stream with undefined lenght. PS 3.5-2000 Section 7.5.
+
+	PRD 10-11.2001, 03-05.2002, 05.2003"
+
+	| tag itemLenght |
+
+	"**** Ok, we have an data element of undefined lenght. Let's search where
+			the data element's end position begins *******"
+	"******* Repeatedly looks for the Item Tag *******"
+	tag := self readDicomDataElementTag: dicomPDVStream.
+	[ tag isItemTag ] whileTrue: [
+		dicomPDVStream position: dicomPDVStream position - 4.
+		writeStream nextPutAll: (dicomPDVStream next: 4).
+
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16rFFFFFFFF ifTrue: [	"**** Items with undefined lenght.... ****"
 			dicomPDVStream position: dicomPDVStream position - 4.
 			writeStream nextPutAll: (dicomPDVStream next: 4).
+
+			"**** Searches for the Item Delimitation Element Tag *****"
+			tag := self readDicomDataElementTag: dicomPDVStream.
+			[ tag isItemDelimitationElementTag ] whileFalse: [
+				dicomPDVStream position: dicomPDVStream position - 4.
+				"****** recursive call 'nextDataElement: dicomPDVStream' ******"
+				writeStream nextPutAll: (self nextDataElement: dicomPDVStream).
+				tag := self readDicomDataElementTag: dicomPDVStream.
+			].
+			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
 			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-			itemLenght = 16rFFFFFFFF
-				ifTrue: 
-					["**** Items with undefined lenght.... ****"
-					"**** Here we convert the undefined length sequence items to defined length sequence items ****"
-					itemStream := WriteStream on: ByteArray new.
+			"**** The lenght of an item delimitaion element tag shall
+			      be equal to 0x00000000 ****"
+			itemLenght = 16r00000000 ifFalse: [
+				Error signal: 
+					'Decoding error: Found Item Delimitation Element Tag with length different than 16r00000000!'
+			] ifTrue: [
+				dicomPDVStream position: dicomPDVStream position - 8.
+				writeStream nextPutAll: (dicomPDVStream next: 8).
+			]
+		] 
+		ifFalse: [
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
+		].
+		tag := self readDicomDataElementTag: dicomPDVStream.
+	].
 
-					"**** Searches for the Item Delimitation Element Tag *****"
-					"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-					elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-					[groupNumber = 16rFFFE & (elementNumber = 16rE00D)] whileFalse: ["
-					tag := self readDicomDataElementTag: dicomPDVStream.
-					[ tag isItemDelimitationElementTag ] whileFalse: [
-							dicomPDVStream position: dicomPDVStream position - 4.
-							"****** recursive call 'undefinedNextDataElement: dicomPDVStream' ******"
-							itemStream nextPutAll: (self nextDataElement: dicomPDVStream).
-							"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-							elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2"
-							tag := self readDicomDataElementTag: dicomPDVStream].
-
-					"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
-					itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-					itemLenght = 16r00000000
-						ifFalse: [self halt]
-						ifTrue: 
-							[writeStream nextPutAll: (self byteArrayFromValue: itemStream size size: 4).
-							writeStream nextPutAll: itemStream contents]	"**** The lenght value shall be equal to 16r00000000 ****"	"**** Problems? ****"]
-				ifFalse: 
-					[dicomPDVStream position: dicomPDVStream position - 4.
-					writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)].
-
-			"groupNumber := self getValueFromByteStream: dicomPDVStream bytes: 2.
-			elementNumber := self getValueFromByteStream: dicomPDVStream bytes: 2"
-			tag := self readDicomDataElementTag: dicomPDVStream].
-	"groupNumber = 16rFFFE & (elementNumber = 16rE0DD) ifTrue: ["
-	tag isSequenceDelimitationElementTag ifTrue: [ 
-		"***** Sequence Delimitation Element Tag Found!!!!"
-			itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-			itemLenght = 16r00000000
-				ifTrue: 
-					[dicomSQDataElement := dataElementDefinition copy.
-					dicomSQDataElement length: writeStream size.
-					dicomSQDataElement dataBytes: writeStream contents.
-					"dicomSQDataElement
-						dataElementLength: dicomSQDataElement length + 12"]
-				ifFalse: [self halt]	"***** More Problems.... *****"]
-		ifFalse: [self halt].	"***** More Problems.... *****"
-	^dicomSQDataElement
+	tag isSequenceDelimitationElementTag ifTrue: [
+		"***** Sequence Delimitation Element Tag Found!!!! The lenght of
+		       an sequence delimitaion element tag shall be equal to 0x00000000 ****"
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16r00000000 ifFalse: [
+			Error signal: 
+				'Decoding error: Found Sequence Delimitation Element Tag with length different than 16r00000000!'
+		] ifTrue: [
+			dicomPDVStream position: dicomPDVStream position - 8.
+			writeStream nextPutAll: (dicomPDVStream next: 8).
+		]
+	] ifFalse: [
+		Error signal: 
+			'Decoding error: Sequence Delimitation Element Tag not found!'
+	].
+	^ writeStream contents
 ]
 
 { #category : #'byte handling - floating point' }
@@ -342,6 +403,214 @@ TransferSyntax class >> getValueFromByteStream: aStream bytes: byteNumber [
 	^ self bitpolisher getValueFromByteStream: aStream bytes: byteNumber
 ]
 
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthAEDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM AE Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthASDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM AS Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthATDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM AT Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthCSDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM CS Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthDADataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM DA Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthDSDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM DS Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthDTDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM DT Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthFDDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM FD Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthFLDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM FL Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthISDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM IS Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthLODataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM LO Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthLTDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM LT Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthOBDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM OB Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthOWDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM OW Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthPNDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM PN Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthSHDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SH Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthSLDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SL Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthSQDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SQ Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthSSDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SS Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthSTDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM ST Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthTMDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM TM Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthUIDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UI Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthULDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UL Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthUNDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UN Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthUSDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM US Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
+{ #category : #'data elements - header lenght' }
+TransferSyntax class >> headerLengthUTDataElement [
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UT Data Element - PRD 03.2017"
+
+	^ self subclassResponsibility 
+]
+
 { #category : #initialize }
 TransferSyntax class >> initialize [
 "
@@ -380,13 +649,219 @@ TransferSyntax class >> longDataElementHeaderLength [
 	^ 12
 ]
 
-{ #category : #'data elements' }
+{ #category : #'next data element' }
 TransferSyntax class >> nextDataElement: dicomPDVStream [
-	"	Return the position in the dicomPDV byte array where starts the next data Element.
-	tagPosition corresponds to the first byte of the 'current' data element. - PRD 05-12.2001
-	Added support for undefined lenght DICOM Data Elements - PRD 06.2002"
+	"Discover the position where the next data element begins in dicomPDVStream.
+	PRD 03.2017, April 05, 2021"
 
 	^ self subclassResponsibility
+]
+
+{ #category : #'next data element' }
+TransferSyntax class >> nextDataElementOfDefinedLenght: dicomPDVStream length: length [
+	"Length corresponds to the byte size of the complete data element, 
+	 including the data element header, not the length of the encoded
+	 value. PRD - April 05 2021"
+
+	^ dicomPDVStream next: length
+]
+
+{ #category : #'next data element' }
+TransferSyntax class >> nextDataElementOfUndefinedLenght: dicomPDVStream headerLength: headerLength [
+	"Discover the position where the next data element begins in dicomPDVStream.
+	 The current data element is of undefined lenght. PRD - 03.2017, 04.2021"
+	| tag itemLenght writeStream |
+
+	writeStream := WriteStream on: ByteArray new.
+	writeStream nextPutAll: (dicomPDVStream next: headerLength).
+
+	"**** Ok, we have an data element of undefined lenght. Let's search where
+			the data element's end position begins *******"
+	"******* Repeatedly looks for the Item Tag *******"
+	tag := self readDicomDataElementTag: dicomPDVStream.
+	[ tag isItemTag ] whileTrue: [
+		dicomPDVStream position: dicomPDVStream position - 4.
+		writeStream nextPutAll: (dicomPDVStream next: 4).
+
+		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+		itemLenght  = 16rFFFFFFFF ifTrue: [	"**** Items with undefined lenght.... ****"
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: 4).
+
+			"**** Searches for the Item Delimitation Element Tag *****"
+			tag := self readDicomDataElementTag: dicomPDVStream.
+			[ tag isItemDelimitationElementTag ] whileFalse: [
+				dicomPDVStream position: dicomPDVStream position - 4.
+				"****** recursive call 'nextDataElement: dicomPDVStream' ******"
+				writeStream nextPutAll: (self nextDataElement: dicomPDVStream).
+				tag := self readDicomDataElementTag: dicomPDVStream.
+			].
+			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
+			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+			"**** The lenght of an item delimitaion element tag shall
+			      be equal to 0x00000000 ****"
+			itemLenght = 16r00000000 ifFalse: [
+				Error signal: 
+					'Decoding error: Found Item Delimitation Element Tag with length different than 16r00000000!'
+			] ifTrue: [
+				dicomPDVStream position: dicomPDVStream position - 8.
+				writeStream nextPutAll: (dicomPDVStream next: 8).
+			]
+		]
+		ifFalse: [
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
+		].
+		tag := self readDicomDataElementTag: dicomPDVStream.
+	].
+
+	tag isSequenceDelimitationElementTag ifTrue: [ 
+		"***** Sequence Delimitation Element Tag Found!!!! The lenght of
+		       an sequence delimitaion element tag shall be equal to 0x00000000 ****"
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16r00000000 ifFalse: [
+			Error signal: 
+				'Decoding error: Found Sequence Delimitation Element Tag with length different than 16r00000000!'
+		] ifTrue: [
+			dicomPDVStream position: dicomPDVStream position - 8.
+			writeStream nextPutAll: (dicomPDVStream next: 8).
+		].
+	]
+	ifFalse: [
+		Error signal: 
+			'Decoding error: Sequence Delimitation Element Tag not found!'
+	].
+	^ writeStream contents
+]
+
+{ #category : #'next data element' }
+TransferSyntax class >> nextDataElementOfUndefinedLenght: dicomPDVStream headerLength: headerLength writeStream: writeStream [
+	"Discover the position where the next data element begins in dicomPDVStream.
+	 The current data element is of undefined lenght. PRD - 03.2017, 04.2021"
+	| tag itemLenght |
+
+	"**** Ok, we have an data element of undefined lenght. Let's search where
+			the data element's end position begins *******"
+	"******* Repeatedly looks for the Item Tag *******"
+	tag := self readDicomDataElementTag: dicomPDVStream.
+	[ tag isItemTag ] whileTrue: [
+		dicomPDVStream position: dicomPDVStream position - 4.
+		writeStream nextPutAll: (dicomPDVStream next: 4).
+
+		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+		itemLenght  = 16rFFFFFFFF ifTrue: [	"**** Items with undefined lenght.... ****"
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: 4).
+
+			"**** Searches for the Item Delimitation Element Tag *****"
+			tag := self readDicomDataElementTag: dicomPDVStream.
+			[ tag isItemDelimitationElementTag ] whileFalse: [
+				dicomPDVStream position: dicomPDVStream position - 4.
+				"****** recursive call 'nextDataElement: dicomPDVStream' ******"
+				writeStream nextPutAll: (self nextDataElement: dicomPDVStream).
+				tag := self readDicomDataElementTag: dicomPDVStream.
+			].
+			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
+			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+			"**** The lenght of an item delimitaion element tag shall
+			      be equal to 0x00000000 ****"
+			itemLenght = 16r00000000 ifFalse: [
+				Error signal: 
+					'Decoding error: Found Item Delimitation Element Tag with length different than 16r00000000!'
+			] ifTrue: [
+				dicomPDVStream position: dicomPDVStream position - 8.
+				writeStream nextPutAll: (dicomPDVStream next: 8).
+			]
+		]
+		ifFalse: [
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
+		].
+		tag := self readDicomDataElementTag: dicomPDVStream.
+	].
+
+	tag isSequenceDelimitationElementTag ifTrue: [ 
+		"***** Sequence Delimitation Element Tag Found!!!! The lenght of
+		       an sequence delimitaion element tag shall be equal to 0x00000000 ****"
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16r00000000 ifFalse: [
+			Error signal: 
+				'Decoding error: Found Sequence Delimitation Element Tag with length different than 16r00000000!'
+		] ifTrue: [
+			dicomPDVStream position: dicomPDVStream position - 8.
+			writeStream nextPutAll: (dicomPDVStream next: 8).
+		].
+	]
+	ifFalse: [
+		Error signal: 
+			'Decoding error: Sequence Delimitation Element Tag not found!'
+	].
+	^ writeStream contents
+]
+
+{ #category : #'next data element' }
+TransferSyntax class >> nextDataElementOfUndefinedLenght: dicomPDVStream writeStream: writeStream [
+	"Discover the position where the next data element begins in dicomPDVStream.
+	 The current data element is of undefined lenght. PRD - 03.2017, 04.2021"
+	| tag itemLenght |
+
+	"**** Ok, we have an data element of undefined lenght. Let's search where
+			the data element's end position begins *******"
+	"******* Repeatedly looks for the Item Tag *******"
+	tag := self readDicomDataElementTag: dicomPDVStream.
+	[ tag isItemTag ] whileTrue: [
+		dicomPDVStream position: dicomPDVStream position - 4.
+		writeStream nextPutAll: (dicomPDVStream next: 4).
+
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16rFFFFFFFF ifTrue: [	"**** Items with undefined lenght.... ****"
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: 4).
+
+			"**** Searches for the Item Delimitation Element Tag *****"
+			tag := self readDicomDataElementTag: dicomPDVStream.
+			[ tag isItemDelimitationElementTag ] whileFalse: [
+				dicomPDVStream position: dicomPDVStream position - 4.
+				"****** recursive call 'nextDataElement: dicomPDVStream' ******"
+				writeStream nextPutAll: (self nextDataElement: dicomPDVStream).
+				tag := self readDicomDataElementTag: dicomPDVStream.
+			].
+			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
+			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+			"**** The lenght of an item delimitaion element tag shall
+			      be equal to 0x00000000 ****"
+			itemLenght = 16r00000000 ifFalse: [
+				Error signal: 
+					'Decoding error: Found Item Delimitation Element Tag with length different than 16r00000000!'
+			] ifTrue: [
+				dicomPDVStream position: dicomPDVStream position - 8.
+				writeStream nextPutAll: (dicomPDVStream next: 8).
+			]
+		]
+		ifFalse: [
+			dicomPDVStream position: dicomPDVStream position - 4.
+			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
+		].
+		tag := self readDicomDataElementTag: dicomPDVStream.
+	].
+
+	tag isSequenceDelimitationElementTag ifTrue: [ 
+		"***** Sequence Delimitation Element Tag Found!!!! The lenght of
+		       an sequence delimitaion element tag shall be equal to 0x00000000 ****"
+		itemLenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+		itemLenght = 16r00000000 ifFalse: [
+			Error signal: 
+				'Decoding error: Found Sequence Delimitation Element Tag with length different than 16r00000000!'
+		] ifTrue: [
+			dicomPDVStream position: dicomPDVStream position - 8.
+			writeStream nextPutAll: (dicomPDVStream next: 8).
+		]
+	]
+	ifFalse: [
+		Error signal: 
+			'Decoding error: Sequence Delimitation Element Tag not found!'
+	].
+	^ writeStream contents
 ]
 
 { #category : #'PDV bytes' }

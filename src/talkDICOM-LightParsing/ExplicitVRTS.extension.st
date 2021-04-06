@@ -6,42 +6,17 @@ ExplicitVRTS class >> lightDataElementFrom: pdvStream dataElementsDefinition: da
 
 	PRD February 28, 2021"
 
-	| elementTag dataElementDefinition valueRepresentation |
+	| elementTag |
 	elementTag := self readDicomDataElementTag: pdvStream.
 	elementTag isPixelData ifTrue: [
 		self skipNextDataElement: pdvStream.
 		^ nil
 	].
 
-	"Store the VR encoded in pdvStream to decode data elements unknown to this implementation"
-	valueRepresentation := (pdvStream next: 2) asString asByteString.
-	dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: valueRepresentation.
-	"This should not happen, but just in case, use the VR encoded in the pdv stream if it is other than UN.
-	If the VR encoded in the PDV stream is UN, first try to decode the data element using the information
-	from the data elements directory."
-	^ dataElementDefinition vr = valueRepresentation
-		ifFalse: [ valueRepresentation = 'UN'
-				ifTrue: [ [ self decodeKnownTagFromUnknownDataElementDefinition: dataElementDefinition pdvstream: pdvStream transferSyntax: self ]
-						on: DataElementEncodingError
-						do: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
-								tag: elementTag;
-								name: dataElementDefinition name;
-								vm: '1';
-								description:
-									'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
-										, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
-								yourself.
-							dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
-				ifFalse: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
-						tag: elementTag;
-						name: dataElementDefinition name;
-						vm: '1';
-						description:
-							'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
-								, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
-						yourself.
-					dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
-		ifTrue: [ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ]
+	^ self 
+		parseDataElement: elementTag
+		from: pdvStream
+		dataElementsDefinition: dataElementsDefinition
 ]
 
 { #category : #'*talkDICOM-LightParsing' }

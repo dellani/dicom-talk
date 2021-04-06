@@ -178,260 +178,208 @@ ImplicitVRTS class >> fixedSizeDataElementFrom: pdvStream definition: dataElemen
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthAEDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM AE Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM AE Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthASDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM AS Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM AS Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthATDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM AT Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM AT Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthCSDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM CS Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM CS Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthDADataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM DA Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM DA Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthDSDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM DS Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM DS Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthDTDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM DT Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM DT Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthFDDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM FD Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM FD Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthFLDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM FL Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM FL Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthISDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM IS Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM IS Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthLODataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM LO Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM LO Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthLTDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM LT Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM LT Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthOBDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM OB Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM OB Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthOWDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM OW Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM OW Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthPNDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM PN Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM PN Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthSHDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM SH Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SH Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthSLDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM SL Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SL Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthSQDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM SQ Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SQ Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthSSDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM SS Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM SS Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthSTDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM ST Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM ST Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthTMDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM TM Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM TM Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthUIDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM UI Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UI Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthULDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM UL Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UL Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthUNDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM UN Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UN Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthUSDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM US Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM US Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #'data elements - header lenght' }
 ImplicitVRTS class >> headerLengthUTDataElement [
-	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM UT Data Element.
-	
-	PRD 05-11.2001, 03.2017"
+	"Return the number of bytes used in the header (group number +
+	 element number + vr + length) of a DICOM UT Data Element - PRD 03.2017"
 
 	^ self shortDataElementHeaderLength
 ]
@@ -473,79 +421,24 @@ ImplicitVRTS class >> isVRImplicit [
 
 { #category : #'next data element' }
 ImplicitVRTS class >> nextDataElement: dicomPDVStream [
-"
-	Return the position in the dicomPDV byte array where starts the next data Element.
-	tagPosition corresponds to the first byte of the 'current' data element. - PRD 05-12.2001
-	Added support for undefined lenght DICOM Data Elements - PRD 06.2002
-"
-	| itemLenght writeStream lenght tag |
+	"Discover the position where the next data element begins in
+	 dicomPDVStream. If the current data element is of undefined
+	 lenght, send the appropriate message. PRD - 03.2017, 04.2021"
 
+	| length writeStream |
 	"Skip the group number and element number 4 bytes"
 	dicomPDVStream next: 4.
-	lenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-	dicomPDVStream position: dicomPDVStream position - 8.
-	lenght = 16rFFFFFFFF ifFalse: [^dicomPDVStream next: 8 + lenght].
+	length := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
+	"In the transfer syntaxes with implicit VR, the length of 
+	 the data element header is the same for all data element types"
+	dicomPDVStream position: dicomPDVStream position - self shortDataElementHeaderLength.
 
-	"**** 	Ok, we have an data element of undefined lenght. Let's search where 
-			the data element's end position begins *******"
-	writeStream := WriteStream on: ByteArray new.
-	writeStream nextPutAll: (dicomPDVStream next: 8).
-	"******* Repeatedly looks for the Item Tag *******"
-	"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-	elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-	[(groupNumber = 16rFFFE) & (elementNumber = 16rE000)] whileTrue: ["
-	tag := self readDicomDataElementTag: dicomPDVStream.
-	[tag isItemTag] whileTrue: [
-		dicomPDVStream position: dicomPDVStream position - 4.
-		writeStream nextPutAll: (dicomPDVStream next: 4).
-
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		itemLenght  = 16rFFFFFFFF ifTrue: [		"**** Items with undefined lenght.... ****"
-			dicomPDVStream position: dicomPDVStream position - 4.
-			writeStream nextPutAll: (dicomPDVStream next: 4).
-			"**** Searches for the Item Delimitation Element Tag *****"
-			"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-			elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-			[(groupNumber = 16rFFFE) & (elementNumber = 16rE00D)] whileFalse: ["
-			tag := self readDicomDataElementTag: dicomPDVStream.
-			[tag isItemDelimitationElementTag] whileFalse: [
-				dicomPDVStream position: dicomPDVStream position - 4.
-				"****** recursive call 'nextDataElement: dicomPDVStream' ******"
-				writeStream nextPutAll: (self nextDataElement: dicomPDVStream).
-				"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-				elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
-				tag := self readDicomDataElementTag: dicomPDVStream.
-			].
-			"**** We have found the Item Delimitation Element Tag. Now get its lenght ******"
-			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-			itemLenght = 16r00000000			"**** The lenght value shall be equal to 16r00000000 ****"
-				ifFalse: [self halt] 				"**** Problems? ****"
-				ifTrue: [
-					dicomPDVStream position: dicomPDVStream position - 8.
-					writeStream nextPutAll: (dicomPDVStream next: 8).
-				]
-		]
-		ifFalse: [
-			dicomPDVStream position: dicomPDVStream position - 4.
-			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 4)
-		].
-		"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
-		tag := self readDicomDataElementTag: dicomPDVStream.
-	].
-	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitationElementTag ifTrue: [ 
-		"***** Sequence Delimitation Element Tag Found!!!!"
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		itemLenght = 16r00000000			"**** The lenght value shall be equal to 16r00000000 ****"
-			ifFalse: [self halt] 				"**** Problems? ****"
-			ifTrue: [
-				dicomPDVStream position: dicomPDVStream position - 8.
-				writeStream nextPutAll: (dicomPDVStream next: 8).
-			]
-	]
-	ifFalse: [self halt]. 		"***** More Problems.... *****"
-	^writeStream contents
+	^ length = 16rFFFFFFFF ifTrue: [
+		writeStream := WriteStream on: ByteArray new.
+		writeStream nextPutAll: (dicomPDVStream next: self shortDataElementHeaderLength).
+		self nextDataElementOfUndefinedLenght: dicomPDVStream writeStream: writeStream.
+	] ifFalse: [
+		self nextDataElementOfDefinedLenght: dicomPDVStream length: self shortDataElementHeaderLength + length. ]
 ]
 
 { #category : #'PDV bytes' }
