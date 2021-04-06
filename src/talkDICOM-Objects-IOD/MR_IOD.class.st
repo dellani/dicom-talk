@@ -64,28 +64,28 @@ MR_IOD class >> initialize [
 MR_IOD >> < dicomIOD [
 	"PRD - March 05th, 2004"
 
-	^self instanceNumber asNumber < dicomIOD instanceNumber asNumber
+	^ self instanceNumber asNumber < dicomIOD instanceNumber asNumber
 ]
 
 { #category : #comparing }
 MR_IOD >> <= dicomIOD [
 	"PRD - March 05th, 2004"
 
-	^self instanceNumber asNumber <= dicomIOD instanceNumber asNumber
+	^ self instanceNumber asNumber <= dicomIOD instanceNumber asNumber
 ]
 
 { #category : #comparing }
 MR_IOD >> > dicomIOD [
 	"PRD - March 05th, 2004"
 
-	^self instanceNumber asNumber > dicomIOD instanceNumber asNumber
+	^ self instanceNumber asNumber > dicomIOD instanceNumber asNumber
 ]
 
 { #category : #comparing }
 MR_IOD >> >= dicomIOD [
 	"PRD - March 05th, 2004"
 
-	^self instanceNumber asNumber >= dicomIOD instanceNumber asNumber
+	^ self instanceNumber asNumber >= dicomIOD instanceNumber asNumber
 ]
 
 { #category : #'accessing IOM data elements' }
@@ -336,30 +336,6 @@ MR_IOD >> angioFlag: aCSValue [
 
 	mrImageIOM angioFlag: aCSValue
 
-]
-
-{ #category : #converting }
-MR_IOD >> asDICOMDIR_IE [
-
-	| aDICOMDIR_IE newItem |
-
-	aDICOMDIR_IE := DICOMDIR_IE new.
-	self sopCommonIOM copyTo: aDICOMDIR_IE sopCommonIOM.
-	aDICOMDIR_IE 
-		referencedTransferSyntaxUIDInFile: 
-			(self encoder notNil ifTrue: [self encoder UID] ifFalse: [nil]).
-	aDICOMDIR_IE
-		imageType: 
-			(self imageType notNil ifTrue: [self imageType] ifFalse: ['']).
-	self referencedImageSequence notNil
-		ifTrue: 
-			[aDICOMDIR_IE referencedImageSequence: OrderedCollection new.
-			self referencedImageSequence do: 
-					[:item |
-					newItem := ReferencedImageSequenceItem new.
-					item copyTo: newItem.
-					aDICOMDIR_IE referencedImageSequence add: newItem	]].
-	^aDICOMDIR_IE
 ]
 
 { #category : #'accessing IOM data elements' }

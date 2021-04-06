@@ -64,12 +64,6 @@ BasicDirectoryIOD >> >= dicomIOD [
 	^self shouldNotImplement
 ]
 
-{ #category : #converting }
-BasicDirectoryIOD >> asDICOMDIR_IE [
-
-	^self shouldNotImplement
-]
-
 { #category : #'accessing IOM' }
 BasicDirectoryIOD >> directoryInformationIOM [
 

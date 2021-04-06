@@ -50,6 +50,34 @@ KeyObjectSelectionDocument_IOD class >> initialize [
 	super initialize.
 ]
 
+{ #category : #comparing }
+KeyObjectSelectionDocument_IOD >> < dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber < dicomIOD instanceNumber asNumber
+]
+
+{ #category : #comparing }
+KeyObjectSelectionDocument_IOD >> <= dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber <= dicomIOD instanceNumber asNumber
+]
+
+{ #category : #comparing }
+KeyObjectSelectionDocument_IOD >> > dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber > dicomIOD instanceNumber asNumber
+]
+
+{ #category : #comparing }
+KeyObjectSelectionDocument_IOD >> >= dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber >= dicomIOD instanceNumber asNumber
+]
+
 { #category : #'accessing IOM data elements - talkDICOM names' }
 KeyObjectSelectionDocument_IOD >> UID [
 

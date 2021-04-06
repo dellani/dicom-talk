@@ -62,6 +62,34 @@ MultiframeTrueColorSC_IOD class >> initialize [
 	super initialize
 ]
 
+{ #category : #comparing }
+MultiframeTrueColorSC_IOD >> < dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber < dicomIOD instanceNumber asNumber
+]
+
+{ #category : #comparing }
+MultiframeTrueColorSC_IOD >> <= dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber <= dicomIOD instanceNumber asNumber
+]
+
+{ #category : #comparing }
+MultiframeTrueColorSC_IOD >> > dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber > dicomIOD instanceNumber asNumber
+]
+
+{ #category : #comparing }
+MultiframeTrueColorSC_IOD >> >= dicomIOD [
+	"PRD - March 05th, 2004"
+
+	^ self instanceNumber asNumber >= dicomIOD instanceNumber asNumber
+]
+
 { #category : #'accessing IOM data elements' }
 MultiframeTrueColorSC_IOD >> accessionNumber [
 

@@ -727,21 +727,6 @@ DicomIOD >> SOPClassUID [
 	^self class SOPClassUID
 ]
 
-{ #category : #converting }
-DicomIOD >> asDICOMDIR_IE [
-
-	^self subclassResponsibility
-]
-
-{ #category : #converting }
-DicomIOD >> asDicomImage [
-	"Create an instance of the appropriated graphical wrapper for my subclasse instances.
-
-	PRD - June 11th, 2003"
-
-	^self subclassResponsibility
-]
-
 { #category : #printing }
 DicomIOD >> dataElementsTable [
 "
