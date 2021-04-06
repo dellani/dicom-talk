@@ -83,6 +83,11 @@ PersonName >> isEmpty [
 ]
 
 { #category : #testing }
+PersonName >> isPersonName [
+	^ true
+]
+
+{ #category : #testing }
 PersonName >> matches: text [
 
 "regexString asRegex matches: self"

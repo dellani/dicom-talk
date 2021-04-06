@@ -331,26 +331,6 @@ DataElement >> >= aDataElement [
 			aDataElement elementNumber).
 ]
 
-{ #category : #printing }
-DataElement >> _printOn: aStream [
-	"Write in 'aStream' the general description of an Dicom Data Element
-	PRD 08.2002
-
-	as well as the value stored on the data element
-	PRD January 10th, 2003 - August 2-th, 2015"
-
-	aStream nextPutAll: 'Data Element Name: ', (self name notNil ifTrue: [self name] ifFalse: ['unknown']); cr.
-	aStream nextPutAll: 'Data Element Group Number: '.
-	self groupNumber notNil ifTrue: [self groupNumber printOn: aStream base: 16] ifFalse: [aStream nextPutAll: 'unknown'].
-	aStream cr; nextPutAll: 'Data Element Element Number: '.
-	self elementNumber notNil ifTrue: [self elementNumber printOn: aStream base: 16] ifFalse: [aStream nextPutAll: 'unknown'].
-	aStream cr; nextPutAll: ('Value Representation: ', (self vr notNil ifTrue: [self vr] ifFalse: ['unknown'])); cr.
-	aStream nextPutAll: ('Type: ', (self type isNil ifTrue: ['unknown'] ifFalse: [self type])); cr.
-
-	aStream nextPutAll: 'Value: '.
-	self printValueOn: aStream.
-]
-
 { #category : #converting }
 DataElement >> asText [
 
@@ -732,124 +712,91 @@ DataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 DataElement >> printEntireValueOn: aStream [
-	" Some subclasses do not print the entire value represented by the 
-	data element when receiving the message printValueOn: aStream, so 
-	instead send this message to my subclasses - PRD August 31, 2017"
+	"August 31 2017: Some subclasses do not print the entire value 
+	represented by the data element when receiving the message 
+	printValueOn: aStream, so instead send this message to my
+	subclasses - PRD"
 
 	^ self printValueOn: aStream
 ]
 
 { #category : #printing }
 DataElement >> printOn: aStream [
-	"Write in 'aStream' the general description of an Dicom Data Element
-	PRD 08.2002
+	"August 2002: Print general description of myself in 'aStream';
+    January 10, 2003: Print the value that I store too;
+	 August 2, 2015: Refactoring;
+	 April 6, 2021: Refactoring"
 
-	as well as the value stored on the data element
-	PRD January 10th, 2003 - August 2-th, 2015"
-
-	aStream 
-		nextPutAll: (self name notNil ifTrue: [self name] ifFalse: ['unknown']); 
-		nextPut: Character space;
-		nextPut: $(;
-		nextPutAll: (self groupNumber printPaddedWith: $0 to: 4 base: 16);
-		nextPut: $,;
-		nextPut: Character space;
-		nextPutAll: (self elementNumber printPaddedWith: $0 to: 4 base: 16);
-		nextPut: $);
+	aStream
+		nextPutAll:
+			(self name ifNil: [ 'unknown' ] ifNotNil: [ :arg | arg ]);
+		nextPut: Character space.
+	self tag printOn: aStream.
+	aStream
 		nextPut: Character space;
 		nextPutAll: self vr;
-		nextPut: Character space.
-		self type notNil ifTrue: [ aStream 
-		nextPutAll: self type;
-		nextPut: Character space].
-	aStream 
+		nextPut: Character space;
+		nextPutAll: (self type ifNil: [ ' ' ] ifNotNil: [ :arg | arg ]);
 		nextPut: $[.
-
 	self printValueOn: aStream.
-	
-	aStream 
-		nextPut: $].
-
+	aStream nextPut: $]
 ]
 
 { #category : #printing }
 DataElement >> printTableEntry [
-
-	^self printTableEntry: 0
+	^ self printTableEntry: 0
 ]
 
 { #category : #printing }
 DataElement >> printTableEntry: level [
-"
-	Return a string of characters describing myself in unique row.
-	PRD - July 15th, 2004 - August 21th, 2015
-"
-	| aStream nameString |
+	"Return a string of characters describing myself in unique row.
+	 PRD - July 15th, 2004 - August 21th, 2015
+	 April 6, 2021: replace printOn:paddedWith:to: messages with padLeftTo:,
+	                removed references to printOn:base:digitsToPad:highDigit: - PRD"
 
-	aStream := WriteStream on: String new.
-	nameString := String new.
-	level timesRepeat: [nameString := nameString , '> '].
-	self name notNil 
-		ifTrue: [nameString := nameString, self name]
-		ifFalse: [nameString := nameString, 'unknown'].
-	nameString printOn: aStream paddedWith: Character space 	to: 64.
-	aStream tab.
-	self groupNumber notNil ifTrue: [
-		aStream nextPutAll: '0x'.
-		self groupNumber printOn: aStream base: 16 digitsToPad: 4 highDigit: 4. 
-		"self groupNumber printOn: aStream base: 16"
-	] ifFalse: [
-		aStream nextPutAll: 'unknown'].
-	aStream tab.
-	self elementNumber notNil ifTrue: [
-		aStream nextPutAll: '0x'.
-		self elementNumber printOn: aStream base: 16 digitsToPad: 4 highDigit: 4. 
-		"self groupNumber printOn: aStream base: 16"
-	] ifFalse: [
-		aStream nextPutAll: 'unknown'].
-
-	"self elementNumber notNil 	ifTrue: [self elementNumber printOn: aStream base: 16] 
-								ifFalse: [aStream nextPutAll: 'unknown']."
-	aStream tab; nextPutAll: (self vr notNil ifTrue: [self vr] ifFalse: ['unknown']).
-	aStream tab; nextPutAll: (self type isNil ifTrue: ['unknown'] ifFalse: [self type]).
-	aStream tab; nextPutAll: (self vm isNil ifTrue: ['unknown'] ifFalse: [self vm]).
-	^aStream contents.
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			level timesRepeat: [ aStream nextPutAll: '> ' ].
+			aStream
+				nextPutAll:
+					(self name
+						ifNil: [ String new padRightTo: 64 - (level * 2) ]
+						ifNotNil: [ :arg | arg padRightTo: 64 - (level * 2) ]);
+				tab;
+				nextPutAll: self tag printString;
+				tab;
+				nextPutAll: self vr;
+				tab;
+				nextPutAll: self type;
+				tab;
+				nextPutAll: self vm ]
 ]
 
 { #category : #printing }
 DataElement >> printTableEntryWithValues [
-
-	^self printTableEntryWithValues: 0
+	^ self printTableEntryWithValues: 0
 ]
 
 { #category : #printing }
 DataElement >> printTableEntryWithValues: level [
-"
-	Return a string of characters describing myself in unique row.
-	PRD - July 15th, 2004
+	"July 15 2004: Return a string of characters describing myself in unique row.
+	 August 20 2015: Version that prints the value stored on the data element.
+	 April 06, 2021: Refactoring - PRD"
 
-	Version that prints the value store on the data element
-	PRD - August 20th, 2015
-"
-	| aStream |
-
-	aStream := WriteStream on: String new.
-	aStream nextPutAll: (self printTableEntry: level); tab.
-	self printValueOn: aStream.
-	"aStream tab.nextPutAll: self value printString."
-	^aStream contents.
-
-
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream
+				nextPutAll: (self printTableEntry: level);
+				tab.
+			self printValueOn: aStream ]
 ]
 
 { #category : #printing }
 DataElement >> printValueOn: aStream [
-
-	^self subclassResponsibility
+	"August 20 2015: Print the value that I store to aStream - PRD"
+	^ self subclassResponsibility
 ]
 
 { #category : #accessing }

@@ -54,14 +54,12 @@ DTDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 DTDataElement >> printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
+	"August 20, 2015: Print the value that I store to aStream;
+	April 06, 2021: Code formating - PRD"
 
-	((elementValue := self value) isKindOf: DateAndTime) 
-		ifTrue: [aStream nextPutAll: elementValue printString]
+	| elementValue |
+	((elementValue := self value) isKindOf: DateAndTime)
+		ifTrue: [ aStream nextPutAll: elementValue printString ]
 ]
 
 { #category : #'field value storing' }

@@ -332,69 +332,71 @@ SQDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 SQDataElement >> printSequenceItemDataElementsTableEntries: aStream level: level [
-
-	(SortedCollection withAll: self sequenceItemClass DataElements) do: [:dataElement |
-		aStream cr; nextPutAll: (dataElement printTableEntry: level).
-	].
-	^aStream contents.
+	"(SortedCollection withAll: self sequenceItemClass DataElements)
+		do: [ :dataElement | 
+			aStream
+				cr;
+				nextPutAll: (dataElement printTableEntry: level) ].
+	^ aStream contents"
+	
+	self value
+		do: [ :sequenceItem | 
+			aStream cr.
+			level timesRepeat: [ aStream nextPutAll: '> ' ].
+			sequenceItem printOn: aStream.
+			(SortedCollection withAll: sequenceItem dataElementsCollection)
+				do: [ :dataElement | 
+					aStream
+						cr;
+						nextPutAll: (dataElement printTableEntryWithValues: level + 1) ] ].
+	^ aStream contents
 ]
 
 { #category : #printing }
 SQDataElement >> printSequenceItemDataElementsTableEntriesWithValues: aStream level: level [
-
-	self value do: 
-			[:sequenceItem |
+	self value
+		do: [ :sequenceItem | 
 			aStream cr.
-			"sequenceItemNameString := String new."
-			level timesRepeat: [aStream nextPutAll: '> '].
+			level timesRepeat: [ aStream nextPutAll: '> ' ].
 			aStream nextPutAll: sequenceItem printString.
-			"sequenceItemNameString printOn: aStream paddedWith: Character space 	to: 64."
-			(SortedCollection withAll: sequenceItem dataElementsCollection) do: 
-					[:dataElement |
+			(SortedCollection withAll: sequenceItem dataElementsCollection)
+				do: [ :dataElement | 
 					aStream
 						cr;
-						nextPutAll: (dataElement printTableEntryWithValues: level + 1)]].
-	^aStream contents
+						nextPutAll: (dataElement printTableEntryWithValues: level + 1) ] ].
+	^ aStream contents
 ]
 
 { #category : #printing }
 SQDataElement >> printTableEntry: level [
-"
-	Return a string of characters describing myself in unique row.
-	Then print an indented line for every data element that composes 
-	the sequence. PRD - July 15th, 2004
-"
-	| aStream |
+	"August 20, 2015: Return a string of characters describing myself in unique row,
+	                then print an indented line for every data element that composes the sequence;
+	April 06, 2021: Code optimization - PRD"
 
-	aStream := WriteStream on: String new.
-	aStream nextPutAll: (super printTableEntry: level).
-	self printSequenceItemDataElementsTableEntries: aStream level: level + 1.
-	^aStream contents
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream nextPutAll: (super printTableEntry: level).
+			self printSequenceItemDataElementsTableEntries: aStream level: level + 1 ]
 ]
 
 { #category : #printing }
 SQDataElement >> printTableEntryWithValues: level [
-"
-	Return a string of characters describing myself in unique row.
-	PRD - July 15th, 2004
+	"July 15, 2004: Return a string of characters describing myself in unique row;
+	August 20, 2015: Version that prints the value store on the data element;
+	April 06, 2021: Refactoring."
 
-	Version that prints the value store on the data element
-	PRD - August 20th, 2015
-"
-	| aStream |
-
-	aStream := WriteStream on: String new.
-	aStream nextPutAll: (super printTableEntry: level).
-	self printSequenceItemDataElementsTableEntriesWithValues: aStream level: level + 1.
-	^aStream contents
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream nextPutAll: (super printTableEntry: level).
+			self printSequenceItemDataElementsTableEntriesWithValues: aStream level: level + 1 ]
 ]
 
 { #category : #printing }
 SQDataElement >> printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
+	"August 20, 2015: Print something about the values that I store to aStream - PRD"
+
 	aStream nextPutAll: 'Sequence of items'
 ]
 

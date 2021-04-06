@@ -40,11 +40,12 @@ MultipleStringValueDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 MultipleStringValueDataElement >> printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream'.
-	PRD January 10th, 2003 - August 20th, 2015, August 29th, 2017"
+	"August 20, 2015: Print the string or collection of strings that I store to aStream;
+	 August 29, 2017: Output improvements;
+	 April 6, 2021: Replace test 'size >= 1' with 'isEmpty' - PRD"
 
 	| valueCollection |
-	(valueCollection := self dataBytesStringSpliter) size >= 1
+	(valueCollection := self dataBytesStringSpliter) notEmpty
 		ifTrue: [ aStream nextPutAll: valueCollection first.
 			2 to: valueCollection size do: [ :index | 
 				aStream

@@ -44,21 +44,18 @@ OBDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 OBDataElement >> printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015, September 13, 2017"
+	"August 20, 2015: Print up to 8 of the bytes that I store to aStream;
+	 September 13, 2017: Improvements for Pharo implementation;
+	 April 6, 2021: Replaced test 'size > 1' with 'isEmpty and the chain
+	                of conditional tests with '8 min:' - PRD"
 
 	| elementValue |
-	((elementValue := self value) isKindOf: ByteArray)
-		ifTrue: [ elementValue size > 0 & (elementValue size <= 8)
-				ifTrue: [ (elementValue at: 1) printOn: aStream base: 10.
-					2 to: elementValue size do: [ :index | 
+	(elementValue := self value) isArray
+		ifTrue: [ elementValue notEmpty
+				ifTrue: [ elementValue first printOn: aStream base: 10.
+					2 to: (8 min: elementValue size) do: [ :index | 
 						aStream nextPutAll: ', '.
-						(elementValue at: index) printOn: aStream base: 10 ] ].
-			elementValue size > 8
-				ifTrue: [ 1 to: 8 do: [ :index | 
-						(elementValue at: index) printOn: aStream base: 10.
-						aStream nextPutAll: ', ' ].
-					aStream nextPutAll: '...' ] ]
+						(elementValue at: index) printOn: aStream base: 10 ] ] ]
 ]
 
 { #category : #'field value retrieving' }

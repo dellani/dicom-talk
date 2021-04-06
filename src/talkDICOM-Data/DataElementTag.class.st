@@ -336,14 +336,12 @@ DataElementTag >> isSequenceDelimitationElementTag [
 { #category : #printing }
 DataElementTag >> printOn: aStream [
 	aStream nextPut: $(.
-	"self groupNumber printOn: aStream base: 16."
 	self groupNumber
 		printOn: aStream
 		base: 16
 		length: 4
 		padded: true.
 	aStream nextPutAll: ', '.
-	"self elementNumber printOn: aStream base: 16."
 	self elementNumber
 		printOn: aStream
 		base: 16
@@ -355,14 +353,12 @@ DataElementTag >> printOn: aStream [
 { #category : #printing }
 DataElementTag >> printOnWithDoisPontos: aStream [
 	aStream nextPut: $(.
-	"self groupNumber printOn: aStream base: 16."
 	self groupNumber
 		printOn: aStream
 		base: 16
 		length: 4
 		padded: true.
 	aStream nextPutAll: ':'.
-	"self elementNumber printOn: aStream base: 16."
 	self elementNumber
 		printOn: aStream
 		base: 16

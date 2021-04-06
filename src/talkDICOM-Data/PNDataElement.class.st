@@ -54,14 +54,13 @@ PNDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 PNDataElement >> printValueOn: aStream [
-	"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
+	"August 20, 2015: Print the person name that I store to aStream;
+	 April 06, 2021: replace 'isKindOf: PersonName' with isPersonName - PRD"
 
 	| elementValue |
-	((elementValue := self value) isKindOf: PersonName)
-		ifTrue: [aStream nextPutAll: elementValue printString]
+	(elementValue := self value) isPersonName
+		ifTrue: [ aStream nextPutAll: elementValue printString ]
+		ifFalse: [ aStream nextPutAll: '#!PERSONNAME' ]
 ]
 
 { #category : #'field value retrieving' }

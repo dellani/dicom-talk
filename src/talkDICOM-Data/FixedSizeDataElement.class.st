@@ -80,9 +80,8 @@ FixedSizeDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 FixedSizeDataElement >> printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-
-	PRD January 10th, 2003 - August 20th, 2015, August 29, 2017"
+	"August 20, 2015: Print the value or the values that I store to aStream;; 
+	 August 29, 2017: Output improvements - PRD"
 
 	| valueCollection |
 	self dataBytes notEmpty

@@ -54,19 +54,15 @@ LTDataElement >> printEntireValueOn: aStream [
 
 { #category : #printing }
 LTDataElement >> printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
+	"August 20, 2015: Print the value or the values that I store to aStream;
+	 April 6, 2021: use min: instead of a chain of conditional tests - PRD"
 
-	((elementValue := self value) isKindOf: ByteString) ifTrue: [
-		elementValue size <= 16 ifTrue: [
-			aStream nextPutAll: (elementValue copyFrom: 1 to: elementValue size)
-		] ifFalse: [ 
-			aStream nextPutAll: (elementValue copyFrom: 1 to: 16)
-		]
-	]
+	| elementValue |
+	aStream
+		nextPutAll:
+			((elementValue := self value) isString
+				ifTrue: [ elementValue copyFrom: 1 to: (16 min: elementValue size) ]
+				ifFalse: [ '' ])
 ]
 
 { #category : #'field value retrieving' }

@@ -44,14 +44,12 @@ TMDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 TMDataElement >> printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
+	"August 20, 2015: Print the time that I store to aStream - PRD"
 
-	((elementValue := self value) isKindOf: Time) 
-		ifTrue: [aStream nextPutAll: elementValue printString]
+	| elementValue |
+	((elementValue := self value) isKindOf: Time)
+		ifTrue: [ aStream nextPutAll: elementValue printString ]
+		ifFalse: [ aStream nextPutAll: '#!TIME' ]
 ]
 
 { #category : #'field value retrieving' }

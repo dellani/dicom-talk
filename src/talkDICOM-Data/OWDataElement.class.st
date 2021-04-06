@@ -44,21 +44,24 @@ OWDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 OWDataElement >> printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015, September 14, 2017"
+	"August 20, 2015: Print up to 8 of the bytes that I store to aStream;
+	 September 14, 2017: Improvements for Pharo implementation;
+	 April 6, 2021: Replaced test 'size > 1' with 'isEmpty and the chain
+	                of conditional tests with '8 min:' - PRD"
 
 	| elementValue |
-	((elementValue := self value) isKindOf: ByteArray)
-		ifTrue: [ elementValue size > 0 & (elementValue size <= 16)
-				ifTrue: [ (encoder getValueFromByteArray: (elementValue copyFrom: 1 to: 2)) printOn: aStream base: 16.
-					3 to: elementValue size by: 2 do: [ :index | 
+	(elementValue := self value) isArray
+		ifTrue: [ elementValue notEmpty
+				ifTrue: [ (encoder getValueFromByteArray: (elementValue copyFrom: 1 to: 2))
+  						             printOn: aStream
+						             base: 16.
+					3 to: (16 min: elementValue size) by: 2 do: [ :index | 
 						aStream nextPutAll: ', '.
-						(encoder getValueFromByteArray: (elementValue copyFrom: index to: index + 1)) printOn: aStream base: 16 ] ].
-			elementValue size > 16
-				ifTrue: [ 1 to: 16 by: 2 do: [ :index | 
-						(encoder getValueFromByteArray: (elementValue copyFrom: index to: index + 1)) printOn: aStream base: 16.
-						aStream nextPutAll: ', ' ].
-					aStream nextPutAll: '...' ] ]
+						(encoder getValueFromByteArray: (elementValue copyFrom: index to: index + 1))
+							      printOn: aStream
+							      base: 16 ].
+					elementValue size > 16
+						ifTrue: [ aStream nextPutAll: ', ...' ] ] ]
 ]
 
 { #category : #'field value retrieving' }

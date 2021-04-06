@@ -67,14 +67,16 @@ UTDataElement >> printEntireValueOn: aStream [
 
 { #category : #printing }
 UTDataElement >> printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015"
+	"August 20, 2015: Print up to 16 bytes of the unlimeted text
+	                  value that I store to aStream;
+	 April 06, 2021: New implementation with improved output - PRD"
 
 	| elementValue |
-	((elementValue := self value) isKindOf: String)
-		ifTrue: [ elementValue size <= 16
-				ifTrue: [ aStream nextPutAll: (elementValue copyFrom: 1 to: elementValue size) ]
-				ifFalse: [ aStream nextPutAll: (elementValue copyFrom: 1 to: 16) ] ]
+	(elementValue := self value) isString
+		ifTrue: [ elementValue copyFrom: 1 to: (16 min: elementValue size).
+			elementValue size > 16
+				ifTrue: [ aStream nextPutAll: ' (...)' ] ]
+		ifFalse: [ aStream nextPutAll: '#!STRING' ]
 ]
 
 { #category : #'field value retrieving' }

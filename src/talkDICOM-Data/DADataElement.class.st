@@ -166,8 +166,7 @@ DADataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 DADataElement >> printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015"
+	"August 20, 2015: Print the value or the values that I store to aStream - PRD"
 
 	| valueCollection |
 	self dataBytes size >= self byteSize
