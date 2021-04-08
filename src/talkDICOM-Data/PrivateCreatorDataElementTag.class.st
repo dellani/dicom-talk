@@ -9,22 +9,22 @@ Class {
 
 { #category : #examples }
 PrivateCreatorDataElementTag class >> example01 [
-	^ self fromToken: '(0019,"1.2.840.113681",10)'
+	(self fromToken: '(0019,"1.2.840.113681",10)') inspect
 ]
 
 { #category : #examples }
 PrivateCreatorDataElementTag class >> example02 [
-	^ self fromToken: '(0009,"ACUSON",00)'
+	(self fromToken: '(0009,"ACUSON",00)') inspect
 ]
 
 { #category : #examples }
 PrivateCreatorDataElementTag class >> example03 [
-	^ self fromToken: '(0047,"GEMS_ADWSoft_3D1",D3)'
+	(self fromToken: '(0047,"GEMS_ADWSoft_3D1",D3)') inspect
 ]
 
 { #category : #examples }
 PrivateCreatorDataElementTag class >> example04 [
-	^ self fromToken: '(2001-2005,"Philips Imaging DD 001",03-u-10)'
+	(self fromToken: '(2001-2005,"Philips Imaging DD 001",03-u-10)') inspect
 ]
 
 { #category : #'instance creation' }

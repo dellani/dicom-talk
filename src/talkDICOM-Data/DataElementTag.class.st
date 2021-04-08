@@ -51,22 +51,22 @@ DataElementTag class >> decodeRange: rangeToken [
 
 { #category : #examples }
 DataElementTag class >> example01 [
-	^ self fromToken: '(0000,0000)'
+	(self fromToken: '(0000,0000)') inspect
 ]
 
 { #category : #examples }
 DataElementTag class >> example02 [
-	^ self fromToken: '(6000-60FF,0040)'
+	(self fromToken: '(6000-60FF,0040)') inspect
 ]
 
 { #category : #examples }
 DataElementTag class >> example03 [
-	^ self fromToken: '(0001-o-0007,0010-u-00ff)'
+	(self fromToken: '(0001-o-0007,0010-u-00ff)') inspect
 ]
 
 { #category : #examples }
 DataElementTag class >> example04 [
-	^ self fromToken: '(0009-o-ffff,0010-u-00ff)'
+	(self fromToken: '(0009-o-ffff,0010-u-00ff)') inspect
 ]
 
 { #category : #'instance creation' }
