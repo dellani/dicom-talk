@@ -7,46 +7,24 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
-{ #category : #'instance creation' }
-PrivateCreatorDataElementTag class >> decodeRange: rangeToken [
-	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit representing a range. Comment from header of private.dic file:
-	
-	#   (gggg,""CREATOR"",ee)
-	#   (gggg,""CREATOR"",eeee) [eeee >= 1000]
-	# The first form describes a private tag that may be used with different
-	# element numbers as reserved by the private creator element.
-	# The second form describes a private tag that may only occur with a
-	# certain fixed element number.
-	# In both cases, the tag values must be in hexadecimal.
-	# Repeating groups are represented by indicating the range
-	# (gggg-o-gggg,""CREATOR"",ee) or (gggg-o-gggg,""CREATOR"",eeee)
-	# where ""-o-"" indicates that only odd group numbers match the definition.
-	# The element part of the tag can also be a range.
+{ #category : #examples }
+PrivateCreatorDataElementTag class >> example01 [
+	^ self fromToken: '(0019,"1.2.840.113681",10)'
+]
 
-	#
-	(0009-o-ffff,0010-00ff)
-	(0001-o-0007,0010-o-00ff)
-	'(0000-o-ffff,0000)' includesAny: #($- $o)
-					
-	Integer readFrom: 'ffff' base: 16
-					
-	PRD August 22, 2017"
+{ #category : #examples }
+PrivateCreatorDataElementTag class >> example02 [
+	^ self fromToken: '(0009,"ACUSON",00)'
+]
 
-	| step valueRange inputStream start end middle |
+{ #category : #examples }
+PrivateCreatorDataElementTag class >> example03 [
+	^ self fromToken: '(0047,"GEMS_ADWSoft_3D1",D3)'
+]
 
-	step := 2.
-	valueRange := OrderedCollection new.
-	(rangeToken
-		includes: $-)
-		ifTrue: [ inputStream := rangeToken readStream.
-			start := inputStream upTo: $-.
-			middle := inputStream upTo: $-.
-			end := inputStream upToEnd.
-			start := Integer readFrom: start base: 16.
-			end := Integer readFrom: end base: 16.
-			start to: end by: step do: [ :index | valueRange add: index ] ].
-	^ valueRange
+{ #category : #examples }
+PrivateCreatorDataElementTag class >> example04 [
+	^ self fromToken: '(2001-2005,"Philips Imaging DD 001",03-u-10)'
 ]
 
 { #category : #'instance creation' }
@@ -74,36 +52,36 @@ PrivateCreatorDataElementTag class >> fromGDCMToken: tokenArray [
 		yourself
 ]
 
-{ #category : #'instance creation' }
-PrivateCreatorDataElementTag class >> fromToken: token [
-	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit. Comment from header of private.dic file:
+{ #category : #'instance creation - private' }
+PrivateCreatorDataElementTag class >> parseOFFISToken: token [
+	"Parse group and element numbers from private creators accoding to the notation
+	 used in the private.dic  file distributed along with the OFFIS DICOM ToolKit.
 	
-	# (...) The tag value may take one of two forms:
-	#   (gggg,""CREATOR"",ee)
-	#   (gggg,""CREATOR"",eeee) [eeee >= 1000]
-	# The first form describes a private tag that may be used with different
-	# element numbers as reserved by the private creator element.
-	# The second form describes a private tag that may only occur with a
-	# certain fixed element number.
-	# In both cases, the tag values must be in hexadecimal.
-	# Repeating groups are represented by indicating the range
-	# (gggg-o-gggg,""CREATOR"",ee) or (gggg-o-gggg,""CREATOR"",eeee)
-	# where ""-o-"" indicates that only odd group numbers match the definition.
-	# The element part of the tag can also be a range.
-	(0000,0000)
-	(6000-60FF,0040)
-	(0009-o-ffff,0010-u-00ff)
-	(0001-o-0007,0010-u-00ff)
-	'(0000-u-ffff,0000)' includesAny: #($- $o $u)
-					
-	Integer readFrom: 'ffff' base: 16
-					
-	PRD August 22, 2017"
+	 August 22 2017: Initial implementation;
+	  April 08 2021: Refactored fromToken: method into parseOFFISToken: fixed
+	                 a bug decoding the element number range - PRD.
+	
+	 Comment from header of dicom.dic file:
+	
+	 # (...) The tag value may take one of two forms:
+	 #   (gggg,""CREATOR"",ee)
+	 #   (gggg,""CREATOR"",eeee) [eeee >= 1000]
+	 # The first form describes a private tag that may be used with different
+	 # element numbers as reserved by the private creator element.
+	 # The second form describes a private tag that may only occur with a
+	 # certain fixed element number.
+	 # In both cases, the tag values must be in hexadecimal.
+	 # Repeating groups are represented by indicating the range
+	 # (gggg-o-gggg,""CREATOR"",ee) or (gggg-o-gggg,""CREATOR"",eeee)
+	 # where ""-o-"" indicates that only odd group numbers match the definition.
+	 # The element part of the tag can also be a range.
+	 (0000,0000)
+	 (6000-60FF,0040)
+	 (0009-o-ffff,0010-u-00ff)
+	 (0001-o-0007,0010-u-00ff)"
 
-	"Remove parenthesis"
+	| tmpToken inputStream group element creator tagCollection |
 
-	| tmpToken inputStream group element answer creator |
 	tmpToken := token reject: [ :character | character = (Character value: 40) ].
 	tmpToken := tmpToken reject: [ :character | character = (Character value: 41) ].
 	inputStream := tmpToken readStream.
@@ -117,15 +95,14 @@ PrivateCreatorDataElementTag class >> fromToken: token [
 		ifFalse: [ OrderedCollection with: (Integer readFrom: group base: 16) ].
 	creator  := creator reject: [ :character | character = $" ].
 	element := (element includesAny: #($- $o))
-		ifTrue: [ self decodeRange: group ]
+		ifTrue: [ self decodeRange: element ]
 		ifFalse: [ OrderedCollection with: (Integer readFrom: element base: 16) ].
 
-	answer := OrderedCollection new.
+	tagCollection := OrderedCollection new.
 	group do: [ :x |
-		element do: [ :y |
-			answer add: (self fromArray: (Array with: x with: y with: creator)).
-		 ]].
-	^answer
+			element do: [ :y | tagCollection add: (Array with: x with: y with: creator) ] ].
+
+	^ tagCollection
 ]
 
 { #category : #accessing }
@@ -149,7 +126,6 @@ PrivateCreatorDataElementTag >> fromArray: aTagGroupElementValueArray [
 { #category : #printing }
 PrivateCreatorDataElementTag >> printOn: aStream [
 	aStream nextPut: $(.
-	"self groupNumber printOn: aStream base: 16."
 	self groupNumber
 		printOn: aStream
 		base: 16

@@ -9,38 +9,64 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
-{ #category : #'instance creation' }
+{ #category : #'instance creation - private' }
 DataElementTag class >> decodeRange: rangeToken [
 	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit representing a range. Comment from header of dicom.dic file:
-	
-	# Repeating groups are represented by indicating the range (gggg-gggg,eeee).
-	# By default the repeating notation only represents even numbers.  A range 
-	# where only odd numbers are valid is represented using the notation (gggg-o-gggg,eeee).
-	# A range can represent both even and odd numbers using the notation (gggg-u-gggg,eeee).
-	# The element part of the tag can also be a range.
-	#
-	(0000,0000)
-	(6000-60FF,0040)
-	(0009-o-ffff,0010-u-00ff)
-	(0001-o-0007,0010-u-00ff)
-	'(0000-u-ffff,0000)' includesAny: #($- $o $u)
-					
-	Integer readFrom: 'ffff' base: 16
-					
-	PRD August 22, 2017"
+	 of OFFIS DICOM ToolKit representing a range.
 
-	| valueRange inputStream start end |
+	 August 22 2017: First implementation;
+	  April 08 2021: Modified the parser in order to interpret the meaning of 
+	                 the 'o' or 'u' range modifiers - PRD
+	
+	 Comment from header of dicom.dic file:
+	
+	 # Repeating groups are represented by indicating the range (gggg-gggg,eeee).
+	 # By default the repeating notation only represents even numbers.  A range 
+	 # where only odd numbers are valid is represented using the notation (gggg-o-gggg,eeee).
+	 # A range can represent both even and odd numbers using the notation (gggg-u-gggg,eeee).
+	 # The element part of the tag can also be a range.
+	 #
+	 (0000,0000)
+	 (6000-60FF,0040)
+	 (0009-o-ffff,0010-u-00ff)
+	 (0001-o-0007,0010-u-00ff)"
+
+	| valueRange inputStream start middle end step |
+	
 	valueRange := OrderedCollection new.
-	(rangeToken
-		includes: $-)
-		ifTrue: [ inputStream := rangeToken readStream.
+	(rangeToken includes: $-)
+		ifTrue: [ step := 2.
+			inputStream := rangeToken readStream.
 			start := inputStream upTo: $-.
+			(rangeToken includesAny: #($o $u))
+				ifTrue: [ middle := inputStream upTo: $-.
+					(middle includes: $u) "range does not include only odd or even numbers"
+						ifTrue: [ step := 1 ] ].
 			end := inputStream upToEnd.
 			start := Integer readFrom: start base: 16.
 			end := Integer readFrom: end base: 16.
-			start to: end by: 2 do: [ :index | valueRange add: index ] ].
+			start to: end by: step do: [ :index | valueRange add: index ] ].
 	^ valueRange
+]
+
+{ #category : #examples }
+DataElementTag class >> example01 [
+	^ self fromToken: '(0000,0000)'
+]
+
+{ #category : #examples }
+DataElementTag class >> example02 [
+	^ self fromToken: '(6000-60FF,0040)'
+]
+
+{ #category : #examples }
+DataElementTag class >> example03 [
+	^ self fromToken: '(0001-o-0007,0010-u-00ff)'
+]
+
+{ #category : #examples }
+DataElementTag class >> example04 [
+	^ self fromToken: '(0009-o-ffff,0010-u-00ff)'
 ]
 
 { #category : #'instance creation' }
@@ -66,31 +92,59 @@ DataElementTag class >> fromLittleEndianByteStream: bigEndianByteStream [
 { #category : #'instance creation' }
 DataElementTag class >> fromToken: token [
 	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit. Comment from header of dicom.dic file:
+	of OFFIS DICOM ToolKit. 
+					
+	August 22 2017: Initial implementation;
+	 April 08 2021: Token parsing code moved to method parseOFFISToken: - PRD"
+
+	| tagCollection |
+
+	"If the token defines a range of group or element numbers, this creates an
+	 instance of myself for every group and element number defined by the range."
+	tagCollection := self parseOFFISToken: token.
+	^ tagCollection
+		collect: [ :array | self fromArray: array ]
+		as: OrderedCollection
+]
+
+{ #category : #'instance creation' }
+DataElementTag class >> new [
+	^ super new initialize
+]
+
+{ #category : #'instance creation - private' }
+DataElementTag class >> parseOFFISToken: token [
+	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
+	 of OFFIS DICOM ToolKit.
 	
-	# (...) The tag values (gggg,eeee) must be in hexedecimal and must be 
-	# surrounded by parentheses.  Repeating groups are represented by indicating
-	# the range (gggg-gggg,eeee).  By default the repeating notation only represents
-	# even numbers.  A range where only odd numbers are valid is represented using
-	# the notation (gggg-o-gggg,eeee). A range can represent both even and odd numbers
-	# using the notation (gggg-u-gggg,eeee).  The element part of the tag can also be
-	# a range.
-	#
-	(0000,0000)
-	(6000-60FF,0040)
-	(0009-o-ffff,0010-u-00ff)
-	(0001-o-0007,0010-u-00ff)
-	'(0000-u-ffff,0000)' includesAny: #($- $o $u)
-					
-	Integer readFrom: 'ffff' base: 16
-					
-	PRD August 22, 2017"
+	 August 22 2017: Initial implementation;
+	  April 08 2021: Refactored fromToken: method into parseOFFISToken: fixed
+	                 a bug decoding the element number range - PRD.
+	
+	 Comment from header of dicom.dic file:
+	
+	 # (...) The tag values (gggg,eeee) must be in hexedecimal and must be 
+	 # surrounded by parentheses.  Repeating groups are represented by indicating
+	 # the range (gggg-gggg,eeee).  By default the repeating notation only represents
+	 # even numbers.  A range where only odd numbers are valid is represented using
+	 # the notation (gggg-o-gggg,eeee). A range can represent both even and odd numbers
+	 # using the notation (gggg-u-gggg,eeee).  The element part of the tag can also be
+	 # a range.
+	 #
+	 (0000,0000)
+	 (6000-60FF,0040)
+	 (0009-o-ffff,0010-u-00ff)
+	 (0001-o-0007,0010-u-00ff)"
 
-	"Remove parenthesis"
+	| tmpToken inputStream group element tagCollection |
 
-	| tmpToken inputStream group element answer |
-	tmpToken := token reject: [ :character | character = (Character value: 40) ].
-	tmpToken := tmpToken reject: [ :character | character = (Character value: 41) ].
+	"Remove Parentheses"
+	tmpToken := token
+		reject: [ :character | character = (Character value: 40) ].
+	tmpToken := tmpToken
+		reject: [ :character | character = (Character value: 41) ].
+
+	"Do the actual parsing"
 	inputStream := tmpToken readStream.
 	group := inputStream upTo: $,.
 	element := inputStream upToEnd.
@@ -98,21 +152,14 @@ DataElementTag class >> fromToken: token [
 		ifTrue: [ self decodeRange: group ]
 		ifFalse: [ OrderedCollection with: (Integer readFrom: group base: 16) ].
 	element := (element includesAny: #($- $o $u))
-		ifTrue: [ self decodeRange: group ]
+		ifTrue: [ self decodeRange: element ]
 		ifFalse: [ OrderedCollection with: (Integer readFrom: element base: 16) ].
 
-	answer := OrderedCollection new.	
+	tagCollection := OrderedCollection new.
 	group do: [ :x |
-		element do: [ :y | 
-			answer add: (self fromArray: (Array with: x with: y)).
-		 ]].
-	^answer
-]
+			element do: [ :y | tagCollection add: (Array with: x with: y) ] ].
 
-{ #category : #'instance creation' }
-DataElementTag class >> new [
-
-	^super new initialize
+	^ tagCollection
 ]
 
 { #category : #comparing }
@@ -145,42 +192,6 @@ DataElementTag >> >= anObject [
 	^ self hash >= anObject hash
 ]
 
-{ #category : #'instance creation' }
-DataElementTag >> decodeRange: rangeToken [
-	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit representing a range. Comment from header of dicom.dic file:
-	
-	# Repeating groups are represented by indicating the range (gggg-gggg,eeee).
-	# By default the repeating notation only represents even numbers.  A range 
-	# where only odd numbers are valid is represented using the notation (gggg-o-gggg,eeee).
-	# A range can represent both even and odd numbers using the notation (gggg-u-gggg,eeee).
-	# The element part of the tag can also be a range.
-	#
-	(0000,0000)
-	(6000-60FF,0040)
-	(0009-o-ffff,0010-u-00ff)
-	(0001-o-0007,0010-u-00ff)
-	'(0000-u-ffff,0000)' includesAny: #($- $o $u)
-					
-	Integer readFrom: 'ffff' base: 16
-					
-	PRD August 22, 2017"
-
-	| valueRange inputStream start middle end step |
-	valueRange := OrderedCollection new.
-	rangeToken
-		includes: $-
-		ifTrue: [ step := 2. inputStream := rangeToken readStream.
-			start := inputStream upTo: $-.
-			rangeToken includesAny: #($o $u) ifTrue: [ self halt. middle := inputStream upTo: $- ].
-			
-			end := inputStream upToEnd.
-			start := Integer readFrom: start base: 16.
-			end := Integer readFrom: end base: 16.
-			start to: end by: step to: [ :index | valueRange add: index ] ].
-	^ valueRange
-]
-
 { #category : #accessing }
 DataElementTag >> elementNumber [
 	"^ tag bitAnd: 16rFFFF"
@@ -205,47 +216,6 @@ DataElementTag >> fromArray: aTagGroupElementValueArray [
 DataElementTag >> fromDictionary: aDictionary [
 	self groupNumber: (aDictionary at: #groupNumber).
 	self elementNumber: (aDictionary at: #elementNumber)
-]
-
-{ #category : #'instance creation' }
-DataElementTag >> fromToken: token [
-	"Parse tag values from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit. Comment from header of dicom.dic file:
-	
-	# (...) The tag values (gggg,eeee) must be in hexedecimal and must be 
-	# surrounded by parentheses.  Repeating groups are represented by indicating
-	# the range (gggg-gggg,eeee).  By default the repeating notation only represents
-	# even numbers.  A range where only odd numbers are valid is represented using
-	# the notation (gggg-o-gggg,eeee). A range can represent both even and odd numbers
-	# using the notation (gggg-u-gggg,eeee).  The element part of the tag can also be
-	# a range.
-	#
-	(0000,0000)
-	(6000-60FF,0040)
-	(0009-o-ffff,0010-u-00ff)
-	(0001-o-0007,0010-u-00ff)
-	'(0000-u-ffff,0000)' includesAny: #($- $o $u)
-					
-	Integer readFrom: 'ffff' base: 16
-					
-	PRD August 22, 2017"
-
-	"Remove parenthesis"
-
-	| tmpToken inputStream group element |
-	tmpToken := token reject: [ :character | character = (Character value: 40) ].
-	tmpToken := tmpToken reject: [ :character | character = (Character value: 41) ].
-	inputStream := tmpToken readStream.
-	group := inputStream upTo: $,.
-	element := inputStream upToEnd.
-	group := (group includesAny: #($- $o $u))
-		ifTrue: [ self decodeRange: group ]
-		ifFalse: [ Integer readFrom: group base: 16 ].
-	element := (element includesAny: #($- $o $u))
-		ifTrue: [ self decodeRange: group ]
-		ifFalse: [ Integer readFrom: element base: 16 ].
-	group inspect.
-	element inspect
 ]
 
 { #category : #tags }
