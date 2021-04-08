@@ -65,9 +65,9 @@ DicomRegistry class >> DIMSE_PM_Verification_SCU [
 
 { #category : #'class variables' }
 DicomRegistry class >> DataDictionary [
-	^ DataDictionary isNil
-		ifTrue: [ DataDictionary := Dictionary new ]
-		ifFalse: [ DataDictionary ]
+	^ DataDictionary
+		ifNil: [ DataDictionary := Dictionary new ]
+		ifNotNil: [ :arg | arg ]
 ]
 
 { #category : #'class variables' }
@@ -140,12 +140,12 @@ DicomRegistry class >> importDCMTKDicomDictionary [
 	[ inputStream atEnd ]
 		whileFalse: [ line := inputStream nextLine.
 			(line includes: $#)
-				ifFalse: [ collection addAll: (DataElement fromTextLine: line) ] ].
+				ifFalse: [ collection addAll: (DataElementDefinition fromTextLine: line) ] ].
 	inputStream
 		close;
 		release.
 	"collection inspect."
-	collection do: [ :dataElement | DicomRegistry DataDictionary at: dataElement tag put: dataElement ]
+	collection do: [ :dataElementDefinition | DicomRegistry DataDictionary at: dataElementDefinition tag put: dataElementDefinition ]
 
 	"DicomRegistry DataDictionary at: (DataElementTag new fromToken: '(0020,1040)') first
 
@@ -189,16 +189,16 @@ DicomRegistry class >> importDCMTKPrivateDictionary [
 	[ inputStream atEnd ]
 		whileFalse: [ line := inputStream nextLine.
 			(line includes: $#) | line isEmpty
-				ifFalse: [ collection addAll: (PrivateCreatorDataElement fromTextLine: line) ] ].
+				ifFalse: [ collection addAll: (PrivateCreatorDataElementDefinition fromTextLine: line) ] ].
 	inputStream
 		close;
 		release.
 	collection
-		do: [ :dataElement | 
+		do: [ :dataElementDefinition | 
 			sortedCollection := self class PrivateCreatorsDataDictionary
-				at: dataElement tag creatorsGroup
+				at: dataElementDefinition tag creatorsGroup
 				ifAbsentPut: [ SortedCollection new ].
-			sortedCollection add: dataElement ]
+			sortedCollection add: dataElementDefinition ]
 ]
 
 { #category : #utility }
@@ -219,15 +219,15 @@ DicomRegistry class >> importGDCMPrivateDefaultDicts [
 	[ inputStream atEnd ]
 		whileFalse: [ line := inputStream nextLine trimBoth.
 			(line beginsWith: '/*') | (line beginsWith: '//') | line isEmpty
-				ifFalse: [ collection add: (PrivateCreatorDataElement fromGDCMTextLine: line) ] ].
+				ifFalse: [ collection add: (PrivateCreatorDataElementDefinition fromGDCMTextLine: line) ] ].
 	inputStream
 		close;
 		release.
 	collection
-		do: [ :dataElement | 
+		do: [ :dataElementDefinition | 
 			""
 			sortedCollection := self PrivateCreatorsDataDictionary
-				at: dataElement tag creatorsGroup
+				at: dataElementDefinition tag creatorsGroup
 				ifAbsentPut: [ SortedCollection new ].
-			sortedCollection add: dataElement ]
+			sortedCollection add: dataElementDefinition ]
 ]

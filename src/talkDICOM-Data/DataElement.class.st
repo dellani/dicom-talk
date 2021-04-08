@@ -49,34 +49,6 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
-{ #category : #'instance creation' }
-DataElement class >> _fromTextLine: textLine [
-	"Parse the data from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit. Comment from header of dicom.dic file:
-	
-	# Each field must be separated by a single tab.  The tag values (gggg,eeee)
-	# must be in hexedecimal and must be surrounded by parentheses.  Repeating
-	# groups are represented by indicating the range (gggg-gggg,eeee).  By default
-	# the repeating notation only represents even numbers.  A range where only
-	# odd numbers are valid is represented using the notation (gggg-o-gggg,eeee).
-	# A range can represent both even and odd numbers using the notation
-	# (gggg-u-gggg,eeee).  The element part of the tag can also be a range.
-	#
-	# Comments have a '#' at the beginning of the line.
-	#
-	# Tag		VR	Name			VM	Version
-	#
-	(0000,0000)	UL	CommandGroupLength	1	DICOM_2009
-	.
-	.
-	.
-	(6000-60FF,0040)	CS	OverlayType	1	DICOM_2009
-					
-	PRD August 22, 2017"
-
-	^ self new fromTextLine: textLine
-]
-
 { #category : #accessing }
 DataElement class >> badCharacters [
 	"Characters that should not be stored as value
@@ -166,35 +138,17 @@ DataElement class >> fromTextLine: textLine [
 	^ dataElements
 ]
 
-{ #category : #examples }
-DataElement class >> importDCMTK_DICOM_Dictionary [
-	"Import DCMTK dicom.dic registry of DICOM data elements"
-
-	| inputStream collection line |
-	collection := OrderedCollection new.
-	inputStream := '/home/dellani/sandbox/dcmdata-3.6.0/data//dicom.dic'
-		asFileReference readStream.
-	[ inputStream atEnd ]
-		whileFalse: [ line := inputStream nextLine.
-			(line includes: $#)
-				ifFalse: [ collection addAll: (self fromTextLine: line) ] ].
-	inputStream
-		close;
-		release.
-	^ collection inspect
-]
-
 { #category : #'instance creation' }
 DataElement class >> newVR: aString [
 
 	| dataElementClass |
-	
-	dataElementClass := 
-		self dataElementClasses at: aString asUppercase ifAbsent: [nil].
-	
-	^dataElementClass notNil 
-		ifTrue: [dataElementClass new]
-		ifFalse: [UNDataElement new]
+
+	dataElementClass := self dataElementClasses
+		at: aString asUppercase
+		ifAbsent: [ nil ].
+	^ dataElementClass
+		ifNotNil: [ :arg | arg new ]
+		ifNil: [ UNDataElement new ]
 ]
 
 { #category : #'instance creation' }
@@ -1001,23 +955,23 @@ DataElement >> vm [
 DataElement >> vm: aValueMultiplicitySort [
 	"Value Multiplicity Sort
 
-	DICOM Data Elements VM	Smalltalk representation of the VM
-	1							'1'
-	2							'2'
-	3							'3'
-	n (0-n)						'n'
-	2n							'2n'
-	3n							'3n'
-	4n							'4n'
-	1-n							'1-n'
-	2-n							'2-n'
-	3-n							'3-n'
-	2-5							'2-5'
-	4-10						'4-10'
-	2-2n						'2-2n'
-	x-xn						'x-xn'
+	 DICOM Data Elements VM	Smalltalk representation of the VM
+	 1								'1'
+	 2								'2'
+	 3								'3'
+	 n (0-n)						'n'
+	 2n								'2n'
+	 3n								'3n'
+	 4n								'4n'
+	 1-n							'1-n'
+	 2-n							'2-n'
+	 3-n							'3-n'
+	 2-5							'2-5'
+	 4-10							'4-10'
+	 2-2n							'2-2n'
+	 x-xn							'x-xn'
 
-	PRD 04.2001, 07.2002"
+	 PRD 04.2001, 07.2002"
 
 	(aValueMultiplicitySort isKindOf: String)
 		ifTrue: [ | step fixed free |
