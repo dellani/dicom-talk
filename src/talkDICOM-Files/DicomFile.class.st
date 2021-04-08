@@ -11,51 +11,26 @@ Class {
 
 { #category : #'instance creation' }
 DicomFile class >> dicomIOD: aDicomIOD [
-	"Create an instance of myself to store the given DICOM IOD
+	"Create an instance of myself to store the given DICOM IOD.
 
-	PRD 11-12.2001 - 01.2002, 10.2017"
+	 November 2001 - January 2002: Initial implementation;
+	 October 2017: Reimplementation - PRD"
 
-	^ self
+	^ self new
 		dicomIOD: aDicomIOD
 		implementationClassUID: DicomRegistry ImplementationClassUID
 		implementationVersionName: DicomRegistry ImplementationVersionName
 		sourceAETitle: nil
-
-
-
-	"^ self new
-		dicomIOD: aDicomIOD
-		implementationClassUID: 
-		implementationVersionName: "
 ]
 
-{ #category : #'instance creation' }
-DicomFile class >> dicomIOD: aDicomIOD implementationClassUID: anImplementationClassUID implementationVersionName: anImplementationVersionName [
-	"Create an instance of myself to store the given DICOM IOD, 
-	implementationClassUID and implementationVersionName.
+{ #category : #testing }
+DicomFile class >> example01 [
+	| dicomFile1 dicomFile2 |
+	dicomFile1 := self
+		readFrom: '/home/dellani/tmp/_read_test/0CE1AF6B/1A0E091E/256FE631'.
 
-	PRD 11-12.2001 - 01.2002"
-
-	^ self
-		dicomIOD: aDicomIOD
-		implementationClassUID: anImplementationClassUID
-		implementationVersionName: anImplementationVersionName
-		sourceAETitle: nil
-]
-
-{ #category : #'instance creation' }
-DicomFile class >> dicomIOD: aDicomIOD implementationClassUID: anImplementationClassUID implementationVersionName: anImplementationVersionName sourceAETitle: anAETitle [
-	"Create an instance of myself to store the given DICOM IOD, 
-	implementationClassUID and implementationVersionName and
-	source application entity title.
-
-	PRD 11-12.2001 - 01.2002, 10.2017"
-
-	^ self new
-		dicomIOD: aDicomIOD
-		implementationClassUID: anImplementationClassUID
-		implementationVersionName: anImplementationVersionName
-		sourceAETitle: anAETitle
+	dicomFile2 := self dicomIOD: dicomFile1 dicomIOD.
+	dicomFile2 writeTo: '/tmp/256FE631.talkDicom'
 ]
 
 { #category : #initialize }
@@ -114,30 +89,15 @@ DicomFile class >> initialize [
 ]
 
 { #category : #'instance creation' }
-DicomFile class >> readIODFromDICOMFile: aFilename [
-	"Create an instance of myself from the file with the given filename.
+DicomFile class >> readFrom: aFilename [
+	"April 07, 2021: Create an instance of myself and read
+	                 the contents of the given filename.
+	                 Return the newly created instance - PRD"
 
-	PRD 11-12.2001 - 01.2002"
-
-	^self new readFrom: aFilename.
-]
-
-{ #category : #'instance creation' }
-DicomFile class >> readIODFromDICOMFileByteArray: aByteArray [
-	"Create an instance of myself from the given Byte Array and
-	return the DICOM IOD stored on it as a DICOM file.
-
-	PRD 11-12.2001 - 01.2002"
-
-	^(self new readFromByteStream: aByteArray readStream) dicomIOD.
-]
-
-{ #category : #testing }
-DicomFile class >> test01 [
-	| image dicomFile |
-	image := DicomFile readIODFromDICOMFile: '/home/dellani/tmp/_read_test/0CE1AF6B/1A0E091E/256FE631' asFileReference.
-	dicomFile := DicomFile dicomIOD: image.
-	dicomFile writeTo: '/tmp/256FE631.talkDicom'
+	| newInstance |
+	newInstance := self new.
+	newInstance readFrom: aFilename.
+	^ newInstance
 ]
 
 { #category : #accessing }
@@ -185,52 +145,6 @@ DicomFile >> createDicomFileInstance: readStream [
 	]
 ]
 
-{ #category : #'old - deprecated' }
-DicomFile >> createDicomFileInstance_old: readStream [
-
-	| transferSyntaxEncoder IODClass errorMessage aDicomSOPCommonIOM position |
-
-	errorMessage := nil.
-	transferSyntaxEncoder := DicomRegistry TransferSyntaxes at: self transferSyntaxUID ifAbsent: [nil].
-
-	transferSyntaxEncoder isNil ifTrue: [
-		errorMessage := 'Impossible to Open DICOM File: the file is encoded with an unsupported transfer syntax'.
-	] ifFalse: [
-		"mediaStorageSOPClassUID data element not present, like with files written by GE CENTRICITY_3.0?"
-		self mediaStorageSOPClassUID isNil ifTrue: [
-			"If yes look for the the SOP Class UID data element in the dicom dataset"
-			position := readStream position.
-			aDicomSOPCommonIOM := SOPCommonIOM new pdvBytesStream: readStream encoder: transferSyntaxEncoder.
-			self mediaStorageSOPClassUID: aDicomSOPCommonIOM sopClassUID.
-			self mediaStorageSOPInstanceUID: aDicomSOPCommonIOM sopInstanceUID.
-			readStream position: position.
-
-		].
-
-		self mediaStorageSOPClassUID notNil ifTrue: [
-			self mediaStorageSOPClassUID isEmpty ifTrue: [ 
-					errorMessage := 'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present'
-				 ]
-			ifFalse: [ 
-				IODClass := DicomRegistry SOPClasses at: self mediaStorageSOPClassUID ifAbsent: [nil].
-				IODClass isNil ifTrue: [
-					errorMessage := 'Impossible to Open DICOM File: Unsupported Storage SOP Class ', self mediaStorageSOPClassUID.
-				] ifFalse: [
-					self dicomIOD: (IODClass new pdvBytesStream: readStream encoder: transferSyntaxEncoder).
-				]
-			]
-		]
-		ifFalse: [
-			errorMessage := 	'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present'
-		]
-	].
-	errorMessage notNil ifTrue: [
-		readStream 
-			flush; close;	release.
-			^Error signal: errorMessage.
-	].
-]
-
 { #category : #accessing }
 DicomFile >> dicomIOD [
 
@@ -241,23 +155,6 @@ DicomFile >> dicomIOD [
 DicomFile >> dicomIOD: aDicomIOD [
 
 	dicomIOD := aDicomIOD
-]
-
-{ #category : #initialize }
-DicomFile >> dicomIOD: aDicomIOD implementationClassUID: anImplementationClassUID [
-" Eine Aenderung"
-	self dicomIOD: aDicomIOD 
-		implementationClassUID: anImplementationClassUID 
-		implementationVersionName: nil 
-		sourceAETitle: nil.
-]
-
-{ #category : #initialize }
-DicomFile >> dicomIOD: aDicomIOD implementationClassUID: anImplementationClassUID implementationVersionName: anImplementationVersionName [
-	self dicomIOD: aDicomIOD 
-		implementationClassUID: anImplementationClassUID 
-		implementationVersionName: anImplementationVersionName 
-		sourceAETitle: nil.
 ]
 
 { #category : #initialize }
@@ -584,28 +481,23 @@ DicomFile >> readDicomMetaInformationHeader: dicomPDVStream [
 { #category : #reading }
 DicomFile >> readFrom: aFilename [
 	"Read a DICOM IOD from aFilename. 
-	PRD 12.2001 - 01.2002, 02.2017, August 30, 2017
-	
-	FileStream and its subclasses were deprecated in Pharo 7.
-	Code updated in order to work with the new expected behavior.
-	PRD 02.2020
 
-	Check if aFilename really points to a file
-	PRD 02.2021"
+	 December 2001 - January 2002: First implementation;
+	 February 2020: FileStream and its subclasses were deprecated
+	                in Pharo 7. Code updated in order to work with
+	                the new expected behavior.
+	 February 2021: Check if aFilename really points to a file - PRD"
 
 	| readStream fileReference |
-
-	(fileReference := aFilename asFileReference) isFile ifTrue: [
-		readStream := fileReference binaryReadStream.
-		[ self readFromByteStream: readStream. ] ensure: [ readStream close; release ]
-	]
-	ifFalse: [ 
-		Error signal: aFilename, ' is not a file!'
-	].
+	(fileReference := aFilename asFileReference) isFile
+		ifTrue: [ readStream := fileReference binaryReadStream.
+			[ self readFromByteStream: readStream ]
+				ensure: [ readStream close; release ] ]
+		ifFalse: [ Error signal: aFilename , ' is not a file!' ].
 	^ self dicomIOD
 ]
 
-{ #category : #reading }
+{ #category : #'reading - private' }
 DicomFile >> readFromByteStream: readStream [
 	"Read an DICOM IOD from the file represented by *aFileName'. 
 	PRD 12.2001 - 02.2020"
