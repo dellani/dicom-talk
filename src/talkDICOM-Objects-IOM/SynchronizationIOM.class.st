@@ -11,7 +11,7 @@ SynchronizationIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.4.2 (Page 159) - GA 09-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Synchronization Image Information Object Module'.
+	Name := 'Synchronization Image Information Object Module'.
 	moduleName := 'synchronizationIOM'.
 	self
 		addDataElement:

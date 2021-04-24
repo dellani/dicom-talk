@@ -15,6 +15,7 @@ SOPInstanceReferenceMacroItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM SOP Instance Reference Macro Item'.
 	SequenceName := 'sopInstanceReferenceMacroItem'.
+
 	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
 	self addDataElement: (UIDataElement
 				newWith: #studyInstanceUID

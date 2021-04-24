@@ -12,8 +12,9 @@ ContentTemplateSequenceItem class >> initialize [
 	DICOM Structured Reporting"
 
 	Name := 'DICOM Content Template Sequence Item'.
-	
 	SequenceName := 'contentTemplateSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16rA504).
+
 	self resetDataElements.
 	"****************** Document Relationship Macro Attributes - Supplement 23, 2000 - Table C.17.3-4 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
@@ -23,16 +24,7 @@ ContentTemplateSequenceItem class >> initialize [
 ContentTemplateSequenceItem class >> macroItemClass [
 	"****************** Document Relationship Macro Attributes - Supplement 23, 2000 - Table C.17.3-4 *************************"
 
-	^ TemplateIdentificationMacroItem
-	
-
-]
-
-{ #category : #'class initialization' }
-ContentTemplateSequenceItem class >> macroItemClassDataElements [
-	"****************** Document Relationship Macro Attributes - Supplement 23, 2000 - Table C.17.3-4 *************************"
-
-	^ self macroItemClass initialize; DataElements
+	^ OrderedCollection with: TemplateIdentificationMacroItem
 ]
 
 { #category : #accessing }

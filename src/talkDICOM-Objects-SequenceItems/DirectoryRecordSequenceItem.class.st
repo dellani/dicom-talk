@@ -9,6 +9,8 @@ DirectoryRecordSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Directory Record Sequence Item'.
 	SequenceName := 'directoryRecordSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0004 16r1220).
+
 	self
 		addDataElement:
 			(ULDataElement

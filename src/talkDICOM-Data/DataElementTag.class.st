@@ -69,6 +69,26 @@ DataElementTag class >> example04 [
 	(self fromToken: '(0009-o-ffff,0010-u-00ff)') inspect
 ]
 
+{ #category : #examples }
+DataElementTag class >> example05 [
+	(self fromTextualDefinition: '0000	0000') inspect
+]
+
+{ #category : #examples }
+DataElementTag class >> example06 [
+	(self fromTextualDefinition: '6000-60FF	0040') inspect
+]
+
+{ #category : #examples }
+DataElementTag class >> example07 [
+	(self fromTextualDefinition: '0001-o-0007	0010-u-00ff') inspect
+]
+
+{ #category : #examples }
+DataElementTag class >> example08 [
+	(self fromTextualDefinition: '0009-o-ffff	0010-u-00ff') inspect
+]
+
 { #category : #'instance creation' }
 DataElementTag class >> fromArray: aTagGroupElementValueArray [
 	^ self new fromArray: aTagGroupElementValueArray
@@ -87,6 +107,23 @@ DataElementTag class >> fromDictionary: aDictionary [
 { #category : #'instance creation' }
 DataElementTag class >> fromLittleEndianByteStream: bigEndianByteStream [
 	^ self new fromLittleEndianByteStream: bigEndianByteStream
+]
+
+{ #category : #'instance creation' }
+DataElementTag class >> fromTextualDefinition: token [
+	"Create one or more instances of myself according to the textual definition
+	 stored in 'token'
+					
+	 April 20 2021 - PRD"
+
+	| tagCollection |
+
+	"If the token defines a range of group and/or element numbers, this creates an
+	 instance of myself for every group and element number defined by the range."
+	tagCollection := self parseToken: token.
+	^ tagCollection
+		collect: [ :array | self fromArray: array ]
+		as: OrderedCollection
 ]
 
 { #category : #'instance creation' }
@@ -162,6 +199,49 @@ DataElementTag class >> parseOFFISToken: token [
 	^ tagCollection
 ]
 
+{ #category : #'instance creation - private' }
+DataElementTag class >> parseToken: token [
+	"Create an instance of and initialize myself eafter parsing the DICOM data
+	 element tag textual representation stored in the token. 
+	
+	 The tag values folow the format 'GGGG <tab> EEEE'. GGGG and EEEE are hexadecimal
+	 number as conventionally used in the DICOM standard. The notation to represent
+	 repeating ranges of groups and elements values is compatible to the one used in 
+	 the data dictionary of the OFFIS toolkit: 'NNNN-nnnn' is interpreted as a sequence
+	 of repeating even values in the range from 'NNNN' to 'nnnn'.
+	
+	 A sequence of odd numbers is represented as 'NNNN-o-nnnn'. The representation of
+	 a sequence of odd and even numbers uses the notation 'NNNN-u-nnnn'. Here are some
+	 examples:
+	
+	 0010<tab>0010
+	 8000-8080<tab>0080
+	 0011-o-FFFF<tab>0000-u-00FF
+	 0005-o-0009<tab>0020-u-0030
+	
+	 April 20 2021 - PRD"
+
+	| inputStream group element tagCollection |
+
+	inputStream := token readStream.
+	group := inputStream upTo: Character tab.
+	element := inputStream upToEnd.
+
+	group := (group includesAny: '-ou')
+		ifTrue: [ self decodeRange: group ]
+		ifFalse: [ OrderedCollection with: (Integer readFrom: group base: 16) ].
+
+	element := (element includesAny: '-ou')
+		ifTrue: [ self decodeRange: element ]
+		ifFalse: [ OrderedCollection with: (Integer readFrom: element base: 16) ].
+
+	tagCollection := OrderedCollection new.
+	group do: [ :x |
+			element do: [ :y | tagCollection add: (Array with: x with: y) ] ].
+
+	^ tagCollection
+]
+
 { #category : #comparing }
 DataElementTag >> < anObject [
 
@@ -190,6 +270,21 @@ DataElementTag >> > anObject [
 DataElementTag >> >= anObject [
 
 	^ self hash >= anObject hash
+]
+
+{ #category : #printing }
+DataElementTag >> csvPrintOn: aStream separator: aCharacter [
+	self groupNumber
+		printOn: aStream
+		base: 16
+		length: 4
+		padded: true.
+	aStream nextPut: aCharacter.
+	self elementNumber
+		printOn: aStream
+		base: 16
+		length: 4
+		padded: true
 ]
 
 { #category : #accessing }

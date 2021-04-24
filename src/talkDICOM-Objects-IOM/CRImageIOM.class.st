@@ -53,7 +53,7 @@ CRImageIOM class >> initialize [
 	(see more on PS 3.3-2000 Annex C.8.1.2) - PRD June 12th 2003"
 
 	self resetDataElements.
-	Name := 'DICOM Computed Radiography Image Information Object Module'.
+	Name := 'Computed Radiography Image Information Object Module'.
 	moduleName := 'crImageIOM'.
 	self
 		addDataElement:

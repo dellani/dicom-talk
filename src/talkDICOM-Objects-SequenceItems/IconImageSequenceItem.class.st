@@ -15,6 +15,8 @@ IconImageSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Icon Image Sequence Item'.
 	SequenceName := 'iconImageSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0088 16r0200).
+
 	self
 		addDataElement:
 			(USDataElement

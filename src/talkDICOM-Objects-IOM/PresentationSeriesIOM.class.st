@@ -10,7 +10,7 @@ PresentationSeriesIOM class >> initialize [
 	PS 3.3 - 2003 Annex C.11.9.2 - PRD March 30th, 2004"
 
 	self resetDataElements.
-	Name := 'DICOM Presentation Series Information Object Module'.
+	Name := 'Presentation Series Information Object Module'.
 	moduleName := 'presentationSeriesIOM'.
 	self
 		addDataElement:

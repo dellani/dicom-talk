@@ -323,6 +323,31 @@ DataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncod
 	^self subclassResponsibility
 ]
 
+{ #category : #printing }
+DataElement >> csvPrintOn: aStream separator: aCharacter level: level [
+	"Print a description of myself in a single CSV text line 
+	 separated by aCharacter:
+	
+	 Group number <tab> Element number <tab> name <tab> vr <tab> vm <tab> type <cr>
+	
+	 Assumes that every all values are correctly defined.
+	
+	 April 11 2021 - PRD."
+
+	level timesRepeat: [ aStream nextPutAll: '> ' ].
+	self tag csvPrintOn: aStream separator: aCharacter.
+	aStream
+		nextPut: aCharacter;
+		nextPutAll: (self nameUpperCaseFirstLetter padRightTo: 64);
+		nextPut: aCharacter;
+		nextPutAll: self vr;
+		nextPut: aCharacter;
+		nextPutAll: self vm;
+		nextPut: aCharacter;
+		nextPutAll: self type.
+
+]
+
 { #category : #accessing }
 DataElement >> dataBytes [
 	"Byte array storing the data bytes of the message field - PRD 04.2001"
@@ -423,38 +448,22 @@ DataElement >> encoder: aDicomTransferSyntaxClass [
 	encoder := aDicomTransferSyntaxClass
 ]
 
-{ #category : #'instance creation' }
-DataElement >> fromTextLine: textLine [
-	"Parse the data from an entry in the dicom.dic file from the dcmdata module
-	of OFFIS DICOM ToolKit. Comment from header of dicom.dic file:
+{ #category : #printing }
+DataElement >> fullCSVPrintOn: aStream separator: aCharacter level: level [
+	"Print a description of myself in a single CSV text line separated by aCharacter:
 	
-	# Each field must be separated by a single tab.  The tag values (gggg,eeee)
-	# must be in hexedecimal and must be surrounded by parentheses.  Repeating
-	# groups are represented by indicating the range (gggg-gggg,eeee).  By default
-	# the repeating notation only represents even numbers.  A range where only
-	# odd numbers are valid is represented using the notation (gggg-o-gggg,eeee).
-	# A range can represent both even and odd numbers using the notation
-	# (gggg-u-gggg,eeee).  The element part of the tag can also be a range.
-	#
-	# Comments have a '#' at the beginning of the line.
-	#
-	# Tag		VR	Name			VM	Version
-	#
-	(0000,0000)	UL	CommandGroupLength	1	DICOM_2009
-	.
-	.
-	.
-	(6000-60FF,0040)	CS	OverlayType	1	DICOM_2009
-					
-	PRD August 22, 2017"
+	 Group number <tab> Element number <tab> name <tab> vr <tab> vm <tab> type <cr>
+	
+	 Assumes that every all values are correctly defined.
+	
+	 April 11 2021 - Initial implementation;
+	 April 18 2021 - Modified from 'csvPrintOn:separator:level:' which from now
+	                 on is the protocol to print the data element description in
+	                 CSV format without the expantion of sequence element
+                    attributes - PRD."
 
-	| collection inputStream token |
-	collection := OrderedCollection new.
-	inputStream := textLine readStream.
-	[ inputStream atEnd ]
-		whileFalse: [ token := inputStream upTo: Character tab.
-			collection add: token ].
-	^ collection
+	self csvPrintOn: aStream separator: aCharacter level: level
+
 ]
 
 { #category : #tags }
@@ -640,6 +649,16 @@ DataElement >> nameAndTag [
 		streamContents: [ :stream | 
 			stream nextPutAll: self name asString.
 			self tag printOn: stream ]
+]
+
+{ #category : #'printing - private' }
+DataElement >> nameUpperCaseFirstLetter [
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream
+				nextPut: self name first asUppercase;
+				nextPutAll: (self name copyFrom: 2 to: self name size) ]
 ]
 
 { #category : #'field bytes' }

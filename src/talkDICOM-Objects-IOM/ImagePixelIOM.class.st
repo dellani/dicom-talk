@@ -56,7 +56,7 @@ ImagePixelIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.6.3 - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Image Pixel Information Object Module'.
+	Name := 'Image Pixel Information Object Module'.
 	moduleName := 'imagePixelIOM'.
 	self
 		addDataElement:

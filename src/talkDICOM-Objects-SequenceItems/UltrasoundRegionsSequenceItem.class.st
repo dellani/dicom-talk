@@ -13,6 +13,8 @@ UltrasoundRegionsSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Ultrasound Regions Sequence Item'.
 	SequenceName := 'ultrasoundRegionsSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0018 16r6011).
+
 	self
 		addDataElement:
 			(ULDataElement

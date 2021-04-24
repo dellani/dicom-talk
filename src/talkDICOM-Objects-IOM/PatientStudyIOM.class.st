@@ -10,7 +10,7 @@ PatientStudyIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.2.2 - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Patient Study Information Object Module'.
+	Name := 'Patient Study Information Object Module'.
 	moduleName := 'patientStudyIOM'.
 	self
 		addDataElement:

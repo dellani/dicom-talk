@@ -52,14 +52,42 @@ MultiframeTrueColorSC_IOD class >> InformationObjectModules [
 ]
 
 { #category : #initialization }
-MultiframeTrueColorSC_IOD class >> SOPClassUID [
-	^ '1.2.840.10008.5.1.4.1.1.7.4'
+MultiframeTrueColorSC_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
 ]
 
 { #category : #initialization }
-MultiframeTrueColorSC_IOD class >> initialize [
-	InformationObjectModules := nil.
-	super initialize
+MultiframeTrueColorSC_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.7.4'
+]
+
+{ #category : #'textual attributes definition' }
+MultiframeTrueColorSC_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for Multi-frame True Color Secondary Capture IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.759941+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM frameOfReferenceIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM synchronizationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM scEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM imagePixelIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM multiFrameIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM scImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

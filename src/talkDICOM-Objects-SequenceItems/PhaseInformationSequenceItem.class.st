@@ -9,6 +9,7 @@ PhaseInformationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Phase Information Sequence Item'.
 	SequenceName := 'phaseInformationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0054 16r0032).
 
 	"***** Begin of data elements definition *******"
 	self

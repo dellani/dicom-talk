@@ -6,10 +6,11 @@ Class {
 
 { #category : #'class initialization' }
 PatientIOM class >> initialize [
-	"Initialize the dictionary of DICOM Data Elements for the DICOM Patient Information Object Module
-	PS 3.3-2000 Annex C.7.1.1 - PRD 04-06.2001
-	
-	Review and update according to DICOM PS3.3-2017c Annex C.7.1.1 - PRD August 15, 2017"
+	"Initialize the dictionary of DICOM Data Elements for the DICOM
+	 Patient Information Object Module. Reference: PS 3.3-2000 Annex C.7.1.1
+
+	 April - June 2001: Initial implementation;
+	 August 15 2017: Review and update according to DICOM PS3.3-2017c Annex C.7.1.1 - PRD"
 
 	self resetDataElements.
 	Name := 'Patient Information Object Module'.
@@ -74,7 +75,7 @@ PatientIOM class >> initialize [
 	self
 		addDataElement:
 			(SHDataElement
-				newWith: #ethnnicGroup
+				newWith: #ethnicGroup
 				tag: #(16r0010 16r2160)
 				vm: '1'
 				type: '3').

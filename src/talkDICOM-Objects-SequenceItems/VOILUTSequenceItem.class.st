@@ -9,6 +9,8 @@ VOILUTSequenceItem class >> initialize [
 	Name := 'DICOM VOI LUT Sequence Item'.
 	SequenceName := 'voiLUTSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0028 16r3010).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
 	self
@@ -36,16 +38,9 @@ VOILUTSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 VOILUTSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-VOILUTSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

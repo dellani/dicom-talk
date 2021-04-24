@@ -14,6 +14,8 @@ VerifyingObserverSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Verifying Observer Sequence Item'.
 	SequenceName := 'verifyingObserverSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16rA073).
+
 	self
 		addDataElement:
 			(PNDataElement

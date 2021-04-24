@@ -12,6 +12,8 @@ AnatomicRegionSequenceItem class >> initialize [
 
 	Name := 'DICOM Anatomic Region Sequence Item'.
 	SequenceName := 'anatomicRegionSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r2218).
+	
 	self resetDataElements.
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
@@ -27,16 +29,9 @@ AnatomicRegionSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 AnatomicRegionSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-AnatomicRegionSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

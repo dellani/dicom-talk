@@ -10,7 +10,7 @@ ConstrastBolusIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.6.4 - PRD 04-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Contrast/Bolus Information Object Module'.
+	Name := 'Contrast/Bolus Information Object Module'.
 	moduleName := 'constrastBolusIOM'.
 	self
 		addDataElement:

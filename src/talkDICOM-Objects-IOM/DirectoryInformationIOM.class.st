@@ -10,7 +10,7 @@ DirectoryInformationIOM class >> initialize [
 	PS 3.3-2001 Annex F Part 3 - PRD 08.2002"
 
 	self resetDataElements.
-	Name := 'DICOM Directory Information Information Object Module'.
+	Name := 'Directory Information Information Object Module'.
 	moduleName := 'directoryInformationIOM'.
 	self
 		addDataElement:

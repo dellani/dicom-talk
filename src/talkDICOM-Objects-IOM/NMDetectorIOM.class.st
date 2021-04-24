@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 NMDetectorIOM class >> initialize [
 	self resetDataElements.
-	Name := 'NMDetectorIOM'.
+	Name := 'NM Detector Information Object Module'.
 	moduleName := 'nmDetectorIOM'.
 
 	"***** Begin of data elements definition *******"

@@ -11,22 +11,17 @@ PatientGantryRelationshipCodeSequence class >> initialize [
 	Name := 'DICOM Patient Gantry Relationship Code Sequence Item'.
 	SequenceName := 'patientGantryRelationshipCodeSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0054 16r0412).
+	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 PatientGantryRelationshipCodeSequence class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-PatientGantryRelationshipCodeSequence class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

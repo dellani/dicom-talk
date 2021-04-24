@@ -14,6 +14,8 @@ ReferencedSeriesSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced Series Sequence Item'.
 	SequenceName := 'referencedSeriesSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r1115).
+
 	self
 		addDataElement:
 			(UIDataElement

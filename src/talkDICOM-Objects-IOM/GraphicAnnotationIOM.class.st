@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 GraphicAnnotationIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Graphic Annotation IOM'.
+	Name := 'Graphic Annotation IOM'.
 	moduleName := 'graphicAnnotationIOM'.
 
 	"***** Begin of data elements definition *******"

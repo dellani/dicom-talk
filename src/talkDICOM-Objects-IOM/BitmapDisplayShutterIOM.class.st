@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 BitmapDisplayShutterIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Bitmap Display Shutter Information Object Module'.
+	Name := 'Bitmap Display Shutter Information Object Module'.
 	moduleName := 'bitmapDisplayShutterIOM'.
 
 	"***** Begin of data elements definition *******"

@@ -9,6 +9,8 @@ ContrastBolusAdministrationRouteSequenceItem class >> initialize [
 	Name := 'DICOM Contrast/Bolus Administration Route Sequence Item'.
 	SequenceName := 'contrastBolusAdministrationRouteSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0018 16r0014).
+	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
 	self
@@ -23,16 +25,9 @@ ContrastBolusAdministrationRouteSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ContrastBolusAdministrationRouteSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ContrastBolusAdministrationRouteSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

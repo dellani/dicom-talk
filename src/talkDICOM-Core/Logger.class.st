@@ -1,5 +1,5 @@
 Class {
-	#name : #LogCollector,
+	#name : #Logger,
 	#superclass : #Object,
 	#instVars : [
 		'debugLevel',
@@ -11,13 +11,12 @@ Class {
 }
 
 { #category : #'instance creation' }
-LogCollector class >> new [
-
-	^super new initialize
+Logger class >> new [
+	^ super new initialize
 ]
 
 { #category : #accessing }
-LogCollector >> debugLevel [
+Logger >> debugLevel [
 "
 	The Level of debugging messages on the log console
 	level = 0	-> no messages
@@ -34,14 +33,14 @@ LogCollector >> debugLevel [
 ]
 
 { #category : #initialize }
-LogCollector >> debugLevel: anInteger textCollector: aTextCollector [
+Logger >> debugLevel: anInteger textCollector: aTextCollector [
 
 	debugLevel := anInteger.
 	textCollector := aTextCollector
 ]
 
 { #category : #initialize }
-LogCollector >> initialize [
+Logger >> initialize [
 
 	textCollector := nil.
 	debugLevel := 0.
@@ -50,7 +49,7 @@ LogCollector >> initialize [
 ]
 
 { #category : #initialize }
-LogCollector >> initializeLoggingProcess [
+Logger >> initializeLoggingProcess [
 
 	loggingProcess := [self logMessageProcess] newProcess.
 	loggingProcess priority: Processor lowIOPriority "Processor userBackgroundPriority" "Processor userSchedulingPriority".
@@ -58,7 +57,7 @@ LogCollector >> initializeLoggingProcess [
 ]
 
 { #category : #logging }
-LogCollector >> logMessage: aString [
+Logger >> logMessage: aString [
 "
 	Write a log message to the log facility used by the Dicom Upper Layer
 	PRD 07.2001 - 05.2002
@@ -68,7 +67,7 @@ LogCollector >> logMessage: aString [
 ]
 
 { #category : #logging }
-LogCollector >> logMessage: aString debugLevel: level [
+Logger >> logMessage: aString debugLevel: level [
 "
 	Write a log message to the log facility used by the Dicom Upper Layer
 	PRD 07.2001 - 05-06.2002
@@ -78,7 +77,7 @@ LogCollector >> logMessage: aString debugLevel: level [
 ]
 
 { #category : #logging }
-LogCollector >> logMessageProcess [
+Logger >> logMessageProcess [
 
 	| nextMessage |
 
@@ -92,14 +91,14 @@ LogCollector >> logMessageProcess [
 ]
 
 { #category : #initialize }
-LogCollector >> release [
+Logger >> release [
 
 	loggingProcess terminate.
 	aSharedQueue := nil.
 ]
 
 { #category : #accessing }
-LogCollector >> textCollector [
+Logger >> textCollector [
 "
 	A TextCollector instance for logging messages
 	PRD 07.2001 - 05.2002

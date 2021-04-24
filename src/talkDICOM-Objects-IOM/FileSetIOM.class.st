@@ -10,7 +10,7 @@ FileSetIOM class >> initialize [
 	PS 3.3-2001 Annex F Part 3 - PRD 08.2002"
 
 	self resetDataElements.
-	Name := 'DICOM File-set Information Object Module'.
+	Name := 'File-set Information Object Module'.
 	moduleName := 'fileSetIOM'.
 	self
 		addDataElement:

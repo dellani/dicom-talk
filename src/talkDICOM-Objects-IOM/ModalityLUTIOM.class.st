@@ -10,7 +10,7 @@ ModalityLUTIOM class >> initialize [
 	PS 3.3-2000 Annex C.11.2 (Page 487) - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Modality LUT Information Object Module'.
+	Name := 'Modality LUT Information Object Module'.
 	moduleName := 'modalityLUTIOM'.
 	self
 		addDataElement:

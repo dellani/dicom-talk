@@ -9,6 +9,7 @@ RotationInformationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Rotation Information Sequence Item'.
 	SequenceName := 'rotationInformationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0054 16r0052).
 
 	"***** Begin of data elements definition *******"
 	self

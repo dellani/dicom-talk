@@ -9,6 +9,7 @@ GraphicObjectSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Graphic Object Sequence Item'.
 	SequenceName := 'graphicObjectSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0070 16r0009).
 
 	"***** Begin of data elements definition *******"
 	self

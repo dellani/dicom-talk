@@ -10,7 +10,7 @@ PaletteColorLookupTableIOM class >> initialize [
 	PS 3.3-2001 Annex C.7.9 - PRD 05.2002"
 
 	self resetDataElements.
-	Name := 'DICOM Pallete Color Lookup Table Information Object Module'.
+	Name := 'Pallete Color Lookup Table Information Object Module'.
 	moduleName := 'paletteColorLookupTableIOM'.
 	self
 		addDataElement:

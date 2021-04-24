@@ -10,7 +10,7 @@ GeneralStudyIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.2.1 - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM General Study Information Object Module'.
+	Name := 'General Study Information Object Module'.
 	moduleName := 'generalStudyIOM'.
 	self
 		addDataElement:

@@ -9,22 +9,17 @@ IdenticalDocumentsSequenceItem class >> initialize [
 	Name := 'DICOM Identical Documents Sequence Item'.
 	SequenceName := 'identicalDocumentsSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0040 16rA525).
+	
 	"****************** SOP Instance Reference Macro - Supplement 23, 2000 - Table C.17-3 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 IdenticalDocumentsSequenceItem class >> macroItemClass [
-	
 	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^SOPInstanceReferenceMacroItem
-]
 
-{ #category : #'class initialization' }
-IdenticalDocumentsSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: SOPInstanceReferenceMacroItem
 ]
 
 { #category : #accessing }

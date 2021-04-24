@@ -10,7 +10,7 @@ SpecimenIdentificationIOM class >> initialize [
 	PS 3.3-2001 Annex C.7.1.2 - PRD 04-06.2001, 03.2002"
 
 	self resetDataElements.
-	Name := 'DICOM Specimen Identification Information Object Module'.
+	Name := 'Specimen Identification Information Object Module'.
 	moduleName := 'specimenIdentificationIOM'.
 	self
 		addDataElement:

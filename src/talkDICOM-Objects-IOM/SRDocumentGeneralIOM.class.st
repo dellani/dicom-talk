@@ -12,7 +12,7 @@ SRDocumentGeneralIOM class >> initialize [
 	PRD, Charnovscki 13-12.2001"
 
 	self resetDataElements.
-	Name := 'DICOM SR Document General Information Object Module'.
+	Name := 'SR Document General Information Object Module'.
 	moduleName := 'srDocumentGeneralIOM'.
 	self
 		addDataElement:

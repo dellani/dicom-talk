@@ -10,7 +10,7 @@ AudioIOM class >> initialize [
 	PS 3.3-2001 Annex C.10.3 - PRD 05.2002"
 
 	self resetDataElements.
-	Name := 'DICOM Audio Information Object Module'.
+	Name := 'Audio Information Object Module'.
 	moduleName := 'audioIOM'.
 	self addDataElement: (USDataElement
 				newWith: #audioType

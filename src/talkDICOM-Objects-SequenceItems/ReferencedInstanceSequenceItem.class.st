@@ -9,6 +9,8 @@ ReferencedInstanceSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced Instance Sequence Item'.
 	SequenceName := 'referencedIntanceSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r114A).
+
 	self
 		addDataElement:
 			(UIDataElement

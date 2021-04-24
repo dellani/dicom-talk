@@ -12,7 +12,7 @@ SRDocumentSeriesIOM class >> initialize [
 	PRD, Charnovscki 14-12.2001"
 
 	self resetDataElements.
-	Name := 'DICOM SR Document Series Information Object Module'.
+	Name := 'SR Document Series Information Object Module'.
 	moduleName := 'srDocumentSeriesIOM'.
 	self
 		addDataElement:

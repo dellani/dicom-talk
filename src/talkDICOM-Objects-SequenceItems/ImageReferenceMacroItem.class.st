@@ -18,6 +18,7 @@ ImageReferenceMacroItem class >> initialize [
 	Name := 'DICOM Image Reference Macro Item'.
 	SequenceName := 'imageReferenceMacroItem'.
 	self resetDataElements.
+
 	"****************** Composite Object Reference Macro - Table C.18.4-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
@@ -26,14 +27,7 @@ ImageReferenceMacroItem class >> initialize [
 ImageReferenceMacroItem class >> macroItemClass [
 	"****************** Composite Object Reference Macro - Table C.18.4-1 *************************"
 
-	^ CompositeObjectReferenceMacroItem
-]
-
-{ #category : #'class initialization' }
-ImageReferenceMacroItem class >> macroItemClassDataElements [
-	"****************** Composite Object Reference Macro - Table C.18.4-1 *************************"
-
-	^ self macroItemClass DataElements
+	^ OrderedCollection with: CompositeObjectReferenceMacroItem
 ]
 
 { #category : #accessing }

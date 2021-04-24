@@ -9,6 +9,8 @@ WaveformSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Waveform Sequence Item'.
 	SequenceName := 'waveformSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r5400 16r0100).
+
 	self
 		addDataElement:
 			(DSDataElement

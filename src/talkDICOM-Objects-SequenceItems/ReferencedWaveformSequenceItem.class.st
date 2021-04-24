@@ -9,6 +9,8 @@ ReferencedWaveformSequenceItem class >> initialize [
 	Name := 'DICOM Referenced Waveform Sequence Item'.
 	SequenceName := 'referencedWaveformSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0008 16r113A).
+	
 	"****************** SOP Instance Reference Macro - Supplement 23, 2000 - Table C.17-3 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
 	self
@@ -23,16 +25,9 @@ ReferencedWaveformSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ReferencedWaveformSequenceItem class >> macroItemClass [
-	
 	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^SOPInstanceReferenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ReferencedWaveformSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: SOPInstanceReferenceMacroItem
 ]
 
 { #category : #accessing }

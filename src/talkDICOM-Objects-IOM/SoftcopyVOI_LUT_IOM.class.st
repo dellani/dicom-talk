@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 SoftcopyVOI_LUT_IOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Softcopy VOI LUT IOM'.
+	Name := 'Softcopy VOI LUT Information Object Module'.
 	moduleName := 'softcopyVOI_LUT_IOM'.
 
 	"***** Begin of data elements definition *******"
@@ -18,7 +18,7 @@ SoftcopyVOI_LUT_IOM class >> initialize [
 				tag: #(16r28 16r3110)
 				vm: '1'
 				type: '1'
-				sequenceItemClass: SoftcopyVOI_LUT_SequenceItem)
+				sequenceItemClass: SoftcopyVOILUTSequenceItem)
 ]
 
 { #category : #'accessing - talkDICOM names' }

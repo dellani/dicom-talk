@@ -6,26 +6,20 @@ Class {
 
 { #category : #'class initialization' }
 PredecessorDocumentsSequenceItem class >> initialize [
-	super initialize.
 	Name := 'DICOM Predecessor Documents Sequence Item'.
 	SequenceName := 'predecessorDocumentsSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0040 16rA360).
+
 	"****************** SOP Instance Reference Macro - Supplement 23, 2000 - Table C.17-3 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 PredecessorDocumentsSequenceItem class >> macroItemClass [
-	
 	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^SOPInstanceReferenceMacroItem
-]
 
-{ #category : #'class initialization' }
-PredecessorDocumentsSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: SOPInstanceReferenceMacroItem
 ]
 
 { #category : #accessing }

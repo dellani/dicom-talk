@@ -10,7 +10,7 @@ GeneralEquipmentIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.5.1 - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := ' DICOM General Equipment Information Object Module'.
+	Name := 'General Equipment Information Object Module'.
 	moduleName := 'generalEquipmentIOM'.
 	self
 		addDataElement:

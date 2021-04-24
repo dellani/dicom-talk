@@ -9,6 +9,8 @@ ReferencedCurveSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced Curve Sequence Item'.
 	SequenceName := 'referencedCurveSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r1145).
+
 	self
 		addDataElement:
 			(UIDataElement

@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 NMTomoAcquisitionIOM class >> initialize [
 	self resetDataElements.
-	Name := 'NM Tomo Acquisition IOM'.
+	Name := 'NM Tomo Acquisition Information Object Module'.
 	moduleName := 'nmTomoAcquisitionIOM'.
 
 	"***** Begin of data elements definition *******"

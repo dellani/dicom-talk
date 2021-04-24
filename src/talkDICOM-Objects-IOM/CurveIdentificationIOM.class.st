@@ -10,7 +10,7 @@ CurveIdentificationIOM class >> initialize [
 	PS 3.3-2001 Annex C.10.1 - PRD 05.2002"
 
 	self resetDataElements.
-	Name := 'DICOM Curve Identification Information Object Module'.
+	Name := 'Curve Identification Information Object Module'.
 	moduleName := 'curveIdentificationIOM'.
 	self
 		addDataElement:

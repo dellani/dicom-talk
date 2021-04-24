@@ -14,7 +14,7 @@ SRDocumentContentIOM class >> initialize [
 	RC MS- Jan 24th, 2002"
 
 	self resetDataElements.
-	Name := 'DICOM SR Document General Information Object Module'.
+	Name := 'SR Document General Information Object Module'.
 	moduleName := 'srDocumentContentIOM'.
 
 	"DICOM SOP Instance Reference Macro Sequence Item - initialization method

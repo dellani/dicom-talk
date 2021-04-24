@@ -9,6 +9,7 @@ GatedInformationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Gated Information Sequence Item'.
 	SequenceName := 'gatedInformationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0054 16r0062).
 
 	"***** Begin of data elements definition *******"
 	self

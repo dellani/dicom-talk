@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 DisplayedAreaIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Displayed Area IOM'.
+	Name := 'Displayed Area IOM'.
 	moduleName := 'displayedAreaIOM'.
 
 	"***** Begin of data elements definition *******"

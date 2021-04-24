@@ -8,24 +8,18 @@ Class {
 AdditionalDrugSequenceItem class >> initialize [
 	Name := 'DICOM Additional Drug Sequence Item'.
 	SequenceName := 'additionalDrugSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0018 16r002A).
+
 	self resetDataElements.
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
 ]
 
 { #category : #'class initialization' }
 AdditionalDrugSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-AdditionalDrugSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass initialize; DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

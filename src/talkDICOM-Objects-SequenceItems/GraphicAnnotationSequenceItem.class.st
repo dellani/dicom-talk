@@ -9,6 +9,7 @@ GraphicAnnotationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'GraphicAnnotationSequenceItem'.
 	SequenceName := 'graphicAnnotationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0070 16r0001).
 
 	"***** Begin of data elements definition *******"
 	self

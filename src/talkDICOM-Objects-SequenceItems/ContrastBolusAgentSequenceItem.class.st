@@ -8,6 +8,8 @@ Class {
 ContrastBolusAgentSequenceItem class >> initialize [
 	Name := 'DICOM Constrast/Bolus Agent Sequence Item'.
 	SequenceName := 'constrastBolusAgentSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0018 16r0012).
+	
 	self resetDataElements.
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
@@ -15,16 +17,9 @@ ContrastBolusAgentSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ContrastBolusAgentSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ContrastBolusAgentSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

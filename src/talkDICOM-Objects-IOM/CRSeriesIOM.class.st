@@ -58,7 +58,7 @@ CRSeriesIOM class >> initialize [
 PS 3.3-2000 Annex C.8.1.1 - PRD June 12th, 2003"
 
 	self resetDataElements.
-	Name := 'DICOM CR Series Information Object Module'.
+	Name := 'CR Series Information Object Module'.
 	moduleName := 'crSeriesIOM'.
 	self
 		addDataElement:

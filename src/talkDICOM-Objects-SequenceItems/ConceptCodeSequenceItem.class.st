@@ -8,6 +8,8 @@ Class {
 ConceptCodeSequenceItem class >> initialize [
 	Name := 'DICOM Concept Code Sequence Item'.
 	SequenceName := 'conceptCodeSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16rA168).
+
 	self resetDataElements.
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
@@ -16,16 +18,9 @@ ConceptCodeSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ConceptCodeSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ConceptCodeSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

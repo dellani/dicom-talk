@@ -67,14 +67,53 @@ NM_IOD class >> InformationObjectModules [
 				yourself ]
 ]
 
+{ #category : #'class initialization' }
+NM_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
+
 { #category : #accessing }
-NM_IOD class >> SOPClassUID [
+NM_IOD class >> sopClassUID [
 	^ '1.2.840.10008.5.1.4.1.1.20'
 ]
 
-{ #category : #'class initialization' }
-NM_IOD class >> initialize [
-	super initialize
+{ #category : #'textual attributes definition' }
+NM_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for NM IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.765476+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM imagePixelIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmPETPatientOrientationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM frameOfReferenceIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmImagePixelIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM multiFrameIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmMultiFrameIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmIsotopeIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmDetectorIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmTomoAcquisitionIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmMultiGatedAcquisitionIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmPhaseIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM nmReconstructionIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM overlayPlaneIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM curveIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM voiLUTIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

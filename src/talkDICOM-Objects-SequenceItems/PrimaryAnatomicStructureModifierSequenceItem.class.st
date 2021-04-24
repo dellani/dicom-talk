@@ -13,22 +13,17 @@ PrimaryAnatomicStructureModifierSequenceItem class >> initialize [
 	Name := 'DICOM Primary Anatomic Structure Modifier Sequence Item'.
 	SequenceName := 'primaryAnatomicStructureModifierSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0008 16r2230).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 PrimaryAnatomicStructureModifierSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-PrimaryAnatomicStructureModifierSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

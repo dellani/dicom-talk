@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 NMPhaseIOM class >> initialize [
 	self resetDataElements.
-	Name := 'NM Phase IOM'.
+	Name := 'NM Phase Information Object Module'.
 	moduleName := 'nmPhaseIOM'.
 
 	"***** Begin of data elements definition *******"

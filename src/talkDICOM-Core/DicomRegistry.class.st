@@ -23,58 +23,58 @@ Class {
 
 { #category : #'class variables' }
 DicomRegistry class >> DIMSE_PM_QueryRetrieval_SCP [
-	^ DIMSE_PM_QueryRetrieval_SCP isNil
-		ifTrue: [ DIMSE_PM_QueryRetrieval_SCP := Dictionary new ]
-		ifFalse: [ DIMSE_PM_QueryRetrieval_SCP ]
+	^ DIMSE_PM_QueryRetrieval_SCP
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DIMSE_PM_QueryRetrieval_SCP := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DIMSE_PM_QueryRetrieval_SCU [
-	^ DIMSE_PM_QueryRetrieval_SCU isNil
-		ifTrue: [ DIMSE_PM_QueryRetrieval_SCU := Dictionary new ]
-		ifFalse: [ DIMSE_PM_QueryRetrieval_SCU ]
+	^ DIMSE_PM_QueryRetrieval_SCU
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DIMSE_PM_QueryRetrieval_SCU := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DIMSE_PM_Storage_SCP [
-	^ DIMSE_PM_Storage_SCP isNil
-		ifTrue: [ DIMSE_PM_Storage_SCP := Dictionary new ]
-		ifFalse: [ DIMSE_PM_Storage_SCP ]
+	^ DIMSE_PM_Storage_SCP
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DIMSE_PM_Storage_SCP := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DIMSE_PM_Storage_SCU [
-	^ DIMSE_PM_Storage_SCU isNil
-		ifTrue: [ DIMSE_PM_Storage_SCU := Dictionary new ]
-		ifFalse: [ DIMSE_PM_Storage_SCU ]
+	^ DIMSE_PM_Storage_SCU
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DIMSE_PM_Storage_SCU := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DIMSE_PM_Verification_SCP [
-	^ DIMSE_PM_Verification_SCP isNil
-		ifTrue: [ DIMSE_PM_Verification_SCP := Dictionary new ]
-		ifFalse: [ DIMSE_PM_Verification_SCP ]
+	^ DIMSE_PM_Verification_SCP
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DIMSE_PM_Verification_SCP := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DIMSE_PM_Verification_SCU [
-	^ DIMSE_PM_Verification_SCU isNil
-		ifTrue: [ DIMSE_PM_Verification_SCU := Dictionary new ]
-		ifFalse: [ DIMSE_PM_Verification_SCU ]
+	^ DIMSE_PM_Verification_SCU
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DIMSE_PM_Verification_SCU := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DataDictionary [
 	^ DataDictionary
-		ifNil: [ DataDictionary := Dictionary new ]
 		ifNotNil: [ :arg | arg ]
+		ifNil: [ DataDictionary := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> DataElements [
-	^ DataElements isNil
-		ifTrue: [ DataElements := Dictionary new ]
-		ifFalse: [ DataElements ]
+	^ DataElements
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ DataElements := Dictionary new ]
 ]
 
 { #category : #'class variables' }
@@ -89,37 +89,37 @@ DicomRegistry class >> ImplementationVersionName [
 
 { #category : #'class variables' }
 DicomRegistry class >> PrivateCreatorsDataDictionary [
-	^ PrivateCreatorsDataDictionary isNil
-		ifTrue: [ PrivateCreatorsDataDictionary := Dictionary new ]
-		ifFalse: [ PrivateCreatorsDataDictionary ]
+	^ PrivateCreatorsDataDictionary
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ PrivateCreatorsDataDictionary := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> SCPInterfaces [
-	^ SCPInterfaces isNil
-		ifTrue: [ SCPInterfaces := Dictionary new ]
-		ifFalse: [ SCPInterfaces ]
+	^ SCPInterfaces
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ SCPInterfaces := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> SCUInterfaces [
-	^ SCUInterfaces isNil
-		ifTrue: [ SCUInterfaces := Dictionary new ]
-		ifFalse: [ SCUInterfaces ]
+	^ SCUInterfaces
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ SCUInterfaces := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> SOPClasses [
-	^ SOPClasses isNil
-		ifTrue: [ SOPClasses := Dictionary new ]
-		ifFalse: [ SOPClasses ]
+	^ SOPClasses
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ SOPClasses := Dictionary new ]
 ]
 
 { #category : #'class variables' }
 DicomRegistry class >> TransferSyntaxes [
-	^ TransferSyntaxes isNil
-		ifTrue: [ TransferSyntaxes := Dictionary new ]
-		ifFalse: [ TransferSyntaxes ]
+	^ TransferSyntaxes
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ TransferSyntaxes := Dictionary new ]
 ]
 
 { #category : #utility }
@@ -230,4 +230,10 @@ DicomRegistry class >> importGDCMPrivateDefaultDicts [
 				at: dataElementDefinition tag creatorsGroup
 				ifAbsentPut: [ SortedCollection new ].
 			sortedCollection add: dataElementDefinition ]
+]
+
+{ #category : #registration }
+DicomRegistry class >> registerIOD: aDicomIOD [
+	aDicomIOD sopClassUID
+		ifNotNil: [ self SOPClasses at: aDicomIOD sopClassUID put: aDicomIOD ]
 ]

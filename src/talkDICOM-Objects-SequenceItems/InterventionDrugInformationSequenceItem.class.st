@@ -9,6 +9,7 @@ InterventionDrugInformationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Intervention Drug Information Sequence Item'.
 	SequenceName := 'interventionDrugInformationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0018 16r0026).
 
 	"***** Begin of data elements definition *******"
 	self

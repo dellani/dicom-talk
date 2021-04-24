@@ -9,6 +9,8 @@ ViewCodeSequenceItem class >> initialize [
 	Name := 'View Code Sequence Item'.
 	SequenceName := 'viewCodeSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0054 16r0220).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
 	self
@@ -23,16 +25,9 @@ ViewCodeSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ViewCodeSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ViewCodeSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

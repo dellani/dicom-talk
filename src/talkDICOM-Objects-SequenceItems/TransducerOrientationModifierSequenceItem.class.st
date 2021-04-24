@@ -13,22 +13,17 @@ TransducerOrientationModifierSequenceItem class >> initialize [
 	Name := 'DICOM Transducer Orientation Modifer Sequence Item'.
 	SequenceName := 'transducerOrientationModiferSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0008 16r2246).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 TransducerOrientationModifierSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-TransducerOrientationModifierSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

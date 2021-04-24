@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 NMReconstructionIOM class >> initialize [
 	self resetDataElements.
-	Name := 'NM Reconstruction IOM'.
+	Name := 'NM Reconstruction Information Object Module'.
 	moduleName := 'nmReconstructionIOM'.
 
 	"***** Begin of data elements definition *******"

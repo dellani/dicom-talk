@@ -33,12 +33,6 @@ DicomIOD class >> InformationObjectModules [
 	^OrderedCollection new.
 ]
 
-{ #category : #accessing }
-DicomIOD class >> SOPClassUID [
-
-	^nil
-]
-
 { #category : #'computer reflection' }
 DicomIOD class >> _addDicomParserVAccessorsToSubclasses_Pharo [
 	"Cool!!!
@@ -411,6 +405,28 @@ DicomIOD class >> addDicomParserVAccessorsToSubclasses_Pharo [
 	]
 ]
 
+{ #category : #'computer reflection 2021' }
+DicomIOD class >> addTextualAttributesDefinition [
+
+	| method |
+	self subclasses do: [ :aSubclass |
+		aSubclass addTextualAttributesDefinition ].
+
+	self InformationObjectModules ifNotEmpty: [
+		method := self computerReflection_textualAttributesDefinitionMethod.
+		MethodAddition new
+			compile: method contents
+			classified: 'textual attributes definition'
+			withStamp: DateAndTime now printString
+			notifying: nil 
+			logSource: true
+			"This is a class method, so refer to my metaclass"
+			inClass: self class;
+		compile.
+	]
+
+]
+
 { #category : #'computer reflection' }
 DicomIOD class >> computerReflection_accessor_01_for: dataElement iomClass: iomClass [
 	| method |
@@ -532,6 +548,41 @@ DicomIOD class >> computerReflection_accessor_04_for: iomClass [
 						tab; tab; nextPutAll: iomClass moduleName, ' dataElementsValues: self dataElementsValues'; cr;
 						tab; nextPutAll: '].'; cr; cr].
 	^ method
+]
+
+{ #category : #'computer reflection 2021' }
+DicomIOD class >> computerReflection_textualAttributesDefinitionMethod [
+	"Code a method for textual attributes definition by combining the textual
+	 data elements definition of the my information object modules.
+	
+	April 18 2021 - PRD."
+	
+	^ String
+		new: 10
+		streamContents: [ :writeStream | 
+			writeStream
+				nextPutAll: 'textualAttributesDefinition'; cr;
+				tab; nextPut: $"; nextPutAll: 'Textual attributes definition for '; nextPutAll: self DicomIODName; cr; cr;
+				tab; nextPutAll: ' Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod '; cr; cr;
+				tab; nextPut: $ ; nextPutAll: DateAndTime now printString; nextPutAll: ' - Computer Reflection'; nextPut: $"; cr; cr;
+				
+				tab; nextPutAll: '^ ByteString'; cr;
+				tab; tab; nextPutAll: 'new: 10'; cr;
+				tab; tab; nextPutAll: 'streamContents: [ :aStream |'; cr;
+				tab; tab; tab; nextPutAll: 'aStream'; cr;
+				tab; tab; tab; tab; nextPutAll: 'nextPutAll: DicomIOM ';
+					                 nextPutAll: InformationObjectModules first moduleName; 
+					                 nextPutAll: 'TextualDataElementsDefinition; cr'.
+
+			2 to: InformationObjectModules size do: [ :index  | | aDicomIOMSubclass | 
+				aDicomIOMSubclass := InformationObjectModules at: index.
+				writeStream
+					nextPut: $;; cr;
+					tab; tab; tab; tab; nextPutAll: 'nextPutAll: DicomIOM ';
+						                 nextPutAll: aDicomIOMSubclass moduleName; 
+						                 nextPutAll: 'TextualDataElementsDefinition; cr'. ].
+			writeStream
+				nextPutAll: ' ]'; cr. ]
 ]
 
 { #category : #'computer reflection' }
@@ -665,20 +716,9 @@ DicomIOD class >> dataElementsTable [
 	^aStream contents
 ]
 
-{ #category : #initialize }
+{ #category : #'class initialization' }
 DicomIOD class >> initialize [
-
-	self resetDataElements.
-
-	"Take all the data elements from the information object modules 
-	and add them to the list of Data Elements of the Information Object Definition"
-	self InformationObjectModules
-		do: [:iom | iom DataElements do: [:dataElement | self addDataElement: dataElement]].
-
-	self SOPClassUID notNil ifTrue: 
-			["Register myself as the Smalltalk Class as 
-			Object for the Service-Object-Pair class UID"
-			DicomRegistry SOPClasses at: self SOPClassUID put: self]
+	^ self subclassResponsibility
 ]
 
 { #category : #'computer reflection' }
@@ -691,6 +731,11 @@ DicomIOD class >> instanceVariableNames [
 		ifTrue: [ orderedCollection addAll: self superclass instanceVariableNames ].
 	1 to: self instSize - superInstSize do: [ :i | orderedCollection add: (self instVarNames at: i) ].
 	^ orderedCollection
+]
+
+{ #category : #accessing }
+DicomIOD class >> sopClassUID [
+	self subclassResponsibility
 ]
 
 { #category : #comparing }
@@ -719,12 +764,6 @@ DicomIOD >> >= aDicomIOD [
 	"PRD - March 05th, 2004"
 
 	^self subclassResponsibility
-]
-
-{ #category : #accessing }
-DicomIOD >> SOPClassUID [
-
-	^self class SOPClassUID
 ]
 
 { #category : #printing }
@@ -849,4 +888,10 @@ DicomIOD >> populateIOMDictionaries: aDicomTransferSyntax [
 			iom dataElementsDictionary: self dataElementsDictionary.
 			iom dataElementsValues: self dataElementsValues.
 			self perform: (each moduleName , ':') asSymbol with: iom ]
+]
+
+{ #category : #accessing }
+DicomIOD >> sopClassUID [
+
+	^self class sopClassUID
 ]

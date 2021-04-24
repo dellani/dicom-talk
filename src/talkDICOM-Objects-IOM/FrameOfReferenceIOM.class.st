@@ -10,7 +10,7 @@ FrameOfReferenceIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.4.1 - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Frame of Reference Information Object Module'.
+	Name := 'Frame of Reference Information Object Module'.
 	moduleName := 'frameOfReferenceIOM'.
 	self
 		addDataElement:

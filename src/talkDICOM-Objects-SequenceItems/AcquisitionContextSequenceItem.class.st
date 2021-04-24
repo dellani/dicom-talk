@@ -7,8 +7,10 @@ Class {
 { #category : #'class initialization' }
 AcquisitionContextSequenceItem class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Acquisition Context Sequence Item'.
-	SequenceName := 'acquisitionContextSequenceItem'.
+	self Name: 'DICOM Acquisition Context Sequence Item'.
+	self SequenceName: 'acquisitionContextSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16r0555).
+	
 	self
 		addDataElement:
 			(SQDataElement

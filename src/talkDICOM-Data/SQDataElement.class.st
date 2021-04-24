@@ -166,6 +166,35 @@ SQDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEnc
 				definition: self.
 ]
 
+{ #category : #printing }
+SQDataElement >> csvPrintOn: aStream separator: aCharacter level: level [
+	"See upperclass implementation for comment"
+
+	self csvPrintOn: aStream separator: aCharacter level: level listItemAttributes: false.
+]
+
+{ #category : #printing }
+SQDataElement >> csvPrintOn: aStream separator: aCharacter level: level listItemAttributes: listItemAttributes [
+	"Print a description of myself in a single CSV text line separated by aCharacter:
+	
+	 Group number <tab> Element number <tab> name <tab> vr <tab> vm <tab> type <cr>
+	
+	 Assumes that every all values are correctly defined. After listing myself,
+	 list the data element definition of my Sequence Item too:
+
+	 > Group number <tab> Element number <tab> name <tab> vr <tab> vm <tab> type <cr>
+	 (...)
+	 > Group number <tab> Element number <tab> name <tab> vr <tab> vm <tab> type <cr>
+	
+	 April 11 2021 - PRD."
+
+	super csvPrintOn: aStream separator: aCharacter level: level.
+	listItemAttributes ifTrue: [
+		aStream cr.
+		self sequenceItemClass csvPrintOn: aStream separator: aCharacter level: level + 1. 
+	]
+]
+
 { #category : #accessing }
 SQDataElement >> dataElementLength [
 	"Data Length of the message field in bytes
@@ -304,6 +333,13 @@ SQDataElement >> encoder: aDicomTransferSyntaxClass [
 							sequenceItem encoder = aDicomTransferSyntaxClass
 								ifFalse: [ sequenceItem encoder: aDicomTransferSyntaxClass ] ] ] ]
 		ifFalse: [ super encoder: aDicomTransferSyntaxClass ]
+]
+
+{ #category : #printing }
+SQDataElement >> fullCSVPrintOn: aStream separator: aCharacter level: level [
+	"See upperclass implementation for comment"
+
+	self csvPrintOn: aStream separator: aCharacter level: level listItemAttributes: true.
 ]
 
 { #category : #'sequence decoding' }

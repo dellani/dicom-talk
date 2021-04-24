@@ -9,6 +9,8 @@ WaveformAnnotationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Waveform Annotation Sequence Item'.
 	SequenceName := 'waveformAnnotationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16rB020).
+
 	self
 		addDataElement:
 			(STDataElement

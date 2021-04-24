@@ -7,6 +7,7 @@ Class {
 		'dataElementsValues'
 	],
 	#classInstVars : [
+		'DataElementsDefinition',
 		'DataElements',
 		'DataElementsByName',
 		'Type1DataElements',
@@ -56,136 +57,6 @@ DicomObject class >> Type2DataElements [
 DicomObject class >> Type3DataElements [
 
 	^Type3DataElements.
-]
-
-{ #category : #'computer reflection' }
-DicomObject class >> _addDicomParserVAccessorsToSubclasses_Pharo [
-	"Cool!!!
-
-	PRD August 09th, 2002
-
-	Note: this version supposes that the data element values 
-	are stored in the dataElementsValues instance variable (a Dictionary)
-	and not anymore in a instance variable for each data element.
-
-	In this way, its is possible to implement a mechanism able to prevent
-	that a data element value resides in an DicomObject subclass
-	instance variable and also in the dataElementsDictionary at the same 
-	time.
-
-	============================================================
-	acquisitionNumber
-
-	^self dataElementsValues at: 'acquisitionNumber' ifAbsent: [
-		self dataElementsDictionary at: 'acquisitionNumber' ifPresent: [:dataElement |
-			self dataElementsValues at: 'acquisitionNumber' put: (self dataElementsDictionary removeKey: 'acquisitionNumber') value.
-		]
-	]
-	============================================================
-	acquisitionNumber
-
-	| dataElement |
-
-	(self dataElementsDictionary at: 'acquisitionNumber' ifPresent: [:aDataElement | aDataElement value: aISValue]) isNil ifTrue: [
-		encoder notNil ifTrue: [
-			dataElement := self newDataElementNamed: #acquisitionNumber.
-			dataElement encoder: self encoder.
-			dataElement value: aISValue.
-			self dataElementsDictionary at: 'acquisitionNumber' put: dataElement.
-			self dataElementsValues removeKey: 'acquisitionNumber' ifAbsent: [nil].
-		]
-		ifFalse: [
-			self dataElementsValues at: 'acquisitionNumber' put: aISValue
-		]
-	].
-
-	PRD - 14thth July, 2003
-
-	PRD 28th January, 2016 - Even cooler!!! 
-	
-	PRD - August 17, 2017 - Pharo version"
-
-	| method valueToken |
-
-	self subclasses do: [:aSubclass |
-		aSubclass addDicomParserVAccessorsToSubclasses_Pharo.
-	].
-
-	(DataElements isKindOf: Dictionary) ifTrue: [
-		DataElements do: [:dataElement |
-
-			method := WriteStream on: String new.
-			method 
-				nextPutAll: dataElement name asString; cr; cr; 
-				tab; nextPutAll: '^self dataElementsValues at: ''', dataElement name asString, ''' ifAbsent: ['; cr;
-				tab; tab; nextPutAll: 'self dataElementsDictionary at: ''', dataElement name asString, ''' ifPresent: [:dataElement |'; cr;
-				tab; tab; tab; nextPutAll: 'self dataElementsValues at: ''', dataElement name asString, ''' put: (self dataElementsDictionary removeKey: ''', dataElement name asString, ''') value.'; cr;
-				tab; tab; nextPutAll: ']'; cr;
-				tab; nextPutAll: ']'; cr.
-
-				MethodAddition new
-					compile: method contents
-						classified: 'accessing'
-						withStamp: DateAndTime now printString
-						notifying: nil 
-						logSource: true
-						inClass: self;
-					compile.
-
-			"self compile: method contents classified: 'accessing' attributes: #()."
-
-			method := WriteStream on: String new.
-			valueToken := 'a', dataElement vr, 'Value'.
-			method 
-				nextPutAll: dataElement name asString, ': ', valueToken; cr; cr; 
-				tab; nextPutAll: '| dataElement |'; cr; cr;
-				tab; nextPutAll: '(self dataElementsDictionary at: ''', dataElement name asString, ''' ifPresent: [:aDataElement | aDataElement value: ', valueToken, ']) isNil ifTrue: ['; cr;
-				tab; tab; nextPutAll: 'encoder notNil ifTrue: ['; cr;
-				tab; tab; tab; nextPutAll: 'dataElement := self newDataElementNamed: ', dataElement name printString, '.'; cr;
-				tab; tab; tab; nextPutAll: 'dataElement encoder: self encoder.'; cr;
-				tab; tab; tab; nextPutAll: 'dataElement value: ', valueToken, '.'; cr;
-				tab; tab; tab; nextPutAll: 'self dataElementsDictionary at: ''', dataElement name asString, ''' put: dataElement.'; cr;
-				tab; tab; tab; nextPutAll: 'self dataElementsValues removeKey: ''', dataElement name asString, ''' ifAbsent: [nil].'; cr;
-				tab; tab; nextPutAll: ']'; cr;
-				tab; tab; nextPutAll: 'ifFalse: ['; cr;
-				tab; tab; tab; nextPutAll: 'self dataElementsValues at: ''', dataElement name asString, ''' put: ', valueToken; cr;
-				tab; tab; nextPutAll: ']'; cr;
-				tab; nextPutAll: '].'; cr.
-
-				MethodAddition new
-					compile: method contents
-						classified: 'accessing'
-						withStamp: DateAndTime now printString
-						notifying: nil 
-						logSource: true
-						inClass: self;
-					compile.
-
-			"self compile: method contents classified: 'accessing' attributes: #()."
-		]
-	]
-]
-
-{ #category : #'computer reflection' }
-DicomObject class >> _correctedDataElementNames [
-	"Computer Reflection is Cool!!!
-
-	The DICOM standard define a keyword for every data element in part 6,
-	data dictionary. Some of the keys used in this implementation differ
-	from the ones now defined in the standard. This method corrects the
-	set the names of the data elements defined in this implementation using
-	the keys from part 6.
-
-	PRD - September 13, 2017"
-
-	self subclasses do: [ :aSubclass | aSubclass correctedDataElementNames ].
-	(DataElements isKindOf: Dictionary)
-		ifTrue: [ DataElements
-				do: [ :dataElement | 
-					"look for the DICOM data element definition in the data dictinary"
-					DicomRegistry DataDictionary
-						at: dataElement tag
-						ifPresent: [ :dicomDefinition | dataElement name: dicomDefinition name ] ] ]
 ]
 
 { #category : #'private - data elements' }
@@ -436,7 +307,7 @@ DicomObject class >> addDicomParserIVAccessorsToSubclasses [
 	]
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2017' }
 DicomObject class >> addDicomParserVAccessorsToSubclasses_Pharo [
 	"Cool!!!
 
@@ -517,6 +388,69 @@ DicomObject class >> addDicomParserVAccessorsToSubclasses_Pharo [
 	]
 ]
 
+{ #category : #'computer reflection 2021' }
+DicomObject class >> addFullTextualDataElementDefinitionaMethodsToSubclasses [
+	"Add method 'fullTextualDataElementDefinition' to my subclasses.
+	 'full textual' means that the sequence data element item attributes
+	 will be expanded / present in the textual definition.
+
+	(Computer reflection is always cool!!!)
+
+	April 11 2021 - Initial implementation;
+	April 18 2021 - Renamed to 'fullTextualDataElementDefinition' to 
+	                diferentiate it from textualDataElementDefinition, 
+	                which will not include the expanded sequence attributes - PRD."
+
+	| method |
+
+	self subclasses do: [ :aSubclass |
+		aSubclass addFullTextualDataElementDefinitionaMethodsToSubclasses.
+	].
+
+	(DataElements isKindOf: Dictionary) & (DataElements isNotEmpty) ifTrue: [
+		method := self computerReflection_fullTextualDataElementDefinitionMethod.
+
+		MethodAddition new
+			compile: method contents
+			classified: 'class initialization - private'
+			withStamp: DateAndTime now printString
+			notifying: nil 
+			logSource: true
+			"This is a class method, so refer to my metaclass"
+			inClass: self class;
+		compile. ]
+]
+
+{ #category : #'computer reflection 2021' }
+DicomObject class >> addTextualDataElementDefinitionaMethodsToSubclasses [
+	"Add method 'textualDataElementDefinition' to my subclasses.
+    Attributes of sequence data element items will not be listed.
+	 (Computer reflection is always cool!!!)
+
+	April 11 2021 - Initial implementation;
+	April 18 2021 - Motified 'addTextualDataElementDefinitionaMethodsToSubclasses'
+	                to not include the expanded sequence attributes - PRD."
+
+	| method |
+
+	self subclasses do: [ :aSubclass |
+		aSubclass addTextualDataElementDefinitionaMethodsToSubclasses.
+	].
+
+	(DataElements isKindOf: Dictionary) & (DataElements isNotEmpty) ifTrue: [
+		method := self computerReflection_textualDataElementDefinitionMethod.
+
+		MethodAddition new
+			compile: method contents
+			classified: 'class initialization - private'
+			withStamp: DateAndTime now printString
+			notifying: nil 
+			logSource: true
+			"This is a class method, so refer to my metaclass"
+			inClass: self class;
+		compile. ]
+]
+
 { #category : #'private - data elements' }
 DicomObject class >> addType1CDataElement: aType1CDicomDataElement [
 "
@@ -567,7 +501,7 @@ DicomObject class >> addType3DataElement: aType3DicomDataElement [
 	Type3DataElements at: (aType3DicomDataElement tag) put: aType3DicomDataElement.
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2017' }
 DicomObject class >> computerReflection_accessor_01_for: dataElement [
 	| method |
 	method := String
@@ -584,7 +518,7 @@ DicomObject class >> computerReflection_accessor_01_for: dataElement [
 	^ method
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2017' }
 DicomObject class >> computerReflection_accessor_01_for: dataElement newName: newName [
 	| method |
 	method := String
@@ -601,7 +535,7 @@ DicomObject class >> computerReflection_accessor_01_for: dataElement newName: ne
 	^ method
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2017' }
 DicomObject class >> computerReflection_accessor_02_for: dataElement [
 	| method valueToken |
 	valueToken := 'a', dataElement vr, 'Value'.
@@ -628,7 +562,7 @@ DicomObject class >> computerReflection_accessor_02_for: dataElement [
 	^ method
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2017' }
 DicomObject class >> computerReflection_accessor_02_for: dataElement newName: newName [
 	| method valueToken |
 	valueToken := 'a', dataElement vr, 'Value'.
@@ -655,7 +589,62 @@ DicomObject class >> computerReflection_accessor_02_for: dataElement newName: ne
 	^ method
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2021' }
+DicomObject class >> computerReflection_fullTextualDataElementDefinitionMethod [
+	"Code textual data element definition method using the information
+	 stored in 'DataElement\. DataElement is a Dictionary holding instances
+	 of DataElement indexed by its tags that were used to define DicomObject
+	 instances in the past.
+	
+	April 11 2021 - Initial implementation;
+	April 18 2021 - Renamed to '_fullTextualDataElementDefinitionMethod' to 
+	                diferentiate it from _textualDataElementDefinitionMethod, 
+	                which will list the expanded sequence attributes - PRD."
+
+	^ String
+		new: 10
+		streamContents: [ :writeStream | 
+			writeStream
+				nextPutAll: 'fullTextualDataElementDefinition'; cr;
+				tab; nextPut: $"; nextPutAll: 'Textual data element definition of myself.'; cr; cr;
+				tab; nextPutAll: ' Computer reflection from '; 
+				nextPutAll: DateAndTime now printString; nextPut: $"; cr; cr;
+				
+				tab; nextPutAll: '^ ByteString'; cr;
+				tab; tab; nextPutAll: 'new: 10'; cr;
+				tab; tab; nextPutAll: 'streamContents: [ :aStream |'; cr;
+				tab; tab; tab; nextPutAll: 'aStream nextPutAll:'; cr;
+				nextPut: $'; nextPutAll: self listDataElementDefinition_Full; nextPut: $'; nextPutAll: ' ]'; cr. ].
+]
+
+{ #category : #'computer reflection 2021' }
+DicomObject class >> computerReflection_textualDataElementDefinitionMethod [
+	"Code textual data element definition method using the information
+	 stored in 'DataElement\. DataElement is a Dictionary holding instances
+	 of DataElement indexed by its tags that were used to define DicomObject
+	 instances in the past.
+	
+	April 11 2021 - Initial implementation;
+	April 18 2021 - Motified from '_fullTextualDataElementDefinitionMethod'
+	                to not include the expanded sequence attributes - PRD."
+	
+	^ String
+		new: 10
+		streamContents: [ :writeStream | 
+			writeStream
+				nextPutAll: 'textualDataElementDefinition'; cr;
+				tab; nextPut: $"; nextPutAll: 'Textual data element definition of myself.'; cr; cr;
+				tab; nextPutAll: ' Computer reflection from '; 
+				nextPutAll: DateAndTime now printString; nextPut: $"; cr; cr;
+				
+				tab; nextPutAll: '^ ByteString'; cr;
+				tab; tab; nextPutAll: 'new: 10'; cr;
+				tab; tab; nextPutAll: 'streamContents: [ :aStream |'; cr;
+				tab; tab; tab; nextPutAll: 'aStream nextPutAll:'; cr;
+				nextPut: $'; nextPutAll: self listDataElementDefinition; nextPut: $'; nextPutAll: ' ]'; cr. ].
+]
+
+{ #category : #'computer reflection 2017' }
 DicomObject class >> correctedDataElementNames [
 	"Computer Reflection is Cool!!!
 
@@ -723,7 +712,7 @@ DicomObject class >> correctedDataElementNames [
 											"dataElement name: dictionaryDataElement name" ] ] ] ]
 ]
 
-{ #category : #'computer reflection' }
+{ #category : #'computer reflection 2017' }
 DicomObject class >> correctedDataElementNames_II [
 	"Computer Reflection is Cool!!!
 
@@ -752,9 +741,47 @@ DicomObject class >> correctedDataElementNames_II [
 											DataElementsByName at: dictionaryDataElement name put: dataElement] ] ] ]
 ]
 
+{ #category : #accessing }
+DicomObject class >> dataElementsDefinition [
+	^ DataElementsDefinition
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ self dataElementsDefinition: Dictionary new ]
+]
+
+{ #category : #accessing }
+DicomObject class >> dataElementsDefinition: aDictionary [
+	DataElementsDefinition := aDictionary
+]
+
 { #category : #'class initialization' }
 DicomObject class >> initialize [
-	self resetDataElements
+	^ self subclassResponsibility
+]
+
+{ #category : #'class initialization - private' }
+DicomObject class >> initializeDataElementsDefinition [
+	"Parse data element definitions from my textual attributes listing.
+	 Every DataElementDefinion instance created from the textual definitons
+	 is stored in a Dictionary stored in the class instance variable 
+	 DataElementsDefinition.
+	
+	 April 24 2021 - PRD"
+
+	| inputStream line definitions |
+	self dataElementsDefinition: Dictionary new.
+	inputStream := self textualAttributesDefinition readStream.
+	[ inputStream atEnd ]
+		whileFalse: [ line := inputStream nextLine.
+			(line includes: $#)
+				ifFalse: [ definitions := DataElementDefinition fromTextualDefinition: line.
+					"DataElementDefinition>fromTextualDefinition allways return an
+					 OrderedCollection with one or more instances of DataElementDefinition"
+					definitions
+						do:
+							[ :definition | self dataElementsDefinition at: definition tag put: definition ] ] ].
+	inputStream
+		close;
+		release
 ]
 
 { #category : #'computer reflection' }
@@ -778,6 +805,48 @@ DicomObject class >> instanceVariableNames [
 		ifTrue: [ orderedCollection addAll: self superclass instanceVariableNames ]."
 	1 to: self instSize - superInstSize do: [ :i | orderedCollection add: (self instVarNames at: i) ].
 	^ orderedCollection
+]
+
+{ #category : #utilities }
+DicomObject class >> listDataElementDefinition [
+	"List my data element definition using character (tab) separated values.
+	
+	April 11 2021 - Initial implementation;
+	April 18 2021 - Motified from 'listDataElementDefinition_full' to not 
+	                include the expanded sequence attributes - PRD."
+
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			| definition |
+
+			definition := SortedCollection withAll: DataElements values.
+			definition isNotEmpty ifTrue: [ 
+				(definition at: 1) csvPrintOn: aStream separator: Character tab level: 0.
+				2 to: definition size do: [ :index | 
+					aStream cr.
+					(definition at: index) csvPrintOn: aStream separator: Character tab level: 0] ] ]
+]
+
+{ #category : #utilities }
+DicomObject class >> listDataElementDefinition_Full [
+	"List my data element definition using character (tab) separated values.
+	
+	April 11 2021 - Initial implementation;
+	April 18 2021 - This method is the former 'listDataElementDefinition', which
+	                was renamed and lists expanded sequence attributes - PRD."
+
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			| definition |
+
+			definition := SortedCollection withAll: DataElements values.
+			definition isNotEmpty ifTrue: [ 
+				(definition at: 1) csvPrintOn: aStream separator: Character tab level: 0.
+				2 to: definition size do: [ :index | 
+					aStream cr.
+					(definition at: index) fullCSVPrintOn: aStream separator: Character tab level: 0] ] ]
 ]
 
 { #category : #'instance creation' }
@@ -817,6 +886,11 @@ DicomObject class >> resetDataElements [
 	Type2DataElements := Dictionary new.
 	Type2CDataElements := Dictionary new.
 	Type3DataElements := Dictionary new.
+]
+
+{ #category : #'class initialization - private' }
+DicomObject class >> textualAttributesDefinition [
+	^ self subclassResponsibility
 ]
 
 { #category : #utilities }

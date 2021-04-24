@@ -9,6 +9,8 @@ SourceWaveformSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Channel Source Waveform Item'.
 	SequenceName := 'sourceWaveformSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r003A 16r020A).
+
 	self
 		addDataElement:
 			(UIDataElement

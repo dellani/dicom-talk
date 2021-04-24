@@ -8,6 +8,8 @@ Class {
 ChannelSourceSequenceItem class >> initialize [
 	Name := 'DICOM Channel Source Sequence Item'.
 	SequenceName := 'channelSourceSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r003A 16r0208).
+
 	self resetDataElements.
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
@@ -16,16 +18,9 @@ ChannelSourceSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ChannelSourceSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ChannelSourceSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

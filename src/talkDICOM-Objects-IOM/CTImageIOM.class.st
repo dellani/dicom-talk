@@ -10,7 +10,7 @@ CTImageIOM class >> initialize [
 	PS 3.3-2000 Annex C.8.2.1 (Page 206) - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Computed Tomography Image Information Object Module'.
+	Name := 'Computed Tomography Image Information Object Module'.
 	moduleName := 'ctImageIOM'.
 	self
 		addDataElement:

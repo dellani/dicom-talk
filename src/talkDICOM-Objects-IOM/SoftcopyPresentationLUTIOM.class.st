@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 SoftcopyPresentationLUTIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Presentation LUT IOM'.
+	Name := 'Presentation LUT Information Object Module'.
 	moduleName := 'softcopyPresentationLUTIOM'.
 
 	"***** Begin of data elements definition *******"

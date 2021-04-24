@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 PresentationStateIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Presentation State Information Object Module'.
+	Name := 'Presentation State Information Object Module'.
 	moduleName := 'presentationStateIOM'.
 
 	"***** Begin of data elements definition *******"

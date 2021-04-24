@@ -8,6 +8,8 @@ Class {
 ContentSequenceItem class >> initialize [
 	Name := 'Dicom Content Sequence Item'.
 	SequenceName := 'contentSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16rA730).
+	
 	self resetDataElements.
 	"****************** Document Content Macro  - PS 3.3-2001 Table 17.3-5 *************************
 	**************   Supplement 23 Table C.17.3-4: Document Relationship Macro **********************"
@@ -30,17 +32,12 @@ ContentSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 ContentSequenceItem class >> macroItemClass [
-	
-	"****************** Document Content Macro  - PS 3.3-2001 Table 17.3-5 *************************"
-	 ^DocumentContentMacroItem
-]
+	"****************** Document Content Macro  - PS 3.3-2001 Table 17.3-5 ***************************
+	 **************   Supplement 23 Table C.17.3-4: Document Relationship Macro **********************"
 
-{ #category : #'class initialization' }
-ContentSequenceItem class >> macroItemClassDataElements [
-	"****************** Document Content Macro  - PS 3.3-2001 Table 17.3-5 *************************
-	**************   Supplement 23 Table C.17.3-4: Document Relationship Macro **********************"
-
-	^ (DocumentRelationshipMacroItem initialize; DataElements) , (DocumentContentMacroItem initialize ; DataElements)
+	^ OrderedCollection
+		with: DocumentRelationshipMacroItem
+		with: DocumentContentMacroItem
 ]
 
 { #category : #'accessing - talkDICOM names' }

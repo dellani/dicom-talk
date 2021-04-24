@@ -13,6 +13,8 @@ PrimaryAnatomicStructureSequenceItem class >> initialize [
 	Name := 'DICOM Primary Anatomic Structure Sequence Item'.
 	SequenceName := 'primaryAnatomicStructureSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0008 16r2228).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
 	self
@@ -27,16 +29,9 @@ PrimaryAnatomicStructureSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 PrimaryAnatomicStructureSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-PrimaryAnatomicStructureSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

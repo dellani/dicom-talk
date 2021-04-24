@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 GraphicLayerIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Graphic Layer IOM'.
+	Name := 'Graphic Layer IOM'.
 	moduleName := 'graphicLayerIOM'.
 
 	"***** Begin of data elements definition *******"

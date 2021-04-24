@@ -9,6 +9,8 @@ SpecimenSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Specimen Sequence Item '.
 	SequenceName := 'specimenSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16r0550).
+
 	self
 		addDataElement:
 			(LODataElement

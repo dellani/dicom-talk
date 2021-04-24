@@ -9,22 +9,17 @@ ScheduledActionItemCodeSequenceItem class >> initialize [
 	Name := 'DICOM Scheduled Action Item Code Sequence Item'.
 	SequenceName := 'scheduledActionItemCodeSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0040 16r0008).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 ScheduledActionItemCodeSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-ScheduledActionItemCodeSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

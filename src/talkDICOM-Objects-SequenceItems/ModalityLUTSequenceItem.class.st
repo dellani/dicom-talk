@@ -9,6 +9,8 @@ ModalityLUTSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Modality LUT Sequence Item'.
 	SequenceName := 'modalityLUTSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0028 16r3000).
+
 	self
 		addDataElement:
 			(SSDataElement

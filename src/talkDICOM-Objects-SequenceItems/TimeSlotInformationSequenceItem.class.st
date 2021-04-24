@@ -9,6 +9,7 @@ TimeSlotInformationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Time Slot Information Sequence Item'.
 	SequenceName := 'timeSlotInformationSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0054 16r0072).
 
 	"***** Begin of data elements definition *******"
 	self

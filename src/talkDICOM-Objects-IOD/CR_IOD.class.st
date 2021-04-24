@@ -50,16 +50,45 @@ CR_IOD class >> InformationObjectModules [
 				yourself ]
 ]
 
-{ #category : #accessing }
-CR_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.1'
-]
-
 { #category : #'class initialization' }
 CR_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
 
-	super initialize.
+{ #category : #accessing }
+CR_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.1'
+]
+
+{ #category : #'textual attributes definition' }
+CR_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for CR IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.713658+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM imagePixelIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM crSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM constrastBolusIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM crImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM overlayPlaneIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM curveIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM modalityLUTIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM voiLUTIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

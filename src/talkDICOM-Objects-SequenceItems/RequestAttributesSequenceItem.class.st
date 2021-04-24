@@ -10,6 +10,8 @@ RequestAttributesSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Request Attributes Sequence Item'.
 	SequenceName := 'requestAttributesSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16r0275).
+
 	self addDataElement: (SHDataElement
 				newWith: #requestProcedureID
 				tag: #(16r0040 16r1001)

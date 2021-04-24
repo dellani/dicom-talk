@@ -14,6 +14,7 @@ DocumentContentMacroItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Document Content Macro Item'.
 	SequenceName := 'documentContentMacroItem'.
+	
 	"****************** Document Content Macro  - PS 3.3-2001 Table 17.3-5 *************************"
 	self
 		addDataElement:

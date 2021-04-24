@@ -9,6 +9,8 @@ ChannelDefinitionSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Channel Definition Sequence Item'.
 	SequenceName := 'channelDefinitionSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r003A 16r0200).
+
 	self
 		addDataElement:
 			(ISDataElement

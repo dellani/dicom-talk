@@ -10,7 +10,7 @@ GeneralImageIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.6.1 - PRD 04-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM General Image Information Object Module'.
+	Name := 'General Image Information Object Module'.
 	moduleName := 'generalImageIOM'.
 	self
 		addDataElement:

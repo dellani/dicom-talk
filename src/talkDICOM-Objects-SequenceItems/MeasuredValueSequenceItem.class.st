@@ -14,12 +14,14 @@ MeasuredValueSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Measured Value Sequence Item'.
 	SequenceName := 'measuredValueSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0040 16rA300).
+
 	self
 		addDataElement:
 			(DSDataElement
 				newWith: #numericValue
 				tag: #(16r0040 16rA30A)
-				vm: 2
+				vm: '1-n'
 				type: '1').	"VM = 1-n"
 	self
 		addDataElement:

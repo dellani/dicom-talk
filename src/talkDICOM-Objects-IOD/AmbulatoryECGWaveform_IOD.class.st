@@ -44,16 +44,42 @@ AmbulatoryECGWaveform_IOD class >> InformationObjectModules [
 				yourself ]
 ]
 
-{ #category : #accessing }
-AmbulatoryECGWaveform_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.9.1.3'
-]
-
 { #category : #'class initialization' }
 AmbulatoryECGWaveform_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
 
-	super initialize.
+{ #category : #accessing }
+AmbulatoryECGWaveform_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.9.1.3'
+]
+
+{ #category : #'textual attributes definition' }
+AmbulatoryECGWaveform_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for Ambulatory ECG Waveform IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.690475+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM frameOfReferenceIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM synchronizationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM waveformIdentificationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM waveformIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM acquisitionContextIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM waveformAnotationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

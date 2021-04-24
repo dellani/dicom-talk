@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 MaskIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Mask IOM'.
+	Name := 'Mask Information Object Module'.
 	moduleName := 'maskIOM'.
 
 	"***** Begin of data elements definition *******"

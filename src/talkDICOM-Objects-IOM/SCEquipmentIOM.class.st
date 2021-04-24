@@ -10,7 +10,7 @@ SCEquipmentIOM class >> initialize [
 	PS 3.3-2001 Annex C.8.6.1 - PRD 05.2002"
 
 	self resetDataElements.
-	Name := 'DICOM SC Equipment Information Object Module'.
+	Name := 'SC Equipment Information Object Module'.
 	moduleName := 'scEquipmentIOM'.
 	self
 		addDataElement:

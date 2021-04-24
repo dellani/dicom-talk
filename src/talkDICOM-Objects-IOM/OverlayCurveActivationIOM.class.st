@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 OverlayCurveActivationIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Overlay Curve Activation Information Object Module'.
+	Name := 'Overlay Curve Activation Information Object Module'.
 	moduleName := 'overlayCurveActivationIOM'.
 
 	"***** Begin of data elements definition *******"

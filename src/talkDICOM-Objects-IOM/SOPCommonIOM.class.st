@@ -10,7 +10,7 @@ SOPCommonIOM class >> initialize [
 	PS 3.3-2000 Annex C.12.1 - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM SOP Common Information Object Module'.
+	Name := 'SOP Common Information Object Module'.
 	moduleName := 'sopCommonIOM'.
 	self
 		addDataElement:

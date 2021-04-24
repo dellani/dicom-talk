@@ -9,6 +9,7 @@ DisplayedAreaSelectionSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Displayed Area Selection Sequence Module'.
 	SequenceName := 'displayedAreaSelectionSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0070 16r005A).
 
 	"***** Begin of data elements definition *******"
 	self

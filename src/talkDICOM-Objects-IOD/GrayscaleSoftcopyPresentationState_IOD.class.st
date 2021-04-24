@@ -60,16 +60,50 @@ GrayscaleSoftcopyPresentationState_IOD class >> InformationObjectModules [
 				yourself ]
 ]
 
-{ #category : #accessing }
-GrayscaleSoftcopyPresentationState_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.11.1'
-]
-
 { #category : #'class initialization' }
 GrayscaleSoftcopyPresentationState_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
 
-	super initialize.
+{ #category : #accessing }
+GrayscaleSoftcopyPresentationState_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.11.1'
+]
+
+{ #category : #'textual attributes definition' }
+GrayscaleSoftcopyPresentationState_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for Grayscale Softcopy Presentation State IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.739248+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM presentationSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM presentationStateIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM maskIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM displayShutterIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM bitmapDisplayShutterIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM overlayPlaneIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM overlayCurveActivationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM displayedAreaIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM graphicAnnotationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM spacialTransformationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM graphicLayerIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM modalityLUTIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM softcopyVOI_LUT_IOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM softcopyPresentationLUTIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

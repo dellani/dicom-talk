@@ -9,22 +9,17 @@ PerformedProcedureCodeSequenceItem class >> initialize [
 	Name := 'DICOM Performed Procedure Code Sequence Item'.
 	SequenceName := 'performedProcedureCodeSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0040 16rA372).
+
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 PerformedProcedureCodeSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-PerformedProcedureCodeSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

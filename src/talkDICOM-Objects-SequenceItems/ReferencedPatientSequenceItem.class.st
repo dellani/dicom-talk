@@ -9,6 +9,8 @@ ReferencedPatientSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced Patient Sequence Item'.
 	SequenceName := 'referencedPatientSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r1120).
+
 	self
 		addDataElement:
 			(UIDataElement

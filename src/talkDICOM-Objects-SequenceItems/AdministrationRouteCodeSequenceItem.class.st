@@ -8,6 +8,8 @@ Class {
 AdministrationRouteCodeSequenceItem class >> initialize [
 	Name := 'DICOM Administration Route Code Sequence Item'.
 	SequenceName := 'administrationRouteCodeSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0054 16r0302).
+
 	self resetDataElements.
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ].
@@ -15,16 +17,9 @@ AdministrationRouteCodeSequenceItem class >> initialize [
 
 { #category : #'class initialization' }
 AdministrationRouteCodeSequenceItem class >> macroItemClass [
-	
 	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^CodeSequenceMacroItem
-]
 
-{ #category : #'class initialization' }
-AdministrationRouteCodeSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** Code Sequence Macro - PS 3.3-2000 Table 8.8-1 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: CodeSequenceMacroItem
 ]
 
 { #category : #accessing }

@@ -6,26 +6,20 @@ Class {
 
 { #category : #'class initialization' }
 PertinentOtherEvidenceSequenceItem class >> initialize [
-	super initialize.
 	Name := 'DICOM Pertinent Other Evidence Sequence Item'.
 	SequenceName := 'pertinentOtherEvidenceSequenceItem'.
 	self resetDataElements.
+	self initializeSequenceDataElementTag: #(16r0040 16rA385).
+
 	"****************** SOP Instance Reference Macro - Supplement 23, 2000 - Table C.17-3 *************************"
 	self macroItemClassDataElements valuesDo: [ :aDataElement | self addDataElement: aDataElement ]
 ]
 
 { #category : #'class initialization' }
 PertinentOtherEvidenceSequenceItem class >> macroItemClass [
-	
 	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^SOPInstanceReferenceMacroItem
-]
 
-{ #category : #'class initialization' }
-PertinentOtherEvidenceSequenceItem class >> macroItemClassDataElements [
-	
-	"****************** SOP Instance Reference Macro - Supplement 23 Table C.17-3 *************************"
-	 ^self macroItemClass DataElements
+	^ OrderedCollection with: SOPInstanceReferenceMacroItem
 ]
 
 { #category : #accessing }

@@ -11,7 +11,7 @@ WaveformIdentificationIOM class >> initialize [
 	PS 3.3-2000 Annex C.10-8 (Page 475) - GA 10-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Waveform Identification Image Information Object Module'.
+	Name := 'Waveform Identification Image Information Object Module'.
 	moduleName := 'waveformIdentificationIOM'.
 	self
 		addDataElement:

@@ -10,7 +10,7 @@ MRImageIOM class >> initialize [
 	PS 3.3-2000 Annex C.8.3.1 (Page 209) - GA 17-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Magnetic Resonance Image Information Object Module'.
+	Name := 'Magnetic Resonance Image Information Object Module'.
 	moduleName := 'mrImageIOM'.
 	self
 		addDataElement:

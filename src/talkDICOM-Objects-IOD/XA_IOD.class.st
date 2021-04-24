@@ -74,15 +74,43 @@ XA_IOD class >> InformationObjectModules [
 ]
 
 { #category : #'class initialization' }
-XA_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.12.1'
+XA_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
 ]
 
 { #category : #'class initialization' }
-XA_IOD class >> initialize [
+XA_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.12.1'
+]
 
-	super initialize.
+{ #category : #'textual attributes definition' }
+XA_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for XA IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.797519+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM synchronizationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalImageIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM imagePixelIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM constrastBolusIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM multiFrameIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM overlayPlaneIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM modalityLUTIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM voiLUTIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

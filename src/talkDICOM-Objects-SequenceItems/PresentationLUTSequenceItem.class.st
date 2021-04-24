@@ -9,6 +9,7 @@ PresentationLUTSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Presentation LUT Sequence Item'.
 	SequenceName := 'presentationLUTSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r2050 16r0010).
 
 	"***** Begin of data elements definition *******"
 	self

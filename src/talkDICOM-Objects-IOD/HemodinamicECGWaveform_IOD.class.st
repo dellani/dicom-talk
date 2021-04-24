@@ -44,16 +44,42 @@ HemodinamicECGWaveform_IOD class >> InformationObjectModules [
 				yourself ]
 ]
 
-{ #category : #accessing }
-HemodinamicECGWaveform_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.9.2.1'
-]
-
 { #category : #'class initialization' }
 HemodinamicECGWaveform_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
 
-	super initialize.
+{ #category : #accessing }
+HemodinamicECGWaveform_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.9.2.1'
+]
+
+{ #category : #'textual attributes definition' }
+HemodinamicECGWaveform_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for Hemodinamic ECG Waveform IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.745121+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalSeriesIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM frameOfReferenceIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM synchronizationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM waveformIdentificationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM waveformIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM acquisitionContextIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM waveformAnotationIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

@@ -12,6 +12,8 @@ ReferencedStudyComponentSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced Study Component Sequence Item'.
 	SequenceName := 'referencedStudyComponentSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r1111).
+
 	self
 		addDataElement:
 			(UIDataElement

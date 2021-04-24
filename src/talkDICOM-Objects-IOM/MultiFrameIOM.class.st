@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 MultiFrameIOM class >> initialize [
 	self resetDataElements.
-	Name := 'Multi Frame IOM'.
+	Name := 'Multi Frame Information Object Module'.
 	moduleName := 'multiFrameIOM'.
 
 	"***** Begin of data elements definition *******"

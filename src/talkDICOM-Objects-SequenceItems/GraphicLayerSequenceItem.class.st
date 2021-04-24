@@ -9,6 +9,7 @@ GraphicLayerSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Graphic Layer Sequence Item'.
 	SequenceName := 'graphicLayerSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0070 16r0060).
 
 	"***** Begin of data elements definition *******"
 	self

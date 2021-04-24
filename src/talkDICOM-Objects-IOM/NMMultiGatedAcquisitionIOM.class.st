@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 NMMultiGatedAcquisitionIOM class >> initialize [
 	self resetDataElements.
-	Name := 'NM Multi Gated Acquisition IOM'.
+	Name := 'NM Multi Gated Acquisition Information Object Module'.
 	moduleName := 'nmMultiGatedAcquisitionIOM'.
 
 	"***** Begin of data elements definition *******"

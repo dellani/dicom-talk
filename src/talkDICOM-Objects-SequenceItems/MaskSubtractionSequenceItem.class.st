@@ -9,6 +9,7 @@ MaskSubtractionSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Mask Subtraction Sequence Item'.
 	SequenceName := 'maskSubtractionSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0028 16r6100).
 
 	"***** Begin of data elements definition *******"
 	self

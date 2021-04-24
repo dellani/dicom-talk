@@ -10,7 +10,7 @@ WaveformAnnotationIOM class >> initialize [
 	PS 3.3-2000 Annex C.10-11 (Page 481) - GA 10-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Waveform Annotation Image Information Object Module'.
+	Name := 'Waveform Annotation Image Information Object Module'.
 	moduleName := 'waveformAnotationIOM'.
 	self
 		addDataElement:

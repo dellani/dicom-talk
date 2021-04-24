@@ -14,6 +14,8 @@ ReferencedSOPSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced SOP Sequence Item'.
 	SequenceName := 'referencedSOPSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r1199).
+
 	self
 		addDataElement:
 			(UIDataElement
@@ -42,7 +44,7 @@ ReferencedSOPSequenceItem class >> initialize [
 				tag: #(16r0008 16r1199)
 				vm: '1'
 				type: '1'
-				sequenceItemClass: ReferencedSOP_Simple_SequenceItem).
+				sequenceItemClass: ReferencedSOPSequenceItem).
 	self
 		addDataElement:
 			(USDataElement

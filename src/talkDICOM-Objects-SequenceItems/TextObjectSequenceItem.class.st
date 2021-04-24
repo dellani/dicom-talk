@@ -9,6 +9,7 @@ TextObjectSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Text Object Sequence Item'.
 	SequenceName := 'textObjectSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0070 16r0008).
 
 	"***** Begin of data elements definition *******"
 	self

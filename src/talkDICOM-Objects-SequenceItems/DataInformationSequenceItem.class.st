@@ -9,7 +9,8 @@ DataInformationSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Data Information Sequence Item'.
 	SequenceName := 'dataInformationSequenceItem'.
-
+	self initializeSequenceDataElementTag: #(16r0054 16r0063).
+	
 	"***** Begin of data elements definition *******"
 	self
 		addDataElement:

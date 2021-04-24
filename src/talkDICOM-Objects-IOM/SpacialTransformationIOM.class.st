@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 SpacialTransformationIOM class >> initialize [
 	self resetDataElements.
-	Name := 'DICOM Spacial Transformation IOM'.
+	Name := 'Spacial Transformation Information Object Module'.
 	moduleName := 'spacialTransformationIOM'.
 
 	"***** Begin of data elements definition *******"

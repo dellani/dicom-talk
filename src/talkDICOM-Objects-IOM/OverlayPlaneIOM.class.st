@@ -10,7 +10,7 @@ OverlayPlaneIOM class >> initialize [
 	PS 3.3-2000 Annex C.9.2 (Page 450) - PRD 04-06.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Overlay Plane Information Object Module'.
+	Name := 'Overlay Plane Information Object Module'.
 	moduleName := 'overlayPlaneIOM'.
 	self
 		addDataElement:

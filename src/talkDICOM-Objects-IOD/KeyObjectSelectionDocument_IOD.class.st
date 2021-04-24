@@ -37,17 +37,36 @@ KeyObjectSelectionDocument_IOD class >> InformationObjectModules [
 			"Patient IE" ]
 ]
 
-{ #category : #accessing }
-KeyObjectSelectionDocument_IOD class >> SOPClassUID [
-
-	^'1.2.840.10008.5.1.4.1.1.88.59'
-]
-
 { #category : #initialization }
 KeyObjectSelectionDocument_IOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
 
-	InformationObjectModules := nil.
-	super initialize.
+{ #category : #accessing }
+KeyObjectSelectionDocument_IOD class >> sopClassUID [
+	^ '1.2.840.10008.5.1.4.1.1.88.59'
+]
+
+{ #category : #'textual attributes definition' }
+KeyObjectSelectionDocument_IOD class >> textualAttributesDefinition [
+	"Textual attributes definition for KO IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.75005+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM patientIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM patientStudyIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM generalEquipmentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM srDocumentContentIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM sopCommonIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

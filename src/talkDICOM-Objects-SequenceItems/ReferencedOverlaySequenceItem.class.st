@@ -9,6 +9,8 @@ ReferencedOverlaySequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Referenced Overlay Sequence Item'.
 	SequenceName := 'referencedOverlaySequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r1130).
+
 	self
 		addDataElement:
 			(UIDataElement

@@ -9,6 +9,8 @@ SourceImageSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Source Image Sequence Item'.
 	SequenceName := 'sourceImageSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0008 16r2112).
+
 	self
 		addDataElement:
 			(UIDataElement

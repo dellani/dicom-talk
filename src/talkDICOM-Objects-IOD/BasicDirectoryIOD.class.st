@@ -24,16 +24,32 @@ BasicDirectoryIOD class >> InformationObjectModules [
 				yourself ]
 ]
 
-{ #category : #accessing }
-BasicDirectoryIOD class >> SOPClassUID [
-
-	^'1.2.840.10008.1.3.10'
-]
-
 { #category : #'class initialization' }
 BasicDirectoryIOD class >> initialize [
+	self initializeDataElementsDefinition.
+	DicomRegistry registerIOD: self
+]
 
-	super initialize.
+{ #category : #accessing }
+BasicDirectoryIOD class >> sopClassUID [
+	^ '1.2.840.10008.1.3.10'
+]
+
+{ #category : #'textual attributes definition' }
+BasicDirectoryIOD class >> textualAttributesDefinition [
+	"Textual attributes definition for Basic Directory IOD
+
+	 Coder: DicomIOD>computerReflection_textualAttributesDefinitionMethod 
+
+	 2021-04-24T16:26:27.702907+02:00 - Computer Reflection"
+
+	^ ByteString
+		new: 10
+		streamContents: [ :aStream |
+			aStream
+				nextPutAll: DicomIOM fileSetIOMTextualDataElementsDefinition; cr;
+				nextPutAll: DicomIOM directoryInformationIOMTextualDataElementsDefinition; cr ]
+
 ]
 
 { #category : #comparing }

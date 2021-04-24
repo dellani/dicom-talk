@@ -12,7 +12,7 @@ AcquisitionContextIOM class >> initialize [
 	PS 3.3-2000 Annex C.7.6.14.1 (Page 208) - GA,PRD 10-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Waveform Acquisition Context Image Information Object Module'.
+	Name := 'Waveform Acquisition Context Image Information Object Module'.
 	moduleName := 'acquisitionContextIOM'.
 	self
 		addDataElement:

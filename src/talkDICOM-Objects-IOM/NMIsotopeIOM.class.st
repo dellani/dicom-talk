@@ -7,7 +7,7 @@ Class {
 { #category : #'class initialization' }
 NMIsotopeIOM class >> initialize [
 	self resetDataElements.
-	Name := 'NM Isotope IOM'.
+	Name := 'NM Isotope Information Object Module'.
 	moduleName := 'nmIsotopeIOM'.
 
 	"***** Begin of data elements definition *******"

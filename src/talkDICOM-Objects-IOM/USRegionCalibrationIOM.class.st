@@ -11,7 +11,7 @@ USRegionCalibrationIOM class >> initialize [
 	PS 3.3-2001 Annex C.8.5.5 - PRD 05.2002"
 
 	self resetDataElements.
-	Name := 'DICOM US Region Calibration Information Object Module'.
+	Name := 'US Region Calibration Information Object Module'.
 	moduleName := 'usRegionCalibrationIOM'.
 	self
 		addDataElement:

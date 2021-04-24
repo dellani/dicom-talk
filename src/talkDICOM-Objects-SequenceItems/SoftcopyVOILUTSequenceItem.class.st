@@ -1,14 +1,15 @@
 Class {
-	#name : #'SoftcopyVOI_LUT_SequenceItem',
+	#name : #SoftcopyVOILUTSequenceItem,
 	#superclass : #SequenceItem,
 	#category : #'talkDICOM-Objects-SequenceItems'
 }
 
 { #category : #'class initialization' }
-SoftcopyVOI_LUT_SequenceItem class >> initialize [
+SoftcopyVOILUTSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'DICOM Softcopy VOI LUT Sequence Item'.
 	SequenceName := 'softcopyVOI_LUT_SequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0028 16r3110).
 
 	"***** Begin of data elements definition *******"
 	self
@@ -51,7 +52,7 @@ SoftcopyVOI_LUT_SequenceItem class >> initialize [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> referencedImageSequence [
+SoftcopyVOILUTSequenceItem >> referencedImageSequence [
 
 	^self dataElementsValues at: 'referencedImageSequence' ifAbsent: [
 		self dataElementsDictionary at: 'referencedImageSequence' ifPresent: [:dataElement |
@@ -62,7 +63,7 @@ SoftcopyVOI_LUT_SequenceItem >> referencedImageSequence [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> referencedImageSequence: aSQValue [
+SoftcopyVOILUTSequenceItem >> referencedImageSequence: aSQValue [
 
 	| dataElement |
 
@@ -82,7 +83,7 @@ SoftcopyVOI_LUT_SequenceItem >> referencedImageSequence: aSQValue [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> vOILUTSequence [
+SoftcopyVOILUTSequenceItem >> vOILUTSequence [
 
 	^self dataElementsValues at: 'vOILUTSequence' ifAbsent: [
 		self dataElementsDictionary at: 'vOILUTSequence' ifPresent: [:dataElement |
@@ -93,7 +94,7 @@ SoftcopyVOI_LUT_SequenceItem >> vOILUTSequence [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> vOILUTSequence: aSQValue [
+SoftcopyVOILUTSequenceItem >> vOILUTSequence: aSQValue [
 
 	| dataElement |
 
@@ -113,7 +114,7 @@ SoftcopyVOI_LUT_SequenceItem >> vOILUTSequence: aSQValue [
 ]
 
 { #category : #'accessing - talkDICOM names' }
-SoftcopyVOI_LUT_SequenceItem >> voiLUTSequence [
+SoftcopyVOILUTSequenceItem >> voiLUTSequence [
 
 	^self dataElementsValues at: 'vOILUTSequence' ifAbsent: [
 		self dataElementsDictionary at: 'vOILUTSequence' ifPresent: [:dataElement |
@@ -124,7 +125,7 @@ SoftcopyVOI_LUT_SequenceItem >> voiLUTSequence [
 ]
 
 { #category : #'accessing - talkDICOM names' }
-SoftcopyVOI_LUT_SequenceItem >> voiLUTSequence: aSQValue [
+SoftcopyVOILUTSequenceItem >> voiLUTSequence: aSQValue [
 
 	| dataElement |
 
@@ -144,7 +145,7 @@ SoftcopyVOI_LUT_SequenceItem >> voiLUTSequence: aSQValue [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> windowCenter [
+SoftcopyVOILUTSequenceItem >> windowCenter [
 
 	^self dataElementsValues at: 'windowCenter' ifAbsent: [
 		self dataElementsDictionary at: 'windowCenter' ifPresent: [:dataElement |
@@ -155,7 +156,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowCenter [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> windowCenter: aDSValue [
+SoftcopyVOILUTSequenceItem >> windowCenter: aDSValue [
 
 	| dataElement |
 
@@ -175,7 +176,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowCenter: aDSValue [
 ]
 
 { #category : #'accessing - talkDICOM names' }
-SoftcopyVOI_LUT_SequenceItem >> windowCenterAndWidthExplanation [
+SoftcopyVOILUTSequenceItem >> windowCenterAndWidthExplanation [
 
 	^self dataElementsValues at: 'windowCenterWidthExplanation' ifAbsent: [
 		self dataElementsDictionary at: 'windowCenterWidthExplanation' ifPresent: [:dataElement |
@@ -186,7 +187,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowCenterAndWidthExplanation [
 ]
 
 { #category : #'accessing - talkDICOM names' }
-SoftcopyVOI_LUT_SequenceItem >> windowCenterAndWidthExplanation: aLOValue [
+SoftcopyVOILUTSequenceItem >> windowCenterAndWidthExplanation: aLOValue [
 
 	| dataElement |
 
@@ -206,7 +207,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowCenterAndWidthExplanation: aLOValue [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> windowCenterWidthExplanation [
+SoftcopyVOILUTSequenceItem >> windowCenterWidthExplanation [
 
 	^self dataElementsValues at: 'windowCenterWidthExplanation' ifAbsent: [
 		self dataElementsDictionary at: 'windowCenterWidthExplanation' ifPresent: [:dataElement |
@@ -217,7 +218,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowCenterWidthExplanation [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> windowCenterWidthExplanation: aLOValue [
+SoftcopyVOILUTSequenceItem >> windowCenterWidthExplanation: aLOValue [
 
 	| dataElement |
 
@@ -237,7 +238,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowCenterWidthExplanation: aLOValue [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> windowWidth [
+SoftcopyVOILUTSequenceItem >> windowWidth [
 
 	^self dataElementsValues at: 'windowWidth' ifAbsent: [
 		self dataElementsDictionary at: 'windowWidth' ifPresent: [:dataElement |
@@ -248,7 +249,7 @@ SoftcopyVOI_LUT_SequenceItem >> windowWidth [
 ]
 
 { #category : #accessing }
-SoftcopyVOI_LUT_SequenceItem >> windowWidth: aDSValue [
+SoftcopyVOILUTSequenceItem >> windowWidth: aDSValue [
 
 	| dataElement |
 

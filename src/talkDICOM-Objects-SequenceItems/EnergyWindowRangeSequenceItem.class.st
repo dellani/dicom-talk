@@ -8,7 +8,8 @@ Class {
 EnergyWindowRangeSequenceItem class >> initialize [
 	self resetDataElements.
 	Name := 'Energy Window Range Sequence Item'.
-	SequenceName := 'energyWindowRangeSequenceItem'
+	SequenceName := 'energyWindowRangeSequenceItem'.
+	self initializeSequenceDataElementTag: #(16r0054 16r0013).
 
 	"***** Begin of data elements definition *******"
 ]

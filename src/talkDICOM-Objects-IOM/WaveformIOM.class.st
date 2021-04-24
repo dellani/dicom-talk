@@ -11,7 +11,7 @@ WaveformIOM class >> initialize [
 	PS 3.3-2000 Annex C.10.-9 - PRD 10-10.2001"
 
 	self resetDataElements.
-	Name := 'DICOM Waveform Sequence Item'.
+	Name := 'Waveform Information Object Module'.
 	moduleName := 'waveformIOM'.
 	self
 		addDataElement:

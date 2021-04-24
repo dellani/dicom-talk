@@ -101,6 +101,6 @@ PrivateCreatorDataElementDefinition >> initializeFromTokens: tokens [
 		vr: (tokens at: 2);
 		"Third Token is the data element name"
 		name: (tokens at: 3);
-		"Fourth Token is the data element value multiplycity"
+		"Fourth Token is the data element value multiplicity"
 		vm: (tokens at: 4).
 ]
