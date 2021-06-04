@@ -20,7 +20,7 @@ UTDataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire upperCase;
 		addAll: DefaultCharacterRepertoire symbol;
 		add: Character escape.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -28,21 +28,20 @@ UTDataElement class >> valueRepresentationString [
 	^ 'UT'
 ]
 
-{ #category : #'instance creation' }
-UTDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomUTDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 UTDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type UT.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthUTDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+UTDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomUTDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

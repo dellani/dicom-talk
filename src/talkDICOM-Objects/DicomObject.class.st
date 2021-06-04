@@ -4,17 +4,19 @@ Class {
 	#instVars : [
 		'encoder',
 		'dataElementsDictionary',
-		'dataElementsValues'
+		'dataElementsValues',
+		'dataElementsDefinition',
+		'dataElementsDefinitionByName'
 	],
 	#classInstVars : [
-		'DataElementsDefinition',
 		'DataElements',
-		'DataElementsByName',
 		'Type1DataElements',
 		'Type1CDataElements',
 		'Type2DataElements',
 		'Type2CDataElements',
-		'Type3DataElements'
+		'Type3DataElements',
+		'dataElementsDefinition',
+		'dataElementsDefinitionByName'
 	],
 	#category : #'talkDICOM-Objects'
 }
@@ -22,11 +24,6 @@ Class {
 { #category : #accessing }
 DicomObject class >> DataElements [
 	^ DataElements
-]
-
-{ #category : #accessing }
-DicomObject class >> DataElementsByName [
-	^ DataElementsByName
 ]
 
 { #category : #accessing }
@@ -66,7 +63,7 @@ DicomObject class >> addDataElement: aDicomDataElement [
 	PRD 06.2001"
 
 	DataElements at: aDicomDataElement tag put: aDicomDataElement.
-	DataElementsByName at: aDicomDataElement name put: aDicomDataElement.
+	dataElementsDefinitionByName at: aDicomDataElement name put: aDicomDataElement.
 	aDicomDataElement isType1
 		ifTrue: [ self addType1DataElement: aDicomDataElement ].
 	aDicomDataElement isType1C
@@ -738,19 +735,24 @@ DicomObject class >> correctedDataElementNames_II [
 									Transcript show: self class printString; tab; show: dataElement name; tab; show: dictionaryDataElement name; cr.
 
 											dataElement name: dictionaryDataElement name. 
-											DataElementsByName at: dictionaryDataElement name put: dataElement] ] ] ]
+											dataElementsDefinitionByName at: dictionaryDataElement name put: dataElement] ] ] ]
 ]
 
 { #category : #accessing }
 DicomObject class >> dataElementsDefinition [
-	^ DataElementsDefinition
+	^ dataElementsDefinition
 		ifNotNil: [ :arg | arg ]
-		ifNil: [ self dataElementsDefinition: Dictionary new ]
+		ifNil: [ dataElementsDefinition := Dictionary new ]
 ]
 
 { #category : #accessing }
 DicomObject class >> dataElementsDefinition: aDictionary [
-	DataElementsDefinition := aDictionary
+	dataElementsDefinition := aDictionary
+]
+
+{ #category : #accessing }
+DicomObject class >> dataElementsDefinitionByName [
+	^ dataElementsDefinitionByName
 ]
 
 { #category : #'class initialization' }
@@ -765,23 +767,22 @@ DicomObject class >> initializeDataElementsDefinition [
 	 is stored in a Dictionary stored in the class instance variable 
 	 DataElementsDefinition.
 	
-	 April 24 2021 - PRD"
+	 April 24 2021 - Initial implementation;
+		May 13 2021 - Split the code for data elements initialization from the 
+		              code that parsed the textual attributes definition; Now
+		              the parsing is done by parseTextualAttributesDefinition - PRD"
 
-	| inputStream line definitions |
-	self dataElementsDefinition: Dictionary new.
-	inputStream := self textualAttributesDefinition readStream.
-	[ inputStream atEnd ]
-		whileFalse: [ line := inputStream nextLine.
-			(line includes: $#)
-				ifFalse: [ definitions := DataElementDefinition fromTextualDefinition: line.
-					"DataElementDefinition>fromTextualDefinition allways return an
-					 OrderedCollection with one or more instances of DataElementDefinition"
-					definitions
-						do:
-							[ :definition | self dataElementsDefinition at: definition tag put: definition ] ] ].
-	inputStream
-		close;
-		release
+	| aDictionary |
+	aDictionary := self
+		parseTextualAttributesDefinition: self textualAttributesDefinition.
+	self dataElementsDefinition: aDictionary.
+
+	dataElementsDefinitionByName := Dictionary new.
+	aDictionary
+		valuesDo: [ :dataElementDefinition | 
+			self dataElementsDefinitionByName
+				at: dataElementDefinition name
+				put: dataElementDefinition ]
 ]
 
 { #category : #'computer reflection' }
@@ -811,9 +812,9 @@ DicomObject class >> instanceVariableNames [
 DicomObject class >> listDataElementDefinition [
 	"List my data element definition using character (tab) separated values.
 	
-	April 11 2021 - Initial implementation;
-	April 18 2021 - Motified from 'listDataElementDefinition_full' to not 
-	                include the expanded sequence attributes - PRD."
+	 April 11 2021 - Initial implementation;
+	 April 18 2021 - Motified from 'listDataElementDefinition_full' to not 
+	                 include the expanded sequence attributes - Paulo R. Dellani."
 
 	^ String
 		new: 10
@@ -851,8 +852,36 @@ DicomObject class >> listDataElementDefinition_Full [
 
 { #category : #'instance creation' }
 DicomObject class >> new [
+	^ super new
+]
 
-	^super new initialize.
+{ #category : #utilities }
+DicomObject class >> parseTextualAttributesDefinition: textualAttributesDefinition [
+	"Parse data element definitions from the listing in textualAttributesDefinition
+	 and store it in a Dictionary, which is the return value of the message.
+
+	 April 24 2021 - Initial implementation; 
+	   May 09 2021 - Now the method receive the textual attributes definition 
+						  as a message parameter, which allows for more flexibility;
+		May 13 2021 - Split the code for data elements initialization from the 
+		              code that parsed the textual attributes definition;
+		              Changed the method name to parseTextualAttributesDefinition - PRD"
+
+	| aDictionary inputStream line definitions |
+	aDictionary := Dictionary new.
+	inputStream := textualAttributesDefinition readStream.
+	[ inputStream atEnd ]
+		whileFalse: [ line := inputStream nextLine.
+			(line includes: $#)
+				ifFalse: [ definitions := DataElementDefinition fromTextualDefinition: line.
+					"DataElementDefinition>fromTextualDefinition allways return an
+					 OrderedCollection with one or more instances of DataElementDefinition"
+					definitions
+						do: [ :definition | aDictionary at: definition tag put: definition ] ] ].
+	inputStream
+		close;
+		release.
+	^ aDictionary
 ]
 
 { #category : #utilities }
@@ -880,7 +909,7 @@ DicomObject class >> resetDataElements [
 "	
 
 	DataElements := Dictionary new.
-	DataElementsByName := Dictionary new.
+	dataElementsDefinitionByName := Dictionary new.
 	Type1DataElements := Dictionary new.
 	Type1CDataElements := Dictionary new.
 	Type2DataElements := Dictionary new.
@@ -890,7 +919,7 @@ DicomObject class >> resetDataElements [
 
 { #category : #'class initialization - private' }
 DicomObject class >> textualAttributesDefinition [
-	^ self subclassResponsibility
+	^ ByteString new
 ]
 
 { #category : #utilities }
@@ -903,48 +932,13 @@ DicomObject class >> unknowDataElement: dataElementTag [
 	elementName nextPutAll: ','.
 	dataElementTag elementNumber printOn: elementName base: 16.
 	elementName nextPutAll: ']'.
-	^UNDataElement new 
+	^ UNDataElement new 
 		name: elementName contents asSymbol;
 		tag: dataElementTag;
 		vm: '1';
 		description: 'Unknown Data Element with tag equal to: '
 				, dataElementTag printString;
 		yourself 
-]
-
-{ #category : #converting }
-DicomObject >> asSmalltalkCode [
-
-	| smalltalkCodeStream className variableName value |
-
-	smalltalkCodeStream := WriteStream on: String new.
-
-	className := self class name asString.
-	variableName := 'a' , className.
-
-	smalltalkCodeStream
-		tab;
-		nextPutAll: '| ' , variableName , ' |';
-		cr;
-		cr;
-		tab;
-		nextPutAll: variableName , ' := ' , className , ' new.';
-		cr.
-
-	self dataElementsDefinition do: [:aDicomDataElement | 
-		(value := self perform: aDicomDataElement name) notNil 
-			ifTrue: [
-				smalltalkCodeStream
-					tab;
-					nextPutAll: variableName , ' ' , 
-								aDicomDataElement name asString, ': '.
-				value storeOn: smalltalkCodeStream.
-				smalltalkCodeStream nextPutAll: '.'; cr.
-			]
-	].
-
-	smalltalkCodeStream cr; tab; nextPutAll: ' ^a' , className.
-	^smalltalkCodeStream contents
 ]
 
 { #category : #utilities }
@@ -1024,7 +1018,7 @@ DicomObject >> dataElementsCollection [
 	keys := self dataElementsValues keys.
 	keys
 		do: [ :key | 
-			dataElement := self newDataElementNamed: key asSymbol.
+			dataElement := self newDataElementNamed: key.
 			dataElement encoder: self encoder.
 			dataElement value: (self dataElementsValues at: key).
 			self dataElementsDictionary at: key put: dataElement.
@@ -1063,7 +1057,24 @@ DicomObject >> dataElementsCollection [
 
 { #category : #accessing }
 DicomObject >> dataElementsDefinition [
-	^ self class DataElements
+	^ dataElementsDefinition
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ dataElementsDefinition := Dictionary new ]
+]
+
+{ #category : #accessing }
+DicomObject >> dataElementsDefinition: aDictionary [
+	dataElementsDefinition := aDictionary
+]
+
+{ #category : #accessing }
+DicomObject >> dataElementsDefinitionByName [
+	^ dataElementsDefinitionByName
+]
+
+{ #category : #accessing }
+DicomObject >> dataElementsDefinitionByName: aDictionary [
+	dataElementsDefinitionByName := aDictionary
 ]
 
 { #category : #accessing }
@@ -1090,7 +1101,7 @@ DicomObject >> dataElementsDictionaryByTag [
 	keys := self dataElementsValues keys.
 	keys
 		do: [ :key | 
-			dataElement := self newDataElementNamed: key asSymbol.
+			dataElement := self newDataElementNamed: key.
 			dataElement encoder: self encoder.
 			dataElement value: (self dataElementsValues at: key).
 			self dataElementsDictionary at: key put: dataElement.
@@ -1142,6 +1153,34 @@ DicomObject >> dataElementsValues: anObject [
 	dataElementsValues := anObject
 ]
 
+{ #category : #'computer reflection' }
+DicomObject >> doesNotUnderstand: aMessage [ 
+
+	| selector |
+
+	Transcript show: 'Intercepted message not understood:', aMessage selector printString ; cr.
+
+	aMessage arguments size = 1 ifTrue: [ selector := self nameUpperCaseFirstLetter: aMessage selector asString allButLast ].
+	aMessage hasArguments ifFalse: [ selector := self nameUpperCaseFirstLetter: aMessage selector asString ].
+
+	aMessage arguments size = 1 
+		ifTrue: [ 
+			^ self storeDataElementValue: aMessage argument  for: selector ].
+		
+	aMessage hasArguments 
+		ifFalse: [ 
+			(self dataElementsValues includesKey: selector) | (self dataElementsDictionary includesKey: selector) ifTrue: [ 
+				^ self dataElementsValues at: selector 
+					ifAbsent: [
+						self dataElementsDictionary at: selector 
+							ifPresent: [ :dataElement |
+								self dataElementsValues 
+									at: selector 
+									put: (self dataElementsDictionary removeKey: selector) value ] ] ] ].
+
+	^ super doesNotUnderstand: aMessage
+]
+
 { #category : #accessing }
 DicomObject >> encoder [
 	"Contains a reference to the object class that represents the DICOM Transfer - Syntax being used - PRD 05.2001"
@@ -1167,7 +1206,7 @@ DicomObject >> encoder: aDicomTransferSyntaxClass [
 							[:key :value |
 							"dataElementValues shall not contain any unknown data element value,
 				 			since only the values of known data elements are cached by its accessors"
-							dataElement := self newDataElementNamed: key asSymbol.
+							dataElement := self newDataElementNamed: key.
 							dataElement encoder: aDicomTransferSyntaxClass.
 							dataElement value: value.
 							self dataElementsDictionary at: key put: dataElement].
@@ -1187,15 +1226,88 @@ DicomObject >> encoder: aDicomTransferSyntaxClass [
 									self dataElementsDictionary at: key put: dataElement]]]]
 ]
 
+{ #category : #'parsing - private' }
+DicomObject >> handleParsedDataElement: aDicomDataElement [
+	"Handle a data element that was parsed from the DICOM presentation 
+	 data value byte stream.
+	
+	 11 September 2017: Groups of private creator's data elements are dinamically
+	                    loaded to the data elements definition of the DICOM object
+	                    when a data element with a private creator's tag is found.
+	                    This improves the parsing of private data elements stored
+	                    in the PDV stream and handled by this method;
+	      04 June 2021: Method refactored from  by either DicomObject>>pdvBytesStream:encoder
+                       and DicomObject>>lightPDVBytesStream:encoder methods - Paulo R. Dellani"
+	| dataElement |
+
+	dataElement := aDicomDataElement.
+	"If the data element is private, check if the private creators group of it is known"
+	aDicomDataElement tag isPrivate
+		ifTrue: [ aDicomDataElement tag isPrivateCreator
+				ifTrue: [ dataElement := LODataElement new "See DICOM Part 5 Section 7.8.1"
+															tag: aDicomDataElement tag;
+															name: aDicomDataElement name;
+															vm: 1;
+															description: aDicomDataElement description;
+															type: '1';
+															encoder: self encoder;
+															value: aDicomDataElement value; yourself.
+					"Check if private creators group is already loaded, if not, then try to load it"
+					self dataElementsDefinition
+						at: dataElement tag
+						ifAbsent: [ self loadPrivateCreatorsGroup: dataElement ] ] ].
+	self dataElementsDictionary
+		at: dataElement name
+		ifPresent: [ Transcript
+				show: 'Warning: data element ' , dataElement name asString , ' already parsed, skipping';
+				cr ]
+		ifAbsentPut: [ dataElement ]  
+]
+
 { #category : #initialize }
 DicomObject >> initialize [
 
 	dataElementsDictionary := Dictionary new.
 	dataElementsValues := Dictionary new.
+	dataElementsDefinition := Dictionary new.
+	dataElementsDefinitionByName := Dictionary new.
 ]
 
-{ #category : #parsing }
-DicomObject >> loadPrivateCreatorsGroup: aDicomDataElement into: dataElementsDefinition [
+{ #category : #initialize }
+DicomObject >> initializeDataElementsDefinition: textualAttributesDefinition [
+	"Parse data element definitions from my textual attributes listing.
+	 Every DataElementDefinion instance created from the textual definitons
+	 is stored in a Dictionary stored in the class instance variable 
+	 DataElementsDefinition.
+	
+	 24 April 2021: Initial implementation;
+		13 May 2021: Split the code for data elements initialization from the 
+		             code that parsed the textual attributes definition; Now
+		             the parsing is done by parseTextualAttributesDefinition;
+	  03 June 2021: Instance-side implementation of the method - Paulo R. Dellani"
+
+	| aDictionary |
+	aDictionary := DicomObject 
+		parseTextualAttributesDefinition: textualAttributesDefinition.
+	self dataElementsDefinition: aDictionary.
+
+	dataElementsDefinitionByName := Dictionary new.
+	aDictionary
+		valuesDo: [ :dataElementDefinition | 
+			self dataElementsDefinitionByName
+				at: dataElementDefinition name
+				put: dataElementDefinition ]
+]
+
+{ #category : #'parsing - private' }
+DicomObject >> loadPrivateCreatorsGroup: aDicomDataElement [
+	"Check if the dictionary of private data elements stores the private
+	 creators group label found in the message parameter's 'aDicomDataElement'
+	
+    11 September 2017: Initial implementation;
+         04 June 2021: Code now loads the private group into instance variable
+	                    dataElementsDefinitionByName as well - Paulo R. Dellani"
+
 	| elementsCollection xx newEntry newTag newName |
 	elementsCollection := DicomRegistry PrivateCreatorsDataDictionary
 		at: aDicomDataElement value trimBoth
@@ -1219,116 +1331,97 @@ DicomObject >> loadPrivateCreatorsGroup: aDicomDataElement into: dataElementsDef
 					nextPutAll: newEntry name asString;
 					nextPut: Character space.
 				newTag printOn: stream ].
-		newEntry name: newName asSymbol.
+		newEntry name: newName.
 		newEntry tag: newTag.
-		dataElementsDefinition at: newTag put: newEntry
+		self dataElementsDefinition at: newTag put: newEntry.
+		self dataElementsDefinitionByName at: newName put: newEntry
 	]
+]
+
+{ #category : #'computer reflection - private' }
+DicomObject >> nameUpperCaseFirstLetter: dataElementName [
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			(dataElementName copyFrom: 1 to: 3) = 'sop'
+				ifTrue: [ aStream
+						nextPutAll: 'SOP';
+						nextPutAll: (dataElementName copyFrom: 4 to: dataElementName size) ]
+				ifFalse: [ aStream
+						nextPut: dataElementName first asUppercase;
+						nextPutAll: (dataElementName copyFrom: 2 to: dataElementName size) ] ]
 ]
 
 { #category : #'data elements' }
 DicomObject >> newDataElementNamed: dataElementName [
+	"This creates a new instance of the [VR]DataElement for the given data element name.
+	 If the name of data element is unknown, a instance of [VR]DataElement is created 
+	 using the information stored in the given data element itself. This information is
+	 encoded in the name by the method DicomObject>>unknowDataElement:. The encoding
+	 follows the format 'unknow[0xgggg,0xeeee]VRDataElement'
+	
+	 06 June 2021: Adapted to handle the instance side dictionary of data element
+	               definitions; This is the method where accessing the main dictionary
+	               of data elements definitions might be the best solution - Paulo R. Dellani	"
 
 	| dataElementDefinition valueRepresentation elementTag readStream |
 
-	dataElementDefinition := self class DataElementsByName at: dataElementName
-				ifAbsent: [
-					readStream := (dataElementName
-									copyFrom: (dataElementName indexOf: $[) + 1
-									to: (dataElementName indexOf: $,) - 1) readStream.
-
-					elementTag := DataElementTag new.
-					elementTag groupNumber: (Integer readFrom: readStream radix: 16).
-					readStream := (dataElementName
-								copyFrom: (dataElementName indexOf: $,) + 1
-								to: (dataElementName indexOf: $]) - 1) readStream.
-					elementTag elementNumber: (Integer readFrom: readStream radix: 16).
-					valueRepresentation := dataElementName copyFrom: 8 to: 9.
-					"Since the VR is known, create an instance of the corresponding data element"
-					(DataElement newVR: valueRepresentation)
-						tag: elementTag;
-						name: dataElementName;
-						vm: '1';
-						description: 'Private Data Element with tag equal to: '
-									, elementTag printString;
-						yourself].
-	^ dataElementDefinition copy
+	dataElementDefinition := self dataElementsDefinitionByName
+		at: dataElementName
+		ifAbsent: [ readStream := (dataElementName
+				copyFrom: (dataElementName indexOf: $[) + 1
+				to: (dataElementName indexOf: $,) - 1) readStream.
+			elementTag := DataElementTag new.
+			elementTag groupNumber: (Integer readFrom: readStream radix: 16).
+			readStream := (dataElementName
+				copyFrom: (dataElementName indexOf: $,) + 1
+				to: (dataElementName indexOf: $]) - 1) readStream.
+			elementTag elementNumber: (Integer readFrom: readStream radix: 16).
+			valueRepresentation := dataElementName copyFrom: 8 to: 9.
+			DataElementDefinition new
+				vr: valueRepresentation;
+				tag: elementTag;
+				name: dataElementName;
+				vm: '1';
+				description: 'Private Data Element with tag equal to: ' , elementTag printString;
+				yourself ].
+	^ dataElementDefinition asDataElement
 ]
 
 { #category : #parsing }
 DicomObject >> pdvBytesStream: dicomPDVStream [
-	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
-	PRD 04-10.2001, 05.2002
-
-	Now the parsing doesn't ignore anymore the unknown data elements, 
-	storing then in the data elements dictionary as the known ones.
-	PRD January 10th, 2003"
+	"Parse data elements stored in the DICOM presentation data value
+	 byte stream according to Dicom Part 8 => 9.3.5.1 Presentation Data
+	 Value Item Structure - Paulo R. Dellani"
 
 	self pdvBytesStream: dicomPDVStream encoder: LittleEndianImplicitVRTS
 ]
 
 { #category : #parsing }
 DicomObject >> pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntaxEncoder [
-	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
-	PRD 04-10.2001, 05.2002
+	"Parse data elements stored in the DICOM presentation data value
+	 byte stream according to Dicom Part 8 => 9.3.5.1 Presentation Data
+	 Value Item Structure.
 
-	Now the parsing doesn't ignore anymore the unknown data elements, 
-	storing then in the data elements dictionary together with the known ones.
-	PRD January 10th, 2003
-	
-	The parser will dinamically add groups of 'private creator' data elements
-	to the data elements definition of the DICOM object in order to be able
-	to parse these - PRD September 11, 2017"
-
-	| dataElementsDefinition |
+	 11 September 2017: Groups of private creator's data elements are dinamically
+	                    loaded to the data elements definition of the DICOM object
+	                    when a data element with a private creator's tag is found.
+	                    This improves the parsing of private data elements stored
+	                    in the PDV stream and handled by this method;
+	      04 June 2021: Method refactored from into DicomObject>>handleParsedDataElement:
+                       - Paulo R. Dellani"
+ 		
+	| aDicomDataElement |
 	self encoder: aDicomTransferSyntaxEncoder.
 	self dataElementsDictionary: Dictionary new.
-	dataElementsDefinition := Dictionary withAll: self dataElementsDefinition.
-	self
-		pdvBytesStream: dicomPDVStream
-		encoder: aDicomTransferSyntaxEncoder
-		dataElementsDefinition: dataElementsDefinition
-]
-
-{ #category : #parsing }
-DicomObject >> pdvBytesStream: dicomPDVStream encoder: aDicomTransferSyntaxEncoder dataElementsDefinition: dataElementsDefinition [
-	"Dicom Part 8 => 9.3.5.1 Presentation Data Value Item Structure
-	PRD 04-10.2001, 05.2002
-
-	Now the parsing doesn't ignore anymore the unknown data elements, 
-	storing then in the data elements dictionary together with the known ones.
-	PRD January 10th, 2003
-	
-	Implementation now includes a dictionary of private creator groups of 
-	data elements - PRD Septebmer 2017"
-
-	| aDicomDataElement |
 	[ dicomPDVStream atEnd ]
 		whileFalse: [ aDicomDataElement := aDicomTransferSyntaxEncoder
 				dataElementFrom: dicomPDVStream
-				dataElementsDefinition: dataElementsDefinition.
+				dataElementsDefinition: self dataElementsDefinition.
 
 			"group lenght data elements are not used and DICOM Data Set Trailing Padding is ignored"
 			aDicomDataElement elementNumber = 16r0000 | (aDicomDataElement groupNumber = 16rFFFC)
-				ifFalse: [ "If the data element is private, check if the private creators group of it is known"
-					aDicomDataElement tag isPrivate
-						ifTrue: [ aDicomDataElement tag isPrivateCreator
-								ifTrue: [ aDicomDataElement := LODataElement new "See DICOM Part 5 Section 7.8.1"
-																			tag: aDicomDataElement tag;
-																			name: aDicomDataElement name;
-																			vm: 1;
-																			description: aDicomDataElement description;
-																			type: '1';
-																			encoder: aDicomTransferSyntaxEncoder;
-																			value: aDicomDataElement value; yourself.
-									dataElementsDefinition
-										at: aDicomDataElement tag
-										ifAbsent: [ self loadPrivateCreatorsGroup: aDicomDataElement into: dataElementsDefinition ] ] ].
-					self dataElementsDictionary
-						at: aDicomDataElement name
-						ifPresent: [ Transcript
-								show: 'Warning: data element ' , aDicomDataElement name asString , ' already parsed, skipping';
-								cr ]
-						ifAbsentPut: [ aDicomDataElement ] ] ]
+				ifFalse: [ self handleParsedDataElement: aDicomDataElement ] ]
 ]
 
 { #category : #'PDV Bytes' }
@@ -1342,7 +1435,25 @@ DicomObject >> presentationDataValueBytesArray [
 	^pdvStream contents
 ]
 
-{ #category : #parsing }
+{ #category : #'computer reflection - private' }
+DicomObject >> storeDataElementValue: aDataElementValue for: aDataElementName [
+	| dataElement |
+	(self dataElementsDictionary at: aDataElementName ifPresent: [ :aDataElement | aDataElement value: aDataElementValue ]) ifNil: [
+		encoder notNil ifTrue: [
+			dataElement := self newDataElementNamed: aDataElementName.
+			dataElement encoder: self encoder.
+			dataElement value: aDataElementValue.
+			self dataElementsDictionary at: aDataElementName put: dataElement.
+			self dataElementsValues removeKey: aDataElementName ifAbsent: [ nil ].
+		]
+		ifFalse: [
+			self dataElementsValues at: aDataElementName put: aDataElementValue
+		]
+	].
+
+]
+
+{ #category : #'parsing - private' }
 DicomObject >> unknowDataElement: dataElementTag [
 
 	| elementName |

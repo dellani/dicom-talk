@@ -6,43 +6,12 @@ Class {
 
 { #category : #'class initialization' }
 ATDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
 ATDataElement class >> valueRepresentationString [
 	^ 'AT'
-]
-
-{ #category : #'to deprecate' }
-ATDataElement >> _decodeElementDataBytes: valueDataBytes [
-	" VR = Attribute Tag - PRD 04.2001"
-
-	| aDictionary |
-	aDictionary := Dictionary new.
-	aDictionary at: #groupNumber
-		put: (self encoder
-				getValueFromByteArray: (valueDataBytes copyFrom: 1 to: 2)).
-	aDictionary at: #elementNumber
-		put: (self encoder
-				getValueFromByteArray: (valueDataBytes copyFrom: 3 to: 4)).
-	^aDictionary
-]
-
-{ #category : #'to deprecate' }
-ATDataElement >> _printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015, August 29, 2017"
-
-	| valueCollection |
-	^ self dataBytes notEmpty
-		ifTrue: [ self dataBytes size >= self byteSize
-				ifTrue: [ (valueCollection := self decodeValue) notEmpty
-						ifTrue: [ (DataElementTag fromArray: valueCollection first) printOn: aStream.
-							2 to: valueCollection size do: [ :index | 
-								aStream nextPutAll: ' \\ '.
-								(DataElementTag fromArray: (valueCollection at: index)) printOn: aStream ] ] ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -52,9 +21,9 @@ ATDataElement >> byteSize [
 
 { #category : #accessing }
 ATDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type AT.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthATDataElement + self dataBytes size
 ]
@@ -70,6 +39,13 @@ ATDataElement >> decodeElementDataBytes: valueDataBytes [
 	aDataElementTag elementNumber: 
 		(self encoder getValueFromByteArray: (valueDataBytes copyFrom: 3 to: 4)).
 	^ aDataElementTag
+]
+
+{ #category : #parsing }
+ATDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomATDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

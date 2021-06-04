@@ -86,19 +86,6 @@ BigEndianExplicitVRTS class >> bitpolisher [
 BigEndianExplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 ]
 
-{ #category : #'data elements' }
-BigEndianExplicitVRTS class >> dicomOWDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
-	newDataElement := dataElementDefinition copy.
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 12."
-	newDataElement dataBytes: (pdvStream next: length).
-	^ newDataElement
-]
-
 { #category : #initialize }
 BigEndianExplicitVRTS class >> initialize [
 
@@ -108,14 +95,29 @@ BigEndianExplicitVRTS class >> initialize [
 
 { #category : #testing }
 BigEndianExplicitVRTS class >> isBigEndian [
-
-	^true
+	^ true
 ]
 
 { #category : #testing }
 BigEndianExplicitVRTS class >> isLittleEndian [
+	^ false
+]
 
-	^false
+{ #category : #'data elements' }
+BigEndianExplicitVRTS class >> parseDicomOWDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OW' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length |
+	
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	aDataElement dataBytes: (pdvStream next: length).
+	^ aDataElement
 ]
 
 { #category : #'PDV bytes' }

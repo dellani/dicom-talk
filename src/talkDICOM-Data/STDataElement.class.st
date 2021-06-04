@@ -22,7 +22,7 @@ STDataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire upperCase;
 		addAll: DefaultCharacterRepertoire symbol;
 		addAll: DefaultCharacterRepertoire control.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -30,38 +30,20 @@ STDataElement class >> valueRepresentationString [
 	^ 'ST'
 ]
 
-{ #category : #'to deprecate' }
-STDataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	((elementValue := self value) isKindOf: String) ifTrue: [
-		elementValue size <= 16 ifTrue: [
-			aStream nextPutAll: (elementValue copyFrom: 1 to: elementValue size)
-		] ifFalse: [ 
-			aStream nextPutAll: (elementValue copyFrom: 1 to: 16)
-		]
-	]
-]
-
-{ #category : #'instance creation' }
-STDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomSTDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 STDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type ST.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthSTDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+STDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomSTDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

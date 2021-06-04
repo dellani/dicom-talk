@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 AEDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -15,40 +14,20 @@ AEDataElement class >> valueRepresentationString [
 	^ 'AE'
 ]
 
-{ #category : #'to deprecate' }
-AEDataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	elementValue := self value.
-	(elementValue isKindOf: OrderedCollection) ifTrue: [
-		aStream nextPutAll: elementValue first.
-		2 to: elementValue size do: [:item | 
-			aStream nextPutAll: ', '; nextPutAll: item.
-		]
-	] ifFalse: [
-		aStream nextPutAll: elementValue.
-	].
-]
-
-{ #category : #'instance creation' }
-AEDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomAEDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 AEDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type AE.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthAEDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+AEDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomAEDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

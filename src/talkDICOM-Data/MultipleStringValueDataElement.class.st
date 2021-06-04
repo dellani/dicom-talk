@@ -14,12 +14,6 @@ MultipleStringValueDataElement >> byteSize [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'instance creation' }
-MultipleStringValueDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-
-	^self subclassResponsibility
-]
-
 { #category : #'field value retrieving' }
 MultipleStringValueDataElement >> dataBytesByteSpliter: byteValueSize [
 	^ self subclassResponsibility
@@ -27,10 +21,16 @@ MultipleStringValueDataElement >> dataBytesByteSpliter: byteValueSize [
 
 { #category : #accessing }
 MultipleStringValueDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for a data element of 
+	 type (see subclass implementations)
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
+	^ self subclassResponsibility
+]
+
+{ #category : #parsing }
+MultipleStringValueDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxEncoder [
 	^ self subclassResponsibility
 ]
 

@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 TMDataElement class >> initialize [
-	
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -15,21 +14,20 @@ TMDataElement class >> valueRepresentationString [
 	^ 'TM'
 ]
 
-{ #category : #'instance creation' }
-TMDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomTMDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 TMDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type TM.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthTMDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+TMDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomTMDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

@@ -32,12 +32,7 @@ Class {
 	#name : #DataElement,
 	#superclass : #Object,
 	#instVars : [
-		'tag',
-		'name',
-		'vm',
-		'vmArray',
-		'description',
-		'type',
+		'definition',
 		'dataBytes',
 		'length',
 		'encoder'
@@ -55,25 +50,23 @@ DataElement class >> badCharacters [
 	
 	PRD 04.2001 - 03.2017"
 
-	^badCharacters isNil 
-		ifTrue: 
-			[badCharacters := Dictionary new] 
-		ifFalse: [badCharacters]
+	^ badCharacters isNil
+		ifTrue: [ badCharacters := Dictionary new ]
+		ifFalse: [ badCharacters ]
 ]
 
 { #category : #accessing }
 DataElement class >> dataElementCharacterRepertoire [
 	"Character Repertoire of a Dicom Data Element - PRD 04.2001 - 01.2002"
 
-	^dataElementCharacterRepertoire isNil 
-		ifTrue: 
-			[dataElementCharacterRepertoire := CharacterSet new] 
-		ifFalse: [dataElementCharacterRepertoire]
+	^ dataElementCharacterRepertoire isNil
+		ifTrue: [ dataElementCharacterRepertoire := CharacterSet new ]
+		ifFalse: [ dataElementCharacterRepertoire ]
 ]
 
 { #category : #accessing }
 DataElement class >> dataElementClasses [
-	^ DicomRegistry DataElements
+	^ DicomRegistry dataElementClasses
 ]
 
 { #category : #'instance creation' }
@@ -130,105 +123,112 @@ DataElement class >> fromTextLine: textLine [
 				tag: dataElementTag;
 				vm: vm ].
 
-	"DSDataElement
-				newWith: #pixelSpacing
-				tag: #(16r0028 16r0030)
-				vm: '2'
-				type: '1'"
 	^ dataElements
 ]
 
 { #category : #'instance creation' }
+DataElement class >> newFrom: aDataElementDefinition [
+	"Create an instance of the DataElement according to my definition
+	
+	 May 13 2021: Initial implementation - PRD"
+
+	| newInstance |
+	newInstance := self newVR: aDataElementDefinition vr.
+	newInstance dataElementDefinion: aDataElementDefinition.
+	^ newInstance
+]
+
+{ #category : #'instance creation' }
 DataElement class >> newVR: aString [
-
 	| dataElementClass |
-
 	dataElementClass := self dataElementClasses
 		at: aString asUppercase
-		ifAbsent: [ nil ].
-	^ dataElementClass
-		ifNotNil: [ :arg | arg new ]
-		ifNil: [ UNDataElement new ]
+		ifAbsent: [ UNDataElement ].
+	^ dataElementClass new
 ]
 
 { #category : #'instance creation' }
-DataElement class >> newWith: aDicomTagNameSymbol tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber [
-	"This 'contructor message' can be sent in the following way:
-
-	dataElement := *DataElement 
-					newWith: #groupElement 
-					tag: #(16r0000,16r0001)
-					vm: 1.
-
-	PRD 05.2001, 02.2016"
-
-	^self new 
-		name: aDicomTagNameSymbol 
-		tag: aTagGroupElementValueArray 
-		vm: aValueMultiplicityNumber 
-		description: 'No description was given to this DICOM tag'
-		type: '3'
-]
-
-{ #category : #'instance creation' }
-DataElement class >> newWith: aDicomTagNameSymbol tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber description: aDescriptionString [
-	"This 'contructor message' can be sent in the following way:
-
-	dataElement := *DataElement 
-					newWith: #groupElement
-					tag: #(16r0000,16r0001)
-					vm: 1
-					description: 'Bla Bla Bla'.
-
-	PRD 05.2001, 02.2016"
+DataElement class >> newWith: dataElementName tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber [
+	"Instance constructor: creates a new instance of myself, 
+	 initializing it with the given arguments.
 	
-	^self new
-		name: aDicomTagNameSymbol 
-		tag: aTagGroupElementValueArray 
-		vm: aValueMultiplicityNumber 
-		description: aDescriptionString
-		type: 3
+	 24 May 2021 - Implementation using the DataElementDefintion class
+	               to store the definition of the data element split
+	               from the data element itself  - Paulo R. Dellani"
+
+	| dataDefinition |
+	dataDefinition := DataElementDefinition new
+		vr: self valueRepresentationString;
+		name: dataElementName asString asByteString;
+		tag: (DataElementTag fromArray: aTagGroupElementValueArray);
+		vm: aValueMultiplicityNumber;
+		description: 'No description was given to this DICOM data element';
+		type: '3';
+		yourself.
+	^ dataDefinition asDataElement
 ]
 
 { #category : #'instance creation' }
-DataElement class >> newWith: aDicomTagNameSymbol tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber description: aDescriptionString type: dataElementType [
-	"This 'contructor message' can be sent in the following way:
+DataElement class >> newWith: dataElementName tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber description: aDescriptionString [
+	"Instance constructor: creates a new instance of myself, 
+	 initializing it with the given arguments.
+	
+	 24 May 2021 - Implementation using the DataElementDefintion class
+	               to store the definition of the data element split
+	               from the data element itself  - Paulo R. Dellani"
 
-	dataElement := *DataElement 
-					newWith: #groupElement
-					tag: #(16r0000,16r0001)
-					vm: 1
-					description: 'Bla Bla Bla'
-					type: '3'.
-
-	PRD 05.2001, 02.2016"
-
-	^ self new
-		name: aDicomTagNameSymbol
-		tag: aTagGroupElementValueArray
-		vm: aValueMultiplicityNumber
-		description: aDescriptionString
-		type: dataElementType
+	| dataDefinition |
+	dataDefinition := DataElementDefinition new
+		vr: self valueRepresentationString;
+		name: dataElementName asString asByteString;
+		tag: (DataElementTag fromArray: aTagGroupElementValueArray);
+		vm: aValueMultiplicityNumber;
+		description: aDescriptionString;
+		type: '3';
+		yourself.
+	^ dataDefinition asDataElement
 ]
 
 { #category : #'instance creation' }
-DataElement class >> newWith: aDicomTagNameSymbol tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber type: dataElementType [
-	"This 'contructor message' can be sent in the following way:
+DataElement class >> newWith: dataElementName tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber description: aDescriptionString type: dataElementType [
+	"Instance constructor: creates a new instance of myself, 
+	 initializing it with the given arguments.
+	
+	 24 May 2021 - Implementation using the DataElementDefintion class
+	               to store the definition of the data element split
+	               from the data element itself  - Paulo R. Dellani"
 
-	dataElement := *DataElement 
-					newWith: #groupElement
-					tag: #(16r0000,16r0001)
-					vm: 1
-					type: '1C'.
+	| dataDefinition |
+	dataDefinition := DataElementDefinition new
+		vr: self valueRepresentationString;
+		name: dataElementName asString asByteString;
+		tag: (DataElementTag fromArray: aTagGroupElementValueArray);
+		vm: aValueMultiplicityNumber;
+		description: aDescriptionString;
+		type: dataElementType;
+		yourself.
+	^ dataDefinition asDataElement
+]
 
-	PRD 05.2001, 02.2016"
+{ #category : #'instance creation' }
+DataElement class >> newWith: dataElementName tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber type: dataElementType [
+	"Instance constructor: creates a new instance of myself, 
+	 initializing it with the given arguments.
+	
+	 24 May 2021 - Implementation using the DataElementDefintion class
+	               to store the definition of the data element split
+	               from the data element itself  - Paulo R. Dellani"
 
-	^ self new
-		name: aDicomTagNameSymbol
-		tag: aTagGroupElementValueArray
-		vm: aValueMultiplicityNumber
-		description: 'No description was given to this DICOM tag'
-		type: dataElementType
+	| dataDefinition |
+	dataDefinition := DataElementDefinition new
+		vr: self valueRepresentationString;
+		tag: (DataElementTag fromArray: aTagGroupElementValueArray);
+		name: dataElementName asString asByteString;
+		vm: aValueMultiplicityNumber;
+		description: 'No description was given to this DICOM data element';
+		type: dataElementType;
+		yourself.
+	^ dataDefinition asDataElement
 ]
 
 { #category : #accessing }
@@ -317,12 +317,6 @@ DataElement >> copyString: aString maxSize: maxValueLength [
 	^dataBytes.
 ]
 
-{ #category : #'instance creation' }
-DataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-
-	^self subclassResponsibility
-]
-
 { #category : #printing }
 DataElement >> csvPrintOn: aStream separator: aCharacter level: level [
 	"Print a description of myself in a single CSV text line 
@@ -389,45 +383,68 @@ DataElement >> dataBytesStringSpliter [
 	^ anOrderedCollection
 ]
 
+{ #category : #initialize }
+DataElement >> dataElementDefinion: aDataElementDefinition [
+	"Initialize myself with the given instance of DataElementDefinition
+	
+	 13 May 2021: Initial Implementation"
+
+	self definition: aDataElementDefinition
+]
+
 { #category : #accessing }
 DataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for a data element of 
+	 type (see subclass implementations)
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self subclassResponsibility
 ]
 
 { #category : #accessing }
-DataElement >> description [
-	"Text description of the Message Field - PRD 04.2001"
+DataElement >> definition [
+	"My own defition, an instance of DataElementDefinition
 
-	^ description
+	 13 May 2021: Split data element definition from data element
+	              instance itself;
+	 16 May 2021: Check if 'definition' is nil; if it is, initialize
+	              the instance variable - Paulo R. Dellani"
+
+	^ definition
+		ifNil: [ definition := DataElementDefinition new ]
+		ifNotNil: [ :arg | arg ]
 ]
 
 { #category : #accessing }
-DataElement >> description: aDescriptionText [
-	"Text description of the Message Field - PRD 04.2001"
+DataElement >> definition: aDataElementDefinition [
+	"My own defition, an instance of DataElementDefinition
 
-	description := aDescriptionText
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
+	definition := aDataElementDefinition
+]
+
+{ #category : #accessing }
+DataElement >> description [
+	"Data element description"
+
+	^ self definition description
 ]
 
 { #category : #accessing }
 DataElement >> elementNumber [
-	"The Element Number of an Data Element
+	"Data Element's Element Number"
 
-	PRD 04-05.2001, 03.2017"
-
-	^ tag elementNumber
+	^ self definition tag elementNumber
 ]
 
 { #category : #accessing }
 DataElement >> elementNumber: an16bitInteger [
-	"The Element Number of an Data Element
+	"Data Element's Element Number"
 
-	PRD 04-05.2001"
-
-	tag elementNumber: an16bitInteger
+	self definition tag elementNumber: an16bitInteger
 ]
 
 { #category : #accessing }
@@ -466,41 +483,28 @@ DataElement >> fullCSVPrintOn: aStream separator: aCharacter level: level [
 
 ]
 
-{ #category : #tags }
+{ #category : #'data element tag' }
 DataElement >> groupLengthTag [
-	" Group Length Tag Number corresponding to self 
+	"Group Length Tag Number corresponding to myself
 
-	PRD 03.2017"
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self tag groupLengthTag
 ]
 
 { #category : #accessing }
 DataElement >> groupNumber [
-	"The GROUP Number of an Data Element
+	"Data Element's Group Number"
 
-	PRD 04-05.2001"
-
-	^ tag groupNumber
+	^ self definition tag groupNumber
 ]
 
 { #category : #accessing }
 DataElement >> groupNumber: an16bitInteger [
-	"The Element Number of an Data Element
+	"Data Element's Group Number"
 
-	PRD 04-05.2001"
-
-	tag groupNumber: an16bitInteger
-]
-
-{ #category : #comparing }
-DataElement >> isDicomDataElement [
-	"
-	Who am I?
-	PRD 04-05.2001
-"
-
-	^ true
+	self definition tag groupNumber: an16bitInteger
 ]
 
 { #category : #testing }
@@ -510,47 +514,27 @@ DataElement >> isSequence [
 
 { #category : #testing }
 DataElement >> isType1 [
-"
-	Answer true if data element type is 1
-	PRD 06.2001
-"
-	^type = '1'.
+	^ self definition type = '1'
 ]
 
 { #category : #testing }
 DataElement >> isType1C [
-"
-	Answer true if data element type is 1C
-	PRD 06.2001
-"
-	^type = '1C'.
+	^ self definition type = '1C'
 ]
 
 { #category : #testing }
 DataElement >> isType2 [
-"
-	Answer true if data element type is 2
-	PRD 06.2001
-"
-	^type = '2'.
+	^ self definition type = '2'
 ]
 
 { #category : #testing }
 DataElement >> isType2C [
-"
-	Answer true if data element type is 2C
-	PRD 06.2001
-"
-	^type = '2C'.
+	^ self definition type = '2C'
 ]
 
 { #category : #testing }
 DataElement >> isType3 [
-"
-	Answer true if data element type is 3
-	PRD 06.2001
-"
-	^type = '3'.
+	^ self definition type = '3'
 ]
 
 { #category : #testing }
@@ -619,16 +603,16 @@ DataElement >> multipleStringValuesFrom: anOrderedCollection [
 
 { #category : #accessing }
 DataElement >> name [
-	"Dicom Message Field Name Symbol - PRD 04.2001"
+	"Name of the data element"
 
-	^ name
+	^ self definition name
 ]
 
 { #category : #accessing }
-DataElement >> name: aMessageFieldNameSymbol [
-	"Dicom Message Field Name Symbol - PRD 04.2001"
+DataElement >> name: aByteString [
+	"Name of the data element"
 
-	name := aMessageFieldNameSymbol
+	self definition name: aByteString
 ]
 
 { #category : #initialize }
@@ -642,7 +626,7 @@ DataElement >> name: aDicomTagNameSymbol tag: aTagGroupElementValueArray vm: aVa
 
 { #category : #accessing }
 DataElement >> nameAndTag [
-	"Dicom Message Field Name Symbol + Tag as String - PRD 04.2001 - August 29, 2017"
+	"Dicom Message Field Name Symbol + Tag as String - August 29, 2017"
 
 	^ String
 		new: 10
@@ -656,9 +640,18 @@ DataElement >> nameUpperCaseFirstLetter [
 	^ String
 		new: 10
 		streamContents: [ :aStream | 
-			aStream
-				nextPut: self name first asUppercase;
-				nextPutAll: (self name copyFrom: 2 to: self name size) ]
+			(self name copyFrom: 1 to: 3) = 'sop'
+				ifTrue: [ aStream
+						nextPutAll: 'SOP';
+						nextPutAll: (self name copyFrom: 4 to: self name size) ]
+				ifFalse: [ aStream
+						nextPut: self name first asUppercase;
+						nextPutAll: (self name copyFrom: 2 to: self name size) ] ]
+]
+
+{ #category : #parsing }
+DataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxEncoder [
+	^ self subclassResponsibility
 ]
 
 { #category : #'field bytes' }
@@ -835,44 +828,42 @@ DataElement >> stringPurify: impureString goodChars: characterSet [
 	^ aString
 ]
 
-{ #category : #tags }
+{ #category : #'data element tag' }
 DataElement >> tag [
-	"Instance of DataElementTag with the Group and Element number of the DICOM Data Element
+	"Instance of DataElementTag with the Group and 
+	 Element number of the DICOM Data Element
 
-	PRD 05-06.2001, 03.2017"
-	
-	^tag
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
+	^ self definition tag
 ]
 
-{ #category : #tags }
+{ #category : #'data element tag' }
 DataElement >> tag: dataElementTag [
-	"Receive an array with the Group and Element number of the DICOM Data Elemente Tag 
+	"Instance of DataElementTag with the Group and 
+	 Element number of the DICOM Data Element
 
-	PRD 05.2001"
-	
-	tag := dataElementTag
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
+	self definition tag: dataElementTag
 ]
 
 { #category : #accessing }
 DataElement >> type [
-	"Data element type. As defined by the Dicom Standard (PS 3.5-2000 7.4), 
-	shall contain a value of 1, 1C, 2, 2C or 3. 
+	"Data element type, as defined by the Dicom Standard (PS 3.5-2000 7.4), 
+	 shall contain a value of 1, 1C, 2, 2C or 3."
 
-	PRD 06.2001"
-
-	^ type
+	^ self definition type
 ]
 
 { #category : #accessing }
-DataElement >> type: aCharacterString [
-	"Data element type. As defined by the Dicom Standard (PS 3.5-2000 7.4), 
-	shall contain a value of 1, 1C, 2, 2C or 3. 
+DataElement >> type: aByteString [
+	"Data element type, as defined by the Dicom Standard (PS 3.5-2000 7.4), 
+	 shall contain a value of 1, 1C, 2, 2C or 3."
 
-	PRD 06.2001"
-
-	(#('1' '1C' '2' '2C' '3') includes: aCharacterString)
-		ifTrue: [ type := aCharacterString ]
-		ifFalse: [ type := '3' ]
+	self definition type: aByteString
 ]
 
 { #category : #'field value retrieving' }
@@ -963,72 +954,26 @@ DataElement >> value: aValue [
 
 { #category : #accessing }
 DataElement >> vm [
-	"Value Multiplicity Sort
+	"Value Multiplicity Sort"
 
-	PRD 04.2001"
-
-	^ vm
+	^ self definition vm
 ]
 
 { #category : #accessing }
-DataElement >> vm: aValueMultiplicitySort [
-	"Value Multiplicity Sort
+DataElement >> vm: aByteString [
+	"Value Multiplicity Sort"
 
-	 DICOM Data Elements VM	Smalltalk representation of the VM
-	 1								'1'
-	 2								'2'
-	 3								'3'
-	 n (0-n)						'n'
-	 2n								'2n'
-	 3n								'3n'
-	 4n								'4n'
-	 1-n							'1-n'
-	 2-n							'2-n'
-	 3-n							'3-n'
-	 2-5							'2-5'
-	 4-10							'4-10'
-	 2-2n							'2-2n'
-	 x-xn							'x-xn'
-
-	 PRD 04.2001, 07.2002"
-
-	(aValueMultiplicitySort isKindOf: String)
-		ifTrue: [ | step fixed free |
-			step := 1.
-			vm := aValueMultiplicitySort.
-			aValueMultiplicitySort size = 1
-				ifTrue: [ (aValueMultiplicitySort at: 1) = $n
-						ifTrue: [ free := $n.
-							fixed := 0 ]
-						ifFalse: [ fixed := aValueMultiplicitySort asNumber ] ].
-			aValueMultiplicitySort size = 2
-				ifTrue: [ fixed := 0.
-					free := aValueMultiplicitySort ].
-			aValueMultiplicitySort size >= 3
-				ifTrue: [ fixed := (aValueMultiplicitySort copyFrom: 1 to: 1) asNumber.
-					free := aValueMultiplicitySort copyFrom: 3 to: aValueMultiplicitySort size.
-					free size = 2
-						ifTrue: [ (free at: 2) = $n
-								ifTrue: [ step := (free copyFrom: 1 to: 1) asNumber.
-									free := free copyFrom: 2 to: 2 ] ] ].
-			self vmArray at: 1 put: fixed.
-			self vmArray at: 2 put: free.
-			self vmArray at: 3 put: step ].
-	(aValueMultiplicitySort isKindOf: Array)
-		ifTrue: [ self vmArray: aValueMultiplicitySort ]
+	self definition vm: aByteString
 ]
 
 { #category : #accessing }
 DataElement >> vmArray [
-	^ vmArray isNil
-		ifTrue: [ vmArray := Array new: 3 ]
-		ifFalse: [ vmArray ]
+	^ self definition vmArray
 ]
 
 { #category : #accessing }
 DataElement >> vmArray: anArray [
-
-	vmArray := anArray
+	self definition vmArray: anArray
 ]
 
 { #category : #accessing }

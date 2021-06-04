@@ -6,39 +6,12 @@ Class {
 
 { #category : #'class initialization' }
 DADataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
 DADataElement class >> valueRepresentationString [
 	^ 'DA'
-]
-
-{ #category : #'to deprecate' }
-DADataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	((elementValue := self value) isKindOf: DateAndTime) 
-		ifTrue: [elementValue printYMDOn: aStream  "aStream nextPutAll: elementValue printString"]
-]
-
-{ #category : #'to deprecate' }
-DADataElement >> _value [
-	| anOrderedCollection |
-	^ self dataBytes size >= self byteSize
-		ifTrue: [ anOrderedCollection := self decodeValue.
-			anOrderedCollection size = 1
-				ifTrue: [ anOrderedCollection first ]
-				ifFalse: [ anOrderedCollection ] ]
-		ifFalse: [ "***** DICOM V3.0 encoding? *************"
-			self type = '3'
-				ifTrue: [ nil ]
-				ifFalse: [ self raiseElementSizeError ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -72,9 +45,9 @@ DADataElement >> dataBytesByteSpliter_exception01 [
 
 { #category : #accessing }
 DADataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type DA.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthDADataElement + self dataBytes size
 ]
@@ -152,6 +125,13 @@ DADataElement >> decodeValue [
 			ifFalse: [ self raiseElementSizeError ] ].
 	"***** Date string in the pre-DICOM V3.0 encoding format *************"
 	^ anOrderedCollection
+]
+
+{ #category : #parsing }
+DADataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomDADataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

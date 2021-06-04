@@ -6,28 +6,12 @@ Class {
 
 { #category : #'class initialization' }
 USDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
 USDataElement class >> valueRepresentationString [
 	^ 'US'
-]
-
-{ #category : #'to deprecate' }
-USDataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	((elementValue := self value) isKindOf: OrderedCollection)
-		ifTrue: [aStream nextPutAll: elementValue first printString]
-		ifFalse: [(elementValue isKindOf: Integer)
-			ifTrue: [aStream nextPutAll: elementValue printString]
-		]
 ]
 
 { #category : #'field value retrieving' }
@@ -37,9 +21,9 @@ USDataElement >> byteSize [
 
 { #category : #accessing }
 USDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type US.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthUSDataElement + self dataBytes size
 ]
@@ -48,6 +32,13 @@ USDataElement >> dataElementLength [
 USDataElement >> decodeElementDataBytes: valueDataBytes [
 
 	^self encoder getValueFromByteArray: valueDataBytes
+]
+
+{ #category : #parsing }
+USDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomUSDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

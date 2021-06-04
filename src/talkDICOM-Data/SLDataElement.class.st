@@ -6,25 +6,12 @@ Class {
 
 { #category : #'class initialization' }
 SLDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
 SLDataElement class >> valueRepresentationString [
 	^ 'SL'
-]
-
-{ #category : #'to deprecate' }
-SLDataElement >> _printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015"
-
-	| elementValue |
-	((elementValue := self value) isKindOf: OrderedCollection)
-		ifTrue: [ aStream nextPutAll: elementValue first printString ]
-		ifFalse: [ (elementValue isKindOf: Integer)
-				ifTrue: [ aStream nextPutAll: elementValue printString ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -34,9 +21,9 @@ SLDataElement >> byteSize [
 
 { #category : #accessing }
 SLDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type SL.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthSLDataElement + self dataBytes size
 ]
@@ -46,6 +33,13 @@ SLDataElement >> decodeElementDataBytes: valueDataBytes [
 	" VR = Floating Point Single - PRD 04.2001, 03.2003"
 
 	^self encoder getValueFromByteArray: valueDataBytes
+]
+
+{ #category : #parsing }
+SLDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomSLDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

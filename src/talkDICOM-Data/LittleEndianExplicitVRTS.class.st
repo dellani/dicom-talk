@@ -92,32 +92,6 @@ LittleEndianExplicitVRTS class >> bitpolisher [
 LittleEndianExplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 ]
 
-{ #category : #'data elements' }
-LittleEndianExplicitVRTS class >> dicomOWDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement byteArray byte1 index2 |
-	newDataElement := dataElementDefinition copy.
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 12."
-	byteArray := pdvStream next: newDataElement length.
-
-	"Swap byte order"
-	1 to: length by: 2 do: [ :index | 
-		index2 := index + 1.
-		byte1 := byteArray byteAt: index.
-		byteArray byteAt: index put: (byteArray byteAt: index2).
-		byteArray byteAt: index2 put: byte1
-
-		"byteArray swapByteAt: index with: index + 1"
-		"byte1 := byteArray at: index.
-		byteArray at: index put: (byteArray at: index + 1).
-		byteArray at: index + 1 put: byte1" ].
-	newDataElement dataBytes: byteArray.
-	^ newDataElement
-]
-
 { #category : #initialize }
 LittleEndianExplicitVRTS class >> initialize [
 	UID := '1.2.840.10008.1.2.1'.	"DICOM Explicit VR Little Endian Transfer Syntax UID"
@@ -132,6 +106,36 @@ LittleEndianExplicitVRTS class >> isBigEndian [
 { #category : #testing }
 LittleEndianExplicitVRTS class >> isLittleEndian [
 	^ true
+]
+
+{ #category : #'data elements' }
+LittleEndianExplicitVRTS class >> parseDicomOWDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OW' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length byteArray byte1 index2 |
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	"newDataElement dataElementLength: length + 12."
+	byteArray := pdvStream next: aDataElement length.
+
+	"Swap byte order"
+	1 to: length by: 2 do: [ :index | 
+		index2 := index + 1.
+		byte1 := byteArray byteAt: index.
+		byteArray byteAt: index put: (byteArray byteAt: index2).
+		byteArray byteAt: index2 put: byte1
+
+		"byteArray swapByteAt: index with: index + 1"
+		"byte1 := byteArray at: index.
+		byteArray at: index put: (byteArray at: index + 1).
+		byteArray at: index + 1 put: byte1" ].
+	aDataElement dataBytes: byteArray.
+	^ aDataElement
 ]
 
 { #category : #'PDV bytes' }

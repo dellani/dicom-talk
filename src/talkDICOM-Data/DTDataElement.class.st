@@ -20,14 +20,6 @@ DTDataElement >> byteSize [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'instance creation' }
-DTDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomDTDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #'field value retrieving' }
 DTDataElement >> dataBytesByteSpliter: byteValueSize [
 	^ self subclassResponsibility
@@ -35,11 +27,18 @@ DTDataElement >> dataBytesByteSpliter: byteValueSize [
 
 { #category : #accessing }
 DTDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type DT.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthDTDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+DTDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomDTDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

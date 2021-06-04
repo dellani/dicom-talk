@@ -6,9 +6,13 @@ Class {
 		'vr',
 		'name',
 		'vm',
+		'vmArray',
 		'description',
 		'type',
 		'version'
+	],
+	#classInstVars : [
+		'vr'
 	],
 	#category : #'talkDICOM-Data'
 }
@@ -163,6 +167,40 @@ DataElementDefinition class >> fromTextualDefinition: textualDefinition [
 		as: OrderedCollection.
 ]
 
+{ #category : #comparing }
+DataElementDefinition >> < aDataElementDefinion [
+	^ self tag < aDataElementDefinion tag
+]
+
+{ #category : #comparing }
+DataElementDefinition >> <= aDataElementDefinion [
+	^ self tag <= aDataElementDefinion tag
+]
+
+{ #category : #comparing }
+DataElementDefinition >> = aDataElementDefinion [
+	^ self tag = aDataElementDefinion tag
+]
+
+{ #category : #comparing }
+DataElementDefinition >> > aDataElementDefinion [
+	^ self tag > aDataElementDefinion tag
+]
+
+{ #category : #comparing }
+DataElementDefinition >> >= aDataElementDefinion [
+	^ self tag >= aDataElementDefinion tag
+]
+
+{ #category : #converting }
+DataElementDefinition >> asDataElement [
+	"Create an instance of the DataElement according to my definition
+	
+	 May 13 2021: Initial implementation - PRD"
+
+	^ DataElement newFrom: self
+]
+
 { #category : #printing }
 DataElementDefinition >> csvPrintOn: aStream separator: aCharacter [
 	"Print a description of myself in a single CSV text line 
@@ -227,7 +265,7 @@ DataElementDefinition >> initializeFromtextualDefinitionTokens: tokens [
 
 	 Type is optional.
 
-	 April 20 2021 - PRD"
+	 20 April 2021 - Paulo R. Dellani"
 
 	self
 		name: (tokens at: 1);
@@ -256,9 +294,13 @@ DataElementDefinition >> nameUpperCaseFirstLetter [
 	^ String
 		new: 10
 		streamContents: [ :aStream | 
-			aStream
-				nextPut: self name first asUppercase;
-				nextPutAll: (self name copyFrom: 2 to: self name size) ]
+			(self name copyFrom: 1 to: 3) = 'sop'
+				ifTrue: [ aStream
+						nextPutAll: 'SOP';
+						nextPutAll: (self name copyFrom: 4 to: self name size) ]
+				ifFalse: [ aStream
+						nextPut: self name first asUppercase;
+						nextPutAll: (self name copyFrom: 2 to: self name size) ] ]
 ]
 
 { #category : #printing }
@@ -313,7 +355,9 @@ DataElementDefinition >> type: aByteString [
 	"Data element type, as defined by the Dicom Standard (PS 3.5-2000 7.4), 
 	 shall contain a value of 1, 1C, 2, 2C or 3."
 
-	type := aByteString
+	(#('1' '1C' '2' '2C' '3') includes: aByteString)
+		ifTrue: [ type := aByteString ]
+		ifFalse: [ type := '3' ]
 ]
 
 { #category : #accessing }
@@ -338,10 +382,60 @@ DataElementDefinition >> vm [
 ]
 
 { #category : #accessing }
-DataElementDefinition >> vm: aByteString [
-	"Value Multiplicity Sort"
+DataElementDefinition >> vm: aValueMultiplicitySort [
+	"Value Multiplicity Sort
 
-	vm := aByteString
+	 DICOM Data Elements VM	Smalltalk representation of the VM
+	 1								'1'
+	 2								'2'
+	 3								'3'
+	 n (0-n)						'n'
+	 2n								'2n'
+	 3n								'3n'
+	 4n								'4n'
+	 1-n							'1-n'
+	 2-n							'2-n'
+	 3-n							'3-n'
+	 2-5							'2-5'
+	 4-10							'4-10'
+	 2-2n							'2-2n'
+	 x-xn							'x-xn'
+
+	 PRD 04.2001, 07.2002"
+
+	aValueMultiplicitySort isString ifTrue: [ | step fixed free |
+			step := 1.
+			vm := aValueMultiplicitySort.
+			aValueMultiplicitySort size = 1
+				ifTrue: [ (aValueMultiplicitySort at: 1) = $n
+						ifTrue: [ free := $n.
+							fixed := 0 ]
+						ifFalse: [ fixed := aValueMultiplicitySort asNumber ] ].
+			aValueMultiplicitySort size = 2
+				ifTrue: [ fixed := 0.
+					free := aValueMultiplicitySort ].
+			aValueMultiplicitySort size >= 3
+				ifTrue: [ fixed := (aValueMultiplicitySort copyFrom: 1 to: 1) asNumber.
+					free := aValueMultiplicitySort copyFrom: 3 to: aValueMultiplicitySort size.
+					free size = 2
+						ifTrue: [ (free at: 2) = $n
+								ifTrue: [ step := (free copyFrom: 1 to: 1) asNumber.
+									free := free copyFrom: 2 to: 2 ] ] ].
+			self vmArray at: 1 put: fixed.
+			self vmArray at: 2 put: free.
+			self vmArray at: 3 put: step ].
+	aValueMultiplicitySort isArray
+		ifTrue: [ self vmArray: aValueMultiplicitySort ]
+]
+
+{ #category : #accessing }
+DataElementDefinition >> vmArray [
+	^ vmArray ifNil: [ vmArray := Array new: 3 ] ifNotNil: [ :arg | arg ]
+]
+
+{ #category : #accessing }
+DataElementDefinition >> vmArray: anArray [
+	vmArray := anArray
 ]
 
 { #category : #accessing }

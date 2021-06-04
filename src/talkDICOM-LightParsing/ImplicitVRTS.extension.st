@@ -2,42 +2,47 @@ Extension { #name : #ImplicitVRTS }
 
 { #category : #'*talkDICOM-LightParsing' }
 ImplicitVRTS class >> lightDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
+	"Parse the given DICOM presentation data value (PDV) stream in order to
+	 decode a data element, however data elements that normally store large
+	 amounts of data (like pixelData) will be skiped. 
+	 See dataElementFrom:dataElementsDefinition: comments for more information
+	 about this implementation. 
 
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017, 09.2017, 02.2021"
+	  September 2017: Included a dictionary of private creator groups
+	                  of data elements;
+      February 2021: Implemented version for 'light data element parsing
+							/ deconding only'. It just checks is the data element
+							tag is of a large data element or not, skiping it
+							to save time when parsing the PDV stream for meta-data;
+	     15 May 2021: Split data element definition from the data element
+	                  class hierarchy used to store the data elements parsed
+	                  from the DICOM PDV stream bytes - Paulo R. Dellani"
 
-	| elementTag dataElementDefinition |
-	elementTag := self readDicomDataElementTag: pdvStream.
-
-	elementTag isPixelData ifTrue: [
-		self skipNextDataElement: pdvStream.
-		^ nil
-	].
-
-	dataElementDefinition := self
-		dataElementDefinion: elementTag
-		from: dataElementsDefinition
-		valueRepresentation: 'UN'.
-	^ dataElementDefinition
-		createInstanceFrom: pdvStream
-		transferSyntax: self
+	| dataElementTag aDataElement |
+	dataElementTag := self readDicomDataElementTag: pdvStream.
+	^ dataElementTag isPixelData
+		ifTrue: [ self skipNextDataElement: pdvStream. nil ]
+		ifFalse: [ aDataElement := self
+				dataElementSubclassInstanceFrom: dataElementTag
+				from: dataElementsDefinition
+				valueRepresentation: 'UN'.
+			aDataElement parseDataBytesFrom: pdvStream transferSyntax: self; yourself ]
 ]
 
 { #category : #'*talkDICOM-LightParsing' }
 ImplicitVRTS class >> skipNextDataElement: dicomPDVStream [
-	"Skip the next data element.
-	
-	Don't do anything with the data, just move the current position
-	of the DICOM PDV stream to where the next data element begins.
-	PRD February 28, 2021"
+	"Don't do anything with the data, just move the current position
+	 of the DICOM PDV stream to where the next data element begins.
+	 Useful for light data parsing. 
+
+	 28 February 28: Initial implementation - Paulo R. Dellani"
 
 	| lenght |
 	lenght := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
 	lenght = 16rFFFFFFFF
 		ifFalse: [ ^ dicomPDVStream position: dicomPDVStream position + lenght ].
 
-	"**** 	Ok, we have an data element of undefined lenght. Take a breath and
-		   let's search the position of the next data element *******"
-
+	"**** 	Ok, we have an data element of undefined lenght. Take a deep 
+		   breath and let's search the position of the next data element *******"
 	self skipNextDataElementOfUndefinedLenght: dicomPDVStream
 ]

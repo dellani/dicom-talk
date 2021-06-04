@@ -6,32 +6,12 @@ Class {
 
 { #category : #'class initialization' }
 FLDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
 FLDataElement class >> valueRepresentationString [
 	^ 'FL'
-]
-
-{ #category : #'to deprecate' }
-FLDataElement >> _printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015"
-
-	| elementValue |
-	((elementValue := self value) isKindOf: OrderedCollection)
-		ifTrue: [ aStream
-				nextPutAll: elementValue first printString;
-				nextPut: $\.
-			2 to: elementValue size - 1 do: [ :index | 
-				aStream
-					nextPutAll: (elementValue at: index) printString;
-					nextPut: $\ ].
-			aStream nextPutAll: elementValue last printString ]
-		ifFalse: [ (elementValue isKindOf: Float)
-				ifTrue: [ aStream nextPutAll: elementValue printString ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -41,9 +21,9 @@ FLDataElement >> byteSize [
 
 { #category : #accessing }
 FLDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type FL.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthFLDataElement + self dataBytes size
 ]
@@ -53,6 +33,13 @@ FLDataElement >> decodeElementDataBytes: valueDataBytes [
 	" VR = Floating Point Double - PRD 04.2001, 03.2003"
 
 	^self encoder bytesToSinglePrecisionFloat: valueDataBytes
+]
+
+{ #category : #parsing }
+FLDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomFLDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

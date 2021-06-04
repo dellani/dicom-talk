@@ -123,8 +123,7 @@ Class {
 
 { #category : #'class initialization' }
 SQDataElement class >> initialize [
-	
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #'Instance creation' }
@@ -158,14 +157,6 @@ SQDataElement class >> valueRepresentationString [
 	^ 'SQ'
 ]
 
-{ #category : #'instance creation' }
-SQDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomSQDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #printing }
 SQDataElement >> csvPrintOn: aStream separator: aCharacter level: level [
 	"See upperclass implementation for comment"
@@ -197,100 +188,118 @@ SQDataElement >> csvPrintOn: aStream separator: aCharacter level: level listItem
 
 { #category : #accessing }
 SQDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type SQ.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthSQDataElement + self dataBytes size
 ]
 
 { #category : #'sequence decoding' }
-SQDataElement >> decodeDefinedLengthSequence: readStream sequenceItemClass: classOfSequenceItem [
-	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS)
-	Decoding of Defined Length DICOM Item Sequences
+SQDataElement >> decodeDefinedLengthSequence: readStream [
+	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS). Decoding of defined 
+	 length DICOM item sequences.
 
-	PRD 04-10.2001, August 29, 2017"
+    29 August 2017: Implemented unknown sequence item decoding;
+ 	    13 May 2021: Reimplemented the sequence item decoding, getting
+	                 rid of the neeed of a sequence item subclass for
+	                 every sequence item. - PRD	"
 
 	| dataElementTag itemLength |
 	[ readStream atEnd ]
-		whileFalse: [ "Check for the Dicom Sequence Item Tag"
-			"(self hasItemTag: readStream) ifTrue: ["
+		whileFalse: [ "Look for the Dicom Sequence Item Tag"
 			dataElementTag := encoder readDicomDataElementTag: readStream.
 			dataElementTag isItemTag
 				ifTrue: [ "Ok, we have an Item Tag. Let's decode it."
 					itemLength := encoder get32BitUnsignedValueFromByteStream: readStream.
 					itemLength = 16rFFFFFFFF
-						ifTrue: [ self decodeUndefinedLengthSequenceItem: readStream sequenceItemClass: classOfSequenceItem ]
-						ifFalse: [ self decodeDefinedLengthSequenceItem: readStream length: itemLength sequenceItemClass: classOfSequenceItem ] ] ]
+						ifTrue: [ self decodeUndefinedLengthSequenceItem: readStream ]
+						ifFalse: [ self decodeDefinedLengthSequenceItem: readStream length: itemLength ] ] ]
 ]
 
 { #category : #'sequence decoding' }
-SQDataElement >> decodeDefinedLengthSequenceItem: readStream length: itemLength sequenceItemClass: classOfSequenceItem [
-	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS)
-	Decode a Defined Length Item in a DICOM Sequence.
-	Answer back with the position of the next Item in the DICOM Sequence
+SQDataElement >> decodeDefinedLengthSequenceItem: readStream length: itemLength [
+	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS). Decode a defined
+	 length item in a DICOM sequence.
 
-	PRD 04-10.2001, 05.2002"
-	
+    13 May 2021: Reimplemented the sequence item decoding, getting
+                 rid of the neeed of a sequence item subclass for 
+                 every sequence item out there;
+   03 June 2021: Now the code use data elements definitions for
+                 sequence items stored in a sequence item data 
+                 elements definitions dictionary;
+   04 June 2021: Bug fixes - Paulo R. Dellani"
+
 	| sequenceItem |
-
-	sequenceItem := classOfSequenceItem new.
-	sequenceItem encoder: self encoder.
-	sequenceItem 
+	sequenceItem := DicomRegistry sequenceItemDataElementDefinitions
+		at: self tag
+		ifPresent: [ :itemDef | 
+			SequenceItem new
+				description: itemDef description;
+				dataElementsDefinition: (Dictionary withAll: itemDef dataElementsDefinition);
+				dataElementsDefinitionByName: (Dictionary withAll: itemDef dataElementsDefinitionByName);
+				yourself ]
+		ifAbsent: [ SequenceItem new ].
+	sequenceItem
 		pdvBytesStream: (readStream next: itemLength) readStream
-		encoder: self encoder
-		dataElementsDefinition: sequenceItem dataElementsDefinition.
-	self value add: sequenceItem.
+		encoder: self encoder.
+	self value add: sequenceItem
 ]
 
 { #category : #'sequence decoding' }
-SQDataElement >> decodeSequenceItems: classOfSequenceItem [
-	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS)
-	Dicom Sequence Item decoding from the Data Element Value, using a specific
-	Dicom Transfer Syntax Encoder/Decoder (aDicomTransferSyntaxEncoder).
-	*dataBytes* is a ByteArray containing all bytes of the Data Element Value
-	PRD 04-10.2001
+SQDataElement >> decodeSequenceItems [
+	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS). 
+	 Dicom sequence item decoding from the Data Element Value.
 	
-	August 29, 2017: Now unknown sequence item are decoded too. PRD"
+	19 August 2017: Implemented unknown sequence item decoding;
+	   13 May 2021: Reimplemented the sequence item decoding, getting
+	                rid of the need of a sequence item subclass for 
+	                every sequence item outthere. - PRD"
 
 	self length = 16rFFFFFFFF
-		ifTrue: [ self
-				decodeUndefinedLengthSequence: self dataBytes readStream
-				sequenceItemClass: classOfSequenceItem ]
-		ifFalse: [ self
-				decodeDefinedLengthSequence: self dataBytes readStream
-				sequenceItemClass: classOfSequenceItem ]
+		ifTrue: [ self decodeUndefinedLengthSequence: self dataBytes readStream ]
+		ifFalse: [ self decodeDefinedLengthSequence: self dataBytes readStream ]
 ]
 
 { #category : #'sequence decoding' }
-SQDataElement >> decodeUndefinedLengthSequence: readStream sequenceItemClass: classOfSequenceItem [
-	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS)
-	Decoding of Undefined Length DICOM Item Sequences
+SQDataElement >> decodeUndefinedLengthSequence: readStream [
+	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS). Decoding of undefined
+	 length DICOM item sequences. 
 
-	PRD 03.2017, August 29, 2017"
+	     March 2017: Code clean-up;
+	 19 August 2017: Implemented unknown sequence item decoding;
+	 29 August 2017: Code improvements - PRD" 
 
 	| dataElementTag itemLength |
 	"Check for the Dicom Sequence Item Tag"
 	[ dataElementTag := encoder readDicomDataElementTag: readStream.
 	dataElementTag isItemTag ]
 		whileTrue: [ "Ok, we have an Item Tag. Let's decode it."
-			(itemLength := encoder get32BitUnsignedValueFromByteStream: readStream) = 16rFFFFFFFF
-				ifTrue: [ self decodeUndefinedLengthSequenceItem: readStream sequenceItemClass: classOfSequenceItem ]
-				ifFalse: [ self decodeDefinedLengthSequenceItem: readStream length: itemLength sequenceItemClass: classOfSequenceItem ] ]
+			itemLength := encoder get32BitUnsignedValueFromByteStream: readStream.
+			itemLength = 16rFFFFFFFF
+				ifTrue: [ self decodeUndefinedLengthSequenceItem: readStream ]
+				ifFalse: [ self decodeDefinedLengthSequenceItem: readStream length: itemLength ] ]
 ]
 
 { #category : #'sequence decoding' }
-SQDataElement >> decodeUndefinedLengthSequenceItem: readStream sequenceItemClass: classOfSequenceItem [
+SQDataElement >> decodeUndefinedLengthSequenceItem: readStream [
 	"See PS 3.5-2000 7.5 (NESTING OF DATA SETS)
-	Decode a Undefined Length Item in a DICOM Sequence
-	Answer back with the position of the next Item in the DICOM Sequence
+	 Decode a Undefined Length Item in a DICOM Sequence
+	 Answer back with the position of the next Item in the DICOM Sequence
 
-	PRD 04-10.2001, 06.2002, 03.2017, August 29, 2017"
+	 19 August 2017: Implemented unknown sequence item decoding;
+	 29 August 2017: Code improvements;
+	    13 May 2021: Reimplemented the sequence item decoding, getting
+	                 rid of the neeed of a sequence item subclass for 
+	                 every sequence item out there;
+      03 June 2021: Now the code use data elements definitions for
+	                 sequence items stored in a sequence item data 
+	                 elements definitions dictionary;
+	   04 June 2021: Bug fixes - Paulo R. Dellani"
 
 	| sequenceItem readWriteStream itemLength itemEncoder |
 	itemEncoder := self encoder.
 	readWriteStream := ReadWriteStream on: ByteArray new.
-
 
 	"**** Searches for the Item Delimitation Element Tag *****"
 	[ [ (itemEncoder readDicomDataElementTag: readStream) isItemDelimitationElementTag ]
@@ -299,7 +308,7 @@ SQDataElement >> decodeUndefinedLengthSequenceItem: readStream sequenceItemClass
 		on: DataElementEncodingErrorVRNotFound
 		do: [ :error | 
 			"This encoding error can be caused by an application entity that did not known that the
-			data element was a sequence, which can happen if the PDV was encoded using an implicit VR syntax and
+			data element was a sequence, which happens when the PDV was encoded using an implicit VR syntax and
 			the AE did not have an entry for the data element in its own data dictionary, causing the sequence items
 			to 	remain in the original syntax while storing the data on an unknown data element. So check if this is 
 			the case by trying to decode the data using the implicit VR transfer syntax - PRD August 31, 2017"
@@ -315,20 +324,32 @@ SQDataElement >> decodeUndefinedLengthSequenceItem: readStream sequenceItemClass
 	readWriteStream reset.
 	itemLength := itemEncoder get32BitUnsignedValueFromByteStream: readStream.
 	itemLength = 16r00000000
-		ifTrue: [ sequenceItem := classOfSequenceItem new.
-			sequenceItem pdvBytesStream: readWriteStream encoder: itemEncoder dataElementsDefinition: sequenceItem dataElementsDefinition.
+		ifTrue: [ 
+			sequenceItem := DicomRegistry sequenceItemDataElementDefinitions
+				at: self tag
+				ifPresent: [ :itemDef | 
+					SequenceItem new
+						description: itemDef description;
+						dataElementsDefinition: (Dictionary withAll: itemDef dataElementsDefinition);
+						dataElementsDefinitionByName: (Dictionary withAll: itemDef dataElementsDefinitionByName);
+						yourself ]
+				ifAbsent: [ SequenceItem new ].
+
+			sequenceItem 
+				pdvBytesStream: readWriteStream 
+				encoder: itemEncoder.
 			sequenceItem encoder: itemEncoder.
 			valueCache add: sequenceItem ]
-		ifFalse: [ Error signal: 'Error decoding a sequence item of undefined length: ' , 'the legth of the item delimitation data element is not zero' ]
+		ifFalse: [ Error signal: 'Error decoding a sequence item of undefined length: ' ,
+			                      'the legth of the item delimitation data element is not zero' ]
 ]
 
 { #category : #accessing }
 SQDataElement >> encoder: aDicomTransferSyntaxClass [
-	| sequenceItems |
 	self encoder notNil
 		ifTrue: [ self encoder = aDicomTransferSyntaxClass
 				ifFalse: [ super encoder: aDicomTransferSyntaxClass.
-					(sequenceItems := self value)
+					self value
 						do: [ :sequenceItem | 
 							sequenceItem encoder = aDicomTransferSyntaxClass
 								ifFalse: [ sequenceItem encoder: aDicomTransferSyntaxClass ] ] ] ]
@@ -354,6 +375,13 @@ SQDataElement >> getItemLength: readStream [
 { #category : #testing }
 SQDataElement >> isSequence [
 	^ true
+]
+
+{ #category : #parsing }
+SQDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomSQDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }
@@ -437,32 +465,38 @@ SQDataElement >> printValueOn: aStream [
 
 { #category : #accessing }
 SQDataElement >> sequenceItemClass [
-
-	^sequenceItemClass.
+	^ sequenceItemClass
 ]
 
 { #category : #accessing }
 SQDataElement >> sequenceItemClass: aSequenceItemClass [
-
-	sequenceItemClass := aSequenceItemClass.
+	sequenceItemClass := aSequenceItemClass
 ]
 
 { #category : #'field value retrieving' }
 SQDataElement >> value [
-	"See class comments and PS 3.5-2000 Item 7.5 - PRD 10.2001
+	"Decode the sequence item values stored in databytes. See class 
+	 comments and PS 3.5-2000 Item 7.5. SQ data elements always have
+	 a Value Multiplicity equal to one.
 
-	This Data Element type (SQ) always has a Value Multiplicity
-	equal to one - 	PRD 06.2002
-	
-	August 29, 2017: Method changed in order to decode unknown sequence items. PRD"
+	 20 August 2017: Implemented handling and decoding of unknown 
+	                 sequence items;
+	    12 May 2021: Now the method recovers the attribute definition
+	                 for known sequence items from DicomRegistry - PRD"
 
-	^ valueCache isNil
-		ifTrue: [ valueCache := OrderedCollection new.
-			self sequenceItemClass notNil
+	^ valueCache
+		ifNil: [ valueCache := OrderedCollection new.
+					self decodeSequenceItems.
+			"self
+				decodeSequenceItems:
+					(DicomRegistry sequenceItems
+						at: self tag
+						ifAbsent: [ GenericSequenceItem ])."
+			"self sequenceItemClass notNil
 				ifTrue: [ self decodeSequenceItems: self sequenceItemClass ]
-				ifFalse: [ self decodeSequenceItems: UnknownSequenceItem ].
+				ifFalse: [ self decodeSequenceItems: GenericSequenceItem ]."
 			valueCache ]
-		ifFalse: [ valueCache ]
+		ifNotNil: [ :arg | valueCache ]
 ]
 
 { #category : #'field value storing' }

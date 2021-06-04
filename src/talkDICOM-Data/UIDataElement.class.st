@@ -10,7 +10,7 @@ UIDataElement class >> initialize [
 	self dataElementCharacterRepertoire
 		addAll: DefaultCharacterRepertoire digit;
 		add: 16r002E asCharacter.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -18,35 +18,20 @@ UIDataElement class >> valueRepresentationString [
 	^ 'UI'
 ]
 
-{ #category : #'to deprecate' }
-UIDataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	aStream 
-		nextPutAll: (((elementValue := self value) isKindOf: String)
-			ifTrue: [elementValue]
-			ifFalse: [elementValue printString])
-]
-
-{ #category : #'instance creation' }
-UIDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomUIDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 UIDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type UI.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthUIDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+UIDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomUIDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

@@ -2,21 +2,23 @@ Class {
 	#name : #DicomRegistry,
 	#superclass : #Object,
 	#classInstVars : [
-		'DIMSE_PM_Storage_SCP',
-		'DIMSE_PM_Storage_SCU',
-		'SOPClasses',
-		'DIMSE_PM_Verification_SCP',
-		'DIMSE_PM_Verification_SCU',
+		'DataDictionary',
+		'dataElementClasses',
+		'dicomIODDataElementDefinitions',
 		'DIMSE_PM_QueryRetrieval_SCP',
 		'DIMSE_PM_QueryRetrieval_SCU',
-		'TransferSyntaxes',
+		'DIMSE_PM_Storage_SCP',
+		'DIMSE_PM_Storage_SCU',
+		'DIMSE_PM_Verification_SCP',
+		'DIMSE_PM_Verification_SCU',
+		'ImplementationClassUID',
+		'ImplementationVersionName',
+		'PrivateCreatorsDataDictionary',
+		'SOPClasses',
 		'SCPInterfaces',
 		'SCUInterfaces',
-		'DataElements',
-		'DataDictionary',
-		'PrivateCreatorsDataDictionary',
-		'ImplementationClassUID',
-		'ImplementationVersionName'
+		'TransferSyntaxes',
+		'sequenceItemDataElementDefinitions'
 	],
 	#category : #'talkDICOM-Core'
 }
@@ -71,13 +73,6 @@ DicomRegistry class >> DataDictionary [
 ]
 
 { #category : #'class variables' }
-DicomRegistry class >> DataElements [
-	^ DataElements
-		ifNotNil: [ :arg | arg ]
-		ifNil: [ DataElements := Dictionary new ]
-]
-
-{ #category : #'class variables' }
 DicomRegistry class >> ImplementationClassUID [
 	^ '1.2.840.66666.1.1.1.1.1.1.1'
 ]
@@ -120,6 +115,20 @@ DicomRegistry class >> TransferSyntaxes [
 	^ TransferSyntaxes
 		ifNotNil: [ :arg | arg ]
 		ifNil: [ TransferSyntaxes := Dictionary new ]
+]
+
+{ #category : #'class variables' }
+DicomRegistry class >> dataElementClasses [
+	^ dataElementClasses
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ dataElementClasses := Dictionary new ]
+]
+
+{ #category : #'class variables' }
+DicomRegistry class >> dicomIODDataElementDefinitions [
+	^ dicomIODDataElementDefinitions
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ dicomIODDataElementDefinitions := Dictionary new ]
 ]
 
 { #category : #utility }
@@ -195,7 +204,7 @@ DicomRegistry class >> importDCMTKPrivateDictionary [
 		release.
 	collection
 		do: [ :dataElementDefinition | 
-			sortedCollection := self class PrivateCreatorsDataDictionary
+			sortedCollection := self PrivateCreatorsDataDictionary
 				at: dataElementDefinition tag creatorsGroup
 				ifAbsentPut: [ SortedCollection new ].
 			sortedCollection add: dataElementDefinition ]
@@ -233,7 +242,42 @@ DicomRegistry class >> importGDCMPrivateDefaultDicts [
 ]
 
 { #category : #registration }
+DicomRegistry class >> registerDataElementClass: aDataElementSubclass [
+	aDataElementSubclass valueRepresentationString
+		ifNotNil: [ self dataElementClasses
+				at: aDataElementSubclass valueRepresentationString
+				put: aDataElementSubclass ]
+]
+
+{ #category : #registration }
+DicomRegistry class >> registerDicomIODDataElementDefinition: dicomIODDataElementDefinition sopClassUID: sopClassUID [
+	self dicomIODDataElementDefinitions at: sopClassUID put: dicomIODDataElementDefinition
+]
+
+{ #category : #registration }
 DicomRegistry class >> registerIOD: aDicomIOD [
 	aDicomIOD sopClassUID
 		ifNotNil: [ self SOPClasses at: aDicomIOD sopClassUID put: aDicomIOD ]
+]
+
+{ #category : #registration }
+DicomRegistry class >> registerSequenceItemDataElementDefinition: sequenceItemDataElementDefinition sequenceDataElementTag: dataElementTag [
+	self sequenceItemDataElementDefinitions at: dataElementTag put: sequenceItemDataElementDefinition
+]
+
+{ #category : #registration }
+DicomRegistry class >> resetDicomIODDataElementDefinitions [
+	dicomIODDataElementDefinitions := Dictionary new
+]
+
+{ #category : #registration }
+DicomRegistry class >> resetSequenceItemDataElementDefinitions [
+	sequenceItemDataElementDefinitions := Dictionary new
+]
+
+{ #category : #'class variables' }
+DicomRegistry class >> sequenceItemDataElementDefinitions [
+	^ sequenceItemDataElementDefinitions
+		ifNotNil: [ :arg | arg ]
+		ifNil: [ sequenceItemDataElementDefinitions := Dictionary new ]
 ]

@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 OWDataElement class >> initialize [
-	
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -15,21 +14,20 @@ OWDataElement class >> valueRepresentationString [
 	^ 'OW'
 ]
 
-{ #category : #'instance creation' }
-OWDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomOWDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 OWDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type OW.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthOWDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+OWDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomOWDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

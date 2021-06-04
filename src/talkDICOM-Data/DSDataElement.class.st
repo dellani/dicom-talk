@@ -23,7 +23,8 @@ DSDataElement class >> initialize [
 		add: 16r002D asCharacter;	"-"
 		add: 16r0065 asCharacter;	"e"
 		add: 16r0045 asCharacter.	"E"
-	self dataElementClasses at: self valueRepresentationString put: self
+
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -31,40 +32,20 @@ DSDataElement class >> valueRepresentationString [
 	^ 'DS'
 ]
 
-{ #category : #'to deprecate' }
-DSDataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	elementValue := self value.
-	(elementValue isKindOf: OrderedCollection) ifTrue: [
-		aStream nextPutAll: elementValue first.
-		2 to: elementValue size do: [:index | 
-			aStream nextPutAll: ', '; nextPutAll: (elementValue at: index).
-		]
-	] ifFalse: [
-		aStream nextPutAll: elementValue.
-	].
-]
-
-{ #category : #'instance creation' }
-DSDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomDSDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 DSDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type DS.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthDSDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+DSDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomDSDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

@@ -89,8 +89,9 @@ TransferSyntax class >> dataElementDefinion: dataElementTag from: dataElementsDe
 		at: dataElementTag
 		ifAbsent: [ "Item delimitation data element for an unknown group?"
 			definition := dataElementTag isGroupLengthDataElement
-				ifTrue: [ ULDataElement new
+				ifTrue: [ DataElementDefinition new
 						tag: dataElementTag;
+						vr: 'UN';
 						name: (self privateGroupLengthDataElementNameFrom: dataElementTag) asSymbol;
 						vm: '1';
 						description: 'Private Group Length Data Element with tag equal to: ' , dataElementTag printString;
@@ -99,9 +100,10 @@ TransferSyntax class >> dataElementDefinion: dataElementTag from: dataElementsDe
 				ifFalse: [ "Check if the data element tag is otherwise known, if not, create one instance based on the known VR"
 					DicomRegistry DataDictionary
 						at: dataElementTag
-						ifAbsent: [ (DataElement newVR: valueRepresentation)
+						ifAbsent: [ DataElementDefinition new
+								vr: valueRepresentation;
 								tag: dataElementTag;
-								name: (self privateDataElementNameFrom: dataElementTag vr: valueRepresentation) asSymbol;
+								name: (self privateDataElementNameFrom: dataElementTag vr: valueRepresentation);
 								vm: '1';
 								description: 'Private Data Element with tag equal to: ' , dataElementTag printString;
 								type: '3';
@@ -111,39 +113,30 @@ TransferSyntax class >> dataElementDefinion: dataElementTag from: dataElementsDe
 
 { #category : #'data elements' }
 TransferSyntax class >> dataElementFrom: dicomPDVStream dataElementsDefinition: dataElementsDefinition [
-	"Parse the given byte stream and decode an DICOM data element from. If the 
-	data element to be decoded is not present in the data elements definition dictionary, 
-	then decode it as of the unknown type. Return an instance of one of the 
-	DataElement subclasses corresponding to the decoded DICOM data element. 
-	PS 3.5-2000 Section 7
+	"Parse DICOM presentation data value (PDV) stream and decode a DICOM data 
+	 element from the parsed information. Additional information about the data
+	 element being decoded is stored in the data elements definition dictionary.
+	 If no additional information is found in the data elements dictionary, my 
+	 subclasses will extract as much information from the PDV sream as possible
+	 (in the case of a explicit VR transfer syntax). If no information about the
+	 value representation is found, the data element will be decoded as of the
+	 unknown type. The return value will be an instance of one of the subclasses
+	 of DataElement according to the value representation of the decoded DICOM 
+	 data element. 	PS 3.5-2000 Section 7
 
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016"
+	 May 15 2021 - PRD"
 
 	^self subclassResponsibility
 ]
 
 { #category : #'data elements' }
-TransferSyntax class >> dicomSQDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement writeStream pdvBytes |
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	length = 16rFFFFFFFF ifTrue: [
-		newDataElement := dataElementDefinition copy.
-		newDataElement length: 16rFFFFFFFF.
-
-		writeStream := WriteStream on: ByteArray new.
-		pdvBytes := self nextDataElementOfUndefinedLenght: pdvStream writeStream: writeStream.
-		newDataElement dataBytes: pdvBytes.
-		"pdvBytes := self dicomSQUnLenDataElementFrom: pdvStream writeStream: writeStream."
-		"pdvBytes := self dicomSQUnLenDataElementFrom: pdvStream definition: dataElementDefinition."
-		"newDataElement := self dicomSQUnLenDataElementFrom: pdvStream definition: dataElementDefinition"
-
-	 ] ifFalse: [
-		newDataElement := dataElementDefinition copy.
-		newDataElement length: length.
-		newDataElement dataBytes: (pdvStream next: length)
-	].
-	newDataElement encoder: self.
-	^ newDataElement
+TransferSyntax class >> dataElementSubclassInstanceFrom: dataElementTag from: dataElementsDefinition valueRepresentation: valueRepresentation [
+	| definition |
+	definition := self
+		dataElementDefinion: dataElementTag
+		from: dataElementsDefinition
+		valueRepresentation: valueRepresentation.
+	^ definition asDataElement
 ]
 
 { #category : #'byte handling - floating point' }
@@ -436,34 +429,33 @@ TransferSyntax class >> headerLengthUTDataElement [
 
 { #category : #initialize }
 TransferSyntax class >> initialize [
-	"Abstract Smalltalk Class for DICOM Transfer Syntaxes Encoder initialization - PRD 03.2001 - 04.2003
-	Since this is an abstract class, that should not be directly used, it's UID is set to a nil value
-"
-	UID := nil.
+	"Abstract Smalltalk class for DICOM Transfer Syntaxes Transfer
+	 Syntaxes Encoder initialization. Since this is an abstract class,
+	 that should not be directly used, it's UID is set to a nil value.
+	
+	 April 2004: Initial implementation - Paulo R. Dellani"
+
+	UID := nil
 ]
 
 { #category : #testing }
 TransferSyntax class >> isBigEndian [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 TransferSyntax class >> isLittleEndian [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 TransferSyntax class >> isVRExplicit [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 TransferSyntax class >> isVRImplicit [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #'data elements - header lenght' }
@@ -473,8 +465,14 @@ TransferSyntax class >> longDataElementHeaderLength [
 
 { #category : #'next data element' }
 TransferSyntax class >> nextDataElement: dicomPDVStream [
-	"Discover the position where the next data element begins in dicomPDVStream.
-	PRD 03.2017, April 05, 2021"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next data element into a ByteArray, which is
+	 used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	    March 2017: Pharo Smalltalk implemnentation;
+	 05 April 2021: Refactored the whole family of nextDataElement:;
+	   16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	^ self subclassResponsibility
 ]
@@ -551,6 +549,333 @@ TransferSyntax class >> nextDataElementOfUndefinedLenght: dicomPDVStream writeSt
 			'Decoding error: Sequence Delimitation Element Tag not found!'
 	].
 	^ writeStream contents
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDeterminedLengthDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a fixed size DICOM data
+	 element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self subclassResponsibility
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomAEDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'AE' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomASDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'AS' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomATDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'AT' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomCSDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'CS' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomDADataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'DA' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomDSDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'DS' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomDTDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'DT' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomFDDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'FD' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomFLDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'FL' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomISDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'IS' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomLODataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'LO' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomLTDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'LT' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomOBDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UB' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self subclassResponsibility
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomOWDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OW' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self subclassResponsibility
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomPNDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'PN' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomSHDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'SH' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomSLDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'SL' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomSQDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'SQ' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length writeStream pdvBytes |
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	length = 16rFFFFFFFF
+		ifTrue: [ 
+			aDataElement length: 16rFFFFFFFF.
+			writeStream := WriteStream on: ByteArray new.
+			pdvBytes := self
+				nextDataElementOfUndefinedLenght: pdvStream
+				writeStream: writeStream.
+			aDataElement dataBytes: pdvBytes ]
+		ifFalse: [ 
+			aDataElement length: length.
+			aDataElement dataBytes: (pdvStream next: length) ].
+	aDataElement encoder: self.
+	^ aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomSSDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'SS' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomSTDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'ST' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomTMDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'TM' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomUIDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UI' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomULDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UL' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomUNDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UN' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self subclassResponsibility
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomUSDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'US' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+TransferSyntax class >> parseDicomUTDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UT' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self subclassResponsibility
 ]
 
 { #category : #'PDV bytes' }

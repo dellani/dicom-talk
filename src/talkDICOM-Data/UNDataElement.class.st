@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 UNDataElement class >> initialize [
-	
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -15,19 +14,11 @@ UNDataElement class >> valueRepresentationString [
 	^ 'UN'
 ]
 
-{ #category : #'instance creation' }
-UNDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomUNDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 UNDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type UN.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthUNDataElement + self dataBytes size
 ]
@@ -35,6 +26,13 @@ UNDataElement >> dataElementLength [
 { #category : #testing }
 UNDataElement >> isUnknown [
 	^ true
+]
+
+{ #category : #parsing }
+UNDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomUNDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

@@ -14,7 +14,7 @@ CSDataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire upperCase;
 		add: Character space;
 		add: 16r005F asCharacter.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -22,21 +22,20 @@ CSDataElement class >> valueRepresentationString [
 	^ 'CS'
 ]
 
-{ #category : #'instance creation' }
-CSDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomCSDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 CSDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type CS.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthCSDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+CSDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomCSDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

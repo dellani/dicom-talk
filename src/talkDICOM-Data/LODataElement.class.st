@@ -18,7 +18,7 @@ LODataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire upperCase;
 		addAll: DefaultCharacterRepertoire symbol;
 		add: Character escape.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -26,35 +26,20 @@ LODataElement class >> valueRepresentationString [
 	^ 'LO'
 ]
 
-{ #category : #'to deprecate' }
-LODataElement >> _printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015, August 29th, 2017"
-
-	| valueCollection |
-	(valueCollection := self dataBytesStringSpliter) size >= 1
-		ifTrue: [ aStream nextPutAll: valueCollection first.
-			2 to: valueCollection size do: [ :item | 
-				aStream
-					nextPutAll: ' // ';
-					nextPutAll: item ] ]
-]
-
-{ #category : #'instance creation' }
-LODataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomLODataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 LODataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type LO.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthLODataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+LODataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomLODataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

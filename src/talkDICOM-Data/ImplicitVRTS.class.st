@@ -17,120 +17,29 @@ ImplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 
 { #category : #'data elements' }
 ImplicitVRTS class >> dataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
+	"Parse the given DICOM presentation data value (PDV) stream in order to
+	 decode a data element. Additional information about the data element 
+	 being decoded is stored in the data elements definition dictionary.
+	 If no additional information is found in the data elements dictionary
+	 or in the dictionary of private creator groups of data elements, a element
+	 with the 'UN' value representation will be used to store the data element
+	 data bytes. The return value will be an instance of one of the subclasses
+	 of DataElement according to the decoded value representation. 
+	 See PS 3.5-2000 Section 7 for more details.
 
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017, 09.2017"
+	  September 2017: Included a dictionary of private creator groups
+	                  of data elements;
+	     15 May 2021: Split data element definition from the data element
+	                  class hierarchy used to store the data elements parsed
+	                  from the DICOM PDV stream bytes - Paulo R. Dellani"
 
-	| elementTag dataElementDefinition |
-	elementTag := self readDicomDataElementTag: pdvStream.
-	"elementTag groupNumber = 16r0019 & (elementTag elementNumber = 16r0010)
-		ifTrue: [ self halt ]."
-	dataElementDefinition := self dataElementDefinion: elementTag from: dataElementsDefinition valueRepresentation: 'UN'.
-	^ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomAEDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomASDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomCSDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomDSDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomDTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomISDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomLODataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomLTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomOBDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomPNDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomSHDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomSTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomTMDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomUIDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomUNDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement := dataElementDefinition copy.
-	newDataElement length: length.
-	length = 16rFFFFFFFF
-		ifTrue: [ pdvStream position: pdvStream position - 8.
-			newDataElement dataBytes: (self nextDataElement: pdvStream) ]
-		ifFalse: [ length + 8 > pdvStream size
-				ifFalse: [ newDataElement dataBytes: (pdvStream next: length) ]
-				ifTrue: [ newDataElement dataBytes: pdvStream upToEnd ] ].
-	"In the case of a complete unknown data-set being decoded, check if the read lenght is really valid"
-	newDataElement encoder: self.
-	^ newDataElement
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> dicomUTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ImplicitVRTS class >> fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
-	newDataElement := dataElementDefinition copy.
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 8."
-	newDataElement dataBytes: (pdvStream next: length).
-	^ newDataElement
+	| dataElementTag aDataElement |
+	dataElementTag := self readDicomDataElementTag: pdvStream.
+	aDataElement := self
+		dataElementSubclassInstanceFrom: dataElementTag
+		from: dataElementsDefinition
+		valueRepresentation: 'UN'.
+	^ aDataElement parseDataBytesFrom: pdvStream transferSyntax: self; yourself.
 ]
 
 { #category : #'data elements - header lenght' }
@@ -343,44 +252,46 @@ ImplicitVRTS class >> headerLengthUTDataElement [
 
 { #category : #initialize }
 ImplicitVRTS class >> initialize [
-"
-	Abstract Smalltalk Class for DICOM Transfer Syntaxes with Implicit Value 
-	Representation Encoder initialization  - PRD 03.2001 - 04.2003
+	"Abstract Smalltalk class for DICOM Transfer Syntaxes with 
+	 Implicit Value Representation. Since this is an abstract
+	 class, that should not be directly used, it's UID is set
+	 to a nil value.
 	
-	Since this is an abstract class, that should not be directly used, it's UID is set to a nil value
-"
-	UID := nil.
+	 April 2004: Initial implementation - Paulo R. Dellani"
+
+	UID := nil
 ]
 
 { #category : #testing }
 ImplicitVRTS class >> isBigEndian [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 ImplicitVRTS class >> isLittleEndian [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 ImplicitVRTS class >> isVRExplicit [
-
-	^false
+	^ false
 ]
 
 { #category : #testing }
 ImplicitVRTS class >> isVRImplicit [
-
-	^true
+	^ true
 ]
 
 { #category : #'next data element' }
 ImplicitVRTS class >> nextDataElement: dicomPDVStream [
-	"Discover the position where the next data element begins in
-	 dicomPDVStream. If the current data element is of undefined
-	 lenght, send the appropriate message. PRD - 03.2017, 04.2021"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next data element into a ByteArray, which is
+	 used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	    March 2017: Pharo Smalltalk implemnentation;
+	 05 April 2021: Refactored the whole family of nextDataElement:;
+	   16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length writeStream |
 	"Skip the group number and element number 4 bytes"
@@ -396,6 +307,69 @@ ImplicitVRTS class >> nextDataElement: dicomPDVStream [
 		self nextDataElementOfUndefinedLenght: dicomPDVStream writeStream: writeStream.
 	] ifFalse: [
 		self nextDataElementOfDefinedLenght: dicomPDVStream length: self shortDataElementHeaderLength + length. ]
+]
+
+{ #category : #'data elements' }
+ImplicitVRTS class >> parseDeterminedLengthDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a fixed size DICOM data
+	 element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length |
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	aDataElement dataBytes: (pdvStream next: length).
+	^ aDataElement
+]
+
+{ #category : #'data elements' }
+ImplicitVRTS class >> parseDicomOBDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OB' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+ImplicitVRTS class >> parseDicomUNDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UN' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length |
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement length: length.
+	length = 16rFFFFFFFF
+		ifTrue: [ pdvStream position: pdvStream position - 8.
+			aDataElement dataBytes: (self nextDataElement: pdvStream) ]
+		ifFalse: [ 
+			"In the case of a complete unknown data-set being decoded, 
+			 check if the read lenght is really valid"
+			length + 8 > pdvStream size
+				ifFalse: [ aDataElement dataBytes: (pdvStream next: length) ]
+				ifTrue: [ aDataElement dataBytes: pdvStream upToEnd ] ].
+	aDataElement encoder: self.
+	^ aDataElement
+]
+
+{ #category : #'data elements' }
+ImplicitVRTS class >> parseDicomUTDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UT' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	^ self
+		parseDeterminedLengthDataBytesFrom: pdvStream
+		for: aDataElement
 ]
 
 { #category : #'PDV bytes' }

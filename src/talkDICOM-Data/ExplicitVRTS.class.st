@@ -17,9 +17,21 @@ ExplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 
 { #category : #'data elements' }
 ExplicitVRTS class >> dataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
+	"Parse the given DICOM presentation data value (PDV) stream in order to
+	 decode a data element. Additional information about the data element 
+	 being decoded is stored in the data elements definition dictionary.
+	 If no additional information is found in the data elements dictionary
+	 or in the dictionary of private creator groups of data elements, the value
+	 representation encoded explicitly in the PDV byte stream will be used to
+	 create an element to store parsed the data element data bytes. The return
+	 value will be an instance of one of the subclasses of DataElement according
+	 to the decoded value representation. See PS 3.5-2000 Section 7 for more details.
 
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017"
+	  September 2017: Included a dictionary of private creator groups
+	                  of data elements;
+	     15 May 2021: Split data element definition from the data element
+	                  class hierarchy used to store the data elements parsed
+	                  from the DICOM PDV stream bytes - Paulo R. Dellani"
 
 	| elementTag |
 	elementTag := self readDicomDataElementTag: pdvStream.
@@ -30,26 +42,19 @@ ExplicitVRTS class >> dataElementFrom: pdvStream dataElementsDefinition: dataEle
 		dataElementsDefinition: dataElementsDefinition
 ]
 
-{ #category : #'data elements' }
-ExplicitVRTS class >> decodeKnownTagFromUnknownDataElementDefinition: dataElementDefinition pdvstream: pdvStream transferSyntax: transferSyntax [
-	"Handling of CP 246: pdvStream is positioned just after the bytes storing the VR
-	of an data element of type UN. However, the data element tag is present in the
-	data dictionary of the implementation and the value can be decoded from the pdvstream.
-	As it is the case with CP 246, the value is always implicit VR. PRD - September 12, 2017 "
+{ #category : #'data elements - private' }
+ExplicitVRTS class >> decodeKnownTagFromUnknownDataElement: aDataElement pdvstream: pdvStream transferSyntax: transferSyntax [
+	"Handling of CP 246: pdvStream is positioned just after the bytes storing 
+	 the VR of a data element of type UN. However, the data element tag is 
+	 present in the dictionary of data elements definitions  of the 
+	 implementation and the value can be decoded from the pdvstream. As it
+	 is the case with CP 246, the value is always implicit VR.
+	
+    12 September 2017: Initial implementation;
+         04 June 2021: Code cleaning - Paulo R. Dellani"
 
-	| newDataElement length writeStream value |
-	"Transcript
-		show:
-			(String
-				new: 10
-				streamContents: [ :message | 
-					message
-						nextPutAll: 'CP 246 detected! Data element ';
-						nextPutAll: dataElementDefinition tag printString;
-						nextPutAll: ' is encoded with UN VR but its original VR is defined as ';
-						nextPutAll: dataElementDefinition vr;
-						nextPutAll: ', decoding it using implicit VR';
-						nextPut: Character cr ])."
+	| newDataElementDefinition newDataElement length writeStream value |
+
 	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
 	length := self get32BitUnsignedValueFromByteStream: pdvStream.
 	length = 16rFFFFFFFF
@@ -57,40 +62,46 @@ ExplicitVRTS class >> decodeKnownTagFromUnknownDataElementDefinition: dataElemen
 			while the PDV was transmitted using an implicit VR transfer syntax = CP 246"
 			Transcript
 				show:
-					'CP 246 detected! UN VR Data element ' , dataElementDefinition tag printString , ' has undefined length = SQ element with implicit VR';
+					'CP 246 detected! UN VR Data element ' , aDataElement tag printString , ' has undefined length = SQ element with implicit VR';
 				cr.
-			newDataElement := SQDataElement new
-				tag: dataElementDefinition tag;
-				name: (self privateDataElementNameFrom: dataElementDefinition tag vr: 'SQ') asSymbol;
-				vm: dataElementDefinition vm;
-				description: dataElementDefinition description;
-				type: dataElementDefinition type;
+			newDataElementDefinition := DataElementDefinition new
+				vr: 'SQ';
+				tag: aDataElement tag;
+				name: (self privateDataElementNameFrom: aDataElement tag vr: 'SQ');
+				vm: aDataElement vm;
+				description: aDataElement description;
+				type: aDataElement type;
 				yourself.
+			newDataElement := newDataElementDefinition asDataElement.
 			pdvStream position: pdvStream position - 4.
-			newDataElement := LittleEndianImplicitVRTS dicomSQDataElementFrom: pdvStream definition: newDataElement.
-			"newDataElement encoder: LittleEndianImplicitVRTS."
-
+			newDataElement parseDataBytesFrom: pdvStream transferSyntax: LittleEndianImplicitVRTS.
 			value := newDataElement value.
-			newDataElement := SQDataElement new
-				tag: dataElementDefinition tag;
-				name: (self privateDataElementNameFrom: dataElementDefinition tag vr: 'SQ') asSymbol;
-				vm: dataElementDefinition vm;
-				description: dataElementDefinition description;
-				type: dataElementDefinition type;
+
+			newDataElementDefinition := DataElementDefinition new
+				vr: 'SQ';
+				tag: aDataElement tag;
+				name: (self privateDataElementNameFrom: aDataElement tag vr: 'SQ');
+				vm: aDataElement vm;
+				description: aDataElement description;
+				type: aDataElement type;
 				yourself.
+			newDataElement := newDataElementDefinition asDataElement.
 			newDataElement encoder: self.
 			newDataElement value: value ]
-		ifFalse: [ newDataElement := dataElementDefinition copy.
+		ifFalse: [ 
 			writeStream := ByteArray new writeStream.
 			writeStream
 				nextPutAll: (LittleEndianBitPolisher byteArrayFromValue: length size: 4);
 				nextPutAll: (pdvStream next: length).
-			newDataElement := newDataElement createInstanceFrom: writeStream contents readStream transferSyntax: LittleEndianImplicitVRTS.
+			aDataElement 
+				parseDataBytesFrom: writeStream contents readStream
+				transferSyntax: LittleEndianImplicitVRTS.
 
-			value := newDataElement value.
-			newDataElement := dataElementDefinition copy.
-			newDataElement encoder: self.
-			newDataElement value: value ].
+			value := aDataElement value.
+			aDataElement encoder: self.
+			aDataElement value: value.
+			newDataElement := aDataElement ].
+
 	^ newDataElement
 ]
 
@@ -111,158 +122,12 @@ ExplicitVRTS class >> decodeValueRepresentation: dicomPDVStream [
 ]
 
 { #category : #'data elements' }
-ExplicitVRTS class >> dicomAEDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomASDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomCSDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomDSDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomDTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomISDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomLODataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomLTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomOBDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
-	newDataElement := dataElementDefinition copy.
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 12."
-	newDataElement dataBytes: (pdvStream next: length).
-	^ newDataElement
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomPNDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomSHDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomSQDataElementFrom: pdvStream definition: dataElementDefinition [
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	^ super dicomSQDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomSTDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomTMDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomUIDataElementFrom: pdvStream definition: dataElementDefinition [
-	^ self fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomUNDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement sqDataElementDefinition value |
-	newDataElement := dataElementDefinition copy.
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement length: length.
-	length = 16rFFFFFFFF
-		ifTrue: [ "This may be an unknown SQ data element that got its VR lost
-			while the PDV was transmitted using an implicit VR transfer syntax = CP 246"
-			Transcript
-				show:
-					'CP 246 detected! UN VR Data element ' , dataElementDefinition tag printString
-						, ' has undefined length = SQ element with implicit VR';
-				cr.
-			sqDataElementDefinition := SQDataElement new
-				tag: dataElementDefinition tag;
-				name: (self privateDataElementNameFrom: dataElementDefinition tag vr: 'SQ') asSymbol;
-				vm: dataElementDefinition vm;
-				description: dataElementDefinition description;
-				type: dataElementDefinition type;
-				yourself.
-			pdvStream position: pdvStream position - 4.
-			newDataElement := LittleEndianImplicitVRTS dicomSQDataElementFrom: pdvStream definition: sqDataElementDefinition.
-			"newDataElement encoder: LittleEndianImplicitVRTS"
-
-			value := newDataElement value.
-			newDataElement := SQDataElement new
-				tag: dataElementDefinition tag;
-				name: (self privateDataElementNameFrom: dataElementDefinition tag vr: 'SQ') asSymbol;
-				vm: dataElementDefinition vm;
-				description: dataElementDefinition description;
-				type: dataElementDefinition type;
-				yourself.
-			newDataElement encoder: self.
-			newDataElement value: value	]
-		ifFalse: [ "In the case of a complete unknown data-set being decoded, 
-			check if the read lenght is really valid"
-			length + 12 > pdvStream size
-				ifFalse: [ newDataElement length: length.
-					"newDataElement dataElementLength: length + 12."
-					newDataElement dataBytes: (pdvStream next: length) ]
-				ifTrue: [ newDataElement length: pdvStream size - pdvStream position.
-					newDataElement dataBytes: pdvStream upToEnd ].
-			newDataElement encoder: self ].
-	^ newDataElement
-]
-
-{ #category : #'data elements' }
-ExplicitVRTS class >> dicomUTDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
-	newDataElement := dataElementDefinition copy.
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 12."
-	newDataElement dataBytes: (pdvStream next: length).
-	^ newDataElement
-]
-
-{ #category : #'data elements' }
 ExplicitVRTS class >> fixedSizeDataElementFrom: pdvStream definition: dataElementDefinition [
 	| length newDataElement |
 	newDataElement := dataElementDefinition copy.
 	length := self get16BitUnsignedValueFromByteStream: pdvStream.
 	newDataElement encoder: self.
 	newDataElement length: length.
-	"newDataElement dataElementLength: length + 8."
 	newDataElement dataBytes: (pdvStream next: length).
 	^ newDataElement
 ]
@@ -477,44 +342,49 @@ ExplicitVRTS class >> headerLengthUTDataElement [
 
 { #category : #initialize }
 ExplicitVRTS class >> initialize [
-"
-	Abstract Smalltalk Class for DICOM Transfer Syntaxes with Explicit Value 
-	Representation Encoder initialization  - PRD 03.2001 - 04.2004
+	"Abstract Smalltalk class for DICOM Transfer Syntaxes with 
+	 Explicit Value Representation. Since this is an abstract
+	 class, that should not be directly used, it's UID is set
+	 to a nil value.
+	
+	 April 2004: Initial implementation - Paulo R. Dellani"
 
-	Since this is an abstract class, that should not be directly used, it's UID is set to a nil value
-"
-	UID := nil.
+	UID := nil
 ]
 
 { #category : #testing }
 ExplicitVRTS class >> isBigEndian [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 ExplicitVRTS class >> isLittleEndian [
-
-	^self subclassResponsibility.
+	^ self subclassResponsibility
 ]
 
 { #category : #testing }
 ExplicitVRTS class >> isVRExplicit [
-
-	^true
+	^ true
 ]
 
 { #category : #testing }
 ExplicitVRTS class >> isVRImplicit [
-
-	^false
+	^ false
 ]
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElement: dicomPDVStream [
-	"Override of the super class method implementation."
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next data element into a ByteArray, which is
+	 used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	    March 2017: Pharo Smalltalk implemnentation;
+	 05 April 2021: Refactored the whole family of nextDataElement:;
+	   16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| valueRepresentation |
+
 	"Skip the group number and element number 4 bytes"
 	dicomPDVStream next: 4.
 	valueRepresentation := self decodeValueRepresentation: dicomPDVStream.
@@ -534,7 +404,14 @@ ExplicitVRTS class >> nextDataElement: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementAE: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'AE' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -544,7 +421,14 @@ ExplicitVRTS class >> nextDataElementAE: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementAS: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'AS' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -554,7 +438,14 @@ ExplicitVRTS class >> nextDataElementAS: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementAT: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'AT' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -564,7 +455,14 @@ ExplicitVRTS class >> nextDataElementAT: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementCS: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'CS' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -574,7 +472,14 @@ ExplicitVRTS class >> nextDataElementCS: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementDA: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'DA' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -584,7 +489,14 @@ ExplicitVRTS class >> nextDataElementDA: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementDS: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'DS' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -594,7 +506,14 @@ ExplicitVRTS class >> nextDataElementDS: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementDT: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'DT' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -604,7 +523,14 @@ ExplicitVRTS class >> nextDataElementDT: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementFD: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'FD' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -614,7 +540,14 @@ ExplicitVRTS class >> nextDataElementFD: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementFL: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'FL' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -624,7 +557,14 @@ ExplicitVRTS class >> nextDataElementFL: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementIS: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'IS' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -634,7 +574,14 @@ ExplicitVRTS class >> nextDataElementIS: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementLO: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'LO' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -644,7 +591,14 @@ ExplicitVRTS class >> nextDataElementLO: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementLT: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'LT' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -654,7 +608,14 @@ ExplicitVRTS class >> nextDataElementLT: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementOB: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'OW' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	dicomPDVStream next: 2.	"**** Skip 2 unused bytes ******"
@@ -665,7 +626,14 @@ ExplicitVRTS class >> nextDataElementOB: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementOW: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'OW' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	dicomPDVStream next: 2.	"**** Skip 2 unused bytes ******"
@@ -676,7 +644,14 @@ ExplicitVRTS class >> nextDataElementOW: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementPN: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'PN' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -686,7 +661,14 @@ ExplicitVRTS class >> nextDataElementPN: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementSH: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'SH' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -699,7 +681,14 @@ ExplicitVRTS class >> nextDataElementSH: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementSL: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'SL' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -709,7 +698,14 @@ ExplicitVRTS class >> nextDataElementSL: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementSQ: dicomPDVStream [
-	"PRD - 03.2017"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'SQ' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length writeStream |
 
@@ -727,7 +723,14 @@ ExplicitVRTS class >> nextDataElementSQ: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementSS: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'SS' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -737,7 +740,14 @@ ExplicitVRTS class >> nextDataElementSS: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementST: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'ST' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -747,7 +757,14 @@ ExplicitVRTS class >> nextDataElementST: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementTM: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'TM' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -757,7 +774,14 @@ ExplicitVRTS class >> nextDataElementTM: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementUI: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'UI' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -767,7 +791,14 @@ ExplicitVRTS class >> nextDataElementUI: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementUL: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'UL' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -777,7 +808,14 @@ ExplicitVRTS class >> nextDataElementUL: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementUN: dicomPDVStream [
-	"PRD - 05.2001 - 09.2017"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'UN' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length writeStream |
 	dicomPDVStream next: 2.	"**** Skip 2 unused bytes ******"
@@ -799,16 +837,19 @@ ExplicitVRTS class >> nextDataElementUN: dicomPDVStream [
 			Code refactoring - April 05, 2021"
 			writeStream := WriteStream on: ByteArray new.
 			writeStream nextPutAll: (dicomPDVStream next: self headerLengthUNDataElement).
-			self nextDataElementOfUndefinedLenght: dicomPDVStream writeStream: writeStream.
-
-			"self
-				nextDataElementOfUndefinedLenght: dicomPDVStream
-				headerLength: self headerLengthUNDataElement" ]
+			self nextDataElementOfUndefinedLenght: dicomPDVStream writeStream: writeStream ]
 ]
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementUS: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'US' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	length := self get16BitUnsignedValueFromByteStream: dicomPDVStream.
@@ -818,7 +859,14 @@ ExplicitVRTS class >> nextDataElementUS: dicomPDVStream [
 
 { #category : #'next data element' }
 ExplicitVRTS class >> nextDataElementUT: dicomPDVStream [
-	"PRD - 05.2001 - 04.2004"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next 'UT' data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+	   March 2017: Pharo Smalltalk implemnentation;
+	05 April 2021: Refactored the whole family of nextDataElement:;
+	  16 May 2021: Reviwed implementation comments - Paulo R. Dellani"
 
 	| length |
 	dicomPDVStream next: 2.	"**** Skip 2 unused bytes ******"
@@ -829,45 +877,166 @@ ExplicitVRTS class >> nextDataElementUT: dicomPDVStream [
 
 { #category : #'data elements - private' }
 ExplicitVRTS class >> parseDataElement: dataElementTag from: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
+	"Refactoring from dataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition
+	 and lightDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition 
+	 PRD - March 01, 2021"
 
-	PRD 10-11.2001, 05.2002, 05.2003, 04.2004, 02.2016, 03.2017
-	
-	Refactoring from dataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition
-	and lightDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition 
-	PRD - March 01, 2021"
-
-	| dataElementDefinition valueRepresentation |
+	| aDataElement valueRepresentation |
 
 	"Store the VR encoded in pdvStream to decode data elements unknown to this implementation"
 	valueRepresentation := (pdvStream next: 2) asString asByteString.
-	dataElementDefinition := self dataElementDefinion: dataElementTag from: dataElementsDefinition valueRepresentation: valueRepresentation.
+	"dataElementDefinition := self dataElementDefinion: dataElementTag from: dataElementsDefinition valueRepresentation: valueRepresentation."
+
+	aDataElement := self
+		dataElementSubclassInstanceFrom: dataElementTag
+		from: dataElementsDefinition
+		valueRepresentation: valueRepresentation.
+
 	"This should not happen, but just in case, use the VR encoded in the pdv stream if it is other than UN.
 	If the VR encoded in the PDV stream is UN, first try to decode the data element using the information
 	from the data elements directory."
-	^ dataElementDefinition vr = valueRepresentation
+	^ aDataElement vr = valueRepresentation
 		ifFalse: [ valueRepresentation = 'UN'
-				ifTrue: [ [ self decodeKnownTagFromUnknownDataElementDefinition: dataElementDefinition pdvstream: pdvStream transferSyntax: self ]
+				ifTrue: [ [ self decodeKnownTagFromUnknownDataElement: aDataElement pdvstream: pdvStream transferSyntax: self ]
 						on: DataElementEncodingError
-						do: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
+						do: [ aDataElement := (DataElement newVR: valueRepresentation)
 								tag: dataElementTag;
-								name: dataElementDefinition name;
+								name: aDataElement name;
 								vm: '1';
 								description:
 									'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
-										, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
+										, ' other than the one defined in the data dictionary (' , aDataElement vr , '): ';
 								yourself.
-							dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
-				ifFalse: [ dataElementDefinition := (DataElement newVR: valueRepresentation)
+							aDataElement parseDataBytesFrom: pdvStream transferSyntax: self ] ]
+				ifFalse: [ aDataElement := (DataElement newVR: valueRepresentation)
 						tag: dataElementTag;
-						name: dataElementDefinition name;
+						name: aDataElement name;
 						vm: '1';
 						description:
 							'Data Element encoded in the PDV stream with a VR (' , valueRepresentation
-								, ' other than the one defined in the data dictionary (' , dataElementDefinition vr , '): ';
+								, ' other than the one defined in the data dictionary (' , aDataElement vr , '): ';
 						yourself.
-					dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ] ]
-		ifTrue: [ dataElementDefinition createInstanceFrom: pdvStream transferSyntax: self ]
+					aDataElement parseDataBytesFrom: pdvStream transferSyntax: self ] ]
+		ifTrue: [ aDataElement parseDataBytesFrom: pdvStream transferSyntax: self ]
+]
+
+{ #category : #'data elements' }
+ExplicitVRTS class >> parseDeterminedLengthDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a fixed size DICOM data
+	 element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length |
+	length := self get16BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	aDataElement dataBytes: (pdvStream next: length).
+	^ aDataElement
+]
+
+{ #category : #'data elements' }
+ExplicitVRTS class >> parseDicomOBDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OB' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length |
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	aDataElement dataBytes: (pdvStream next: length).
+	^ aDataElement
+]
+
+{ #category : #'data elements' }
+ExplicitVRTS class >> parseDicomSQDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'SQ' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	^ super
+		parseDicomSQDataElementDataBytesFrom: pdvStream
+		for: aDataElement
+]
+
+{ #category : #'data elements' }
+ExplicitVRTS class >> parseDicomUNDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UN' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length newDataElementDefinition newDataElement value |
+	"newDataElement := dataElementDefinition copy."
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement length: length.
+	length = 16rFFFFFFFF
+		ifTrue: [ "This may be an unknown SQ data element that got its VR lost
+			while the PDV was transmitted using an implicit VR transfer syntax = CP 246"
+			Transcript
+				show:
+					'CP 246 detected! UN VR Data element ' , aDataElement tag printString
+						, ' has undefined length = SQ element with implicit VR';
+				cr.
+			newDataElementDefinition := DataElementDefinition new
+				vr: 'SQ';
+				tag: aDataElement tag;
+				name: (self privateDataElementNameFrom: aDataElement tag vr: 'SQ');
+				vm: aDataElement vm;
+				description: aDataElement description;
+				type: aDataElement type;
+				yourself.
+			newDataElement := newDataElementDefinition asDataElement.
+			pdvStream position: pdvStream position - 4.
+			newDataElement parseDataBytesFrom: pdvStream transferSyntax: LittleEndianImplicitVRTS.
+			value := newDataElement value.
+
+			newDataElementDefinition := DataElementDefinition new
+				vr: 'SQ';
+				tag: aDataElement tag;
+				name: (self privateDataElementNameFrom: aDataElement tag vr: 'SQ');
+				vm: aDataElement vm;
+				description: aDataElement description;
+				type: aDataElement type;
+				yourself.
+			newDataElement := newDataElementDefinition asDataElement.
+			newDataElement encoder: self.
+			newDataElement value: value.
+				]
+		ifFalse: [ 
+			"In the case of a complete unknown data-set being decoded, 
+			check if the read lenght is really valid"
+			length + 12 > pdvStream size
+				ifFalse: [ aDataElement length: length.
+					aDataElement dataBytes: (pdvStream next: length) ]
+				ifTrue: [ aDataElement length: pdvStream size - pdvStream position.
+					aDataElement dataBytes: pdvStream upToEnd ].
+			aDataElement encoder: self.
+			newDataElement := aDataElement ].
+	^ newDataElement
+]
+
+{ #category : #'data elements' }
+ExplicitVRTS class >> parseDicomUTDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'UT' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length |
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	aDataElement dataBytes: (pdvStream next: length).
+	^ aDataElement
 ]
 
 { #category : #'PDV bytes' }

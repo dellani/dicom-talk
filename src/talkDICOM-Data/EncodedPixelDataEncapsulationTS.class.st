@@ -4,130 +4,6 @@ Class {
 	#category : #'talkDICOM-Data'
 }
 
-{ #category : #'data elements' }
-EncodedPixelDataEncapsulationTS class >> dicomOBDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement |
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	length = 16rFFFFFFFF
-		ifTrue:
-			[ newDataElement := self dicomOBUnLenDataElementFrom: pdvStream definition: dataElementDefinition ]
-		ifFalse: [ newDataElement := dataElementDefinition copy.
-			newDataElement encoder: self.
-			newDataElement length: length.
-			"newDataElement dataElementLength: length + 12."
-			newDataElement dataBytes: (pdvStream next: length) ].
-	^ newDataElement
-]
-
-{ #category : #'data elements' }
-EncodedPixelDataEncapsulationTS class >> dicomOBUnLenDataElementFrom: dicomPDVStream definition: dataElementDefinition [
-	"Create an instance of OBDataElement with undefined lenght
-	from the PDV byte stream - PS 3.5-2000 Section 7.5
-	
-	 PRD - March 18, 2017"
-	
-	| itemLenght writeStream dicomOBDataElement tag |
-
-	writeStream := WriteStream on: ByteArray new.
-	"******* Repeatedly looks for the Item Tag *******"
-	tag := self readDicomDataElementTag: dicomPDVStream.
-	"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-	elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
-	[tag isItemTag] whileTrue: [
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		dicomPDVStream position: dicomPDVStream position - 8.
-		writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8).
-
-		tag := self  readDicomDataElementTag: dicomPDVStream.
-		"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)"].
-	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitationElementTag ifTrue: [ 
-		"***** Sequence Delimitation Element Tag Found!!!!"
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		itemLenght = 16r00000000 ifTrue: [
-			dicomPDVStream position: dicomPDVStream position - 8.
-			writeStream nextPutAll: (dicomPDVStream next: 8).
-			dicomOBDataElement := dataElementDefinition copy.
-			dicomOBDataElement encoder: self.
-			dicomOBDataElement length: 16rFFFFFFFF.
-			dicomOBDataElement dataBytes: writeStream contents.
-			"dicomOBDataElement dataElementLength: dicomOBDataElement dataBytes size + 8."
-		]
-		ifFalse: [self halt]. 		"***** More Problems.... *****"
-	]
-	ifFalse: [self halt]. 		"***** More Problems.... *****"
-	^dicomOBDataElement
-]
-
-{ #category : #'data elements' }
-EncodedPixelDataEncapsulationTS class >> dicomOWDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement byteArray byte1 |
-	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	length = 16rFFFFFFFF
-		ifTrue: [ newDataElement := self dicomOWUnLenDataElementFrom: pdvStream definition: dataElementDefinition ]
-		ifFalse: [ newDataElement := dataElementDefinition copy.
-			newDataElement encoder: self.
-			newDataElement length: length.
-			"newDataElement dataElementLength: length + 12."
-
-			byteArray := pdvStream next: newDataElement length.
-
-			"Swap byte order"
-			1 to: length by: 2 do: [ :index | 
-				byte1 := byteArray at: index.
-				byteArray at: index put: (byteArray at: index + 1).
-				byteArray at: index + 1 put: byte1 ].
-			newDataElement dataBytes: byteArray ].
-	^ newDataElement
-]
-
-{ #category : #'data elements' }
-EncodedPixelDataEncapsulationTS class >> dicomOWUnLenDataElementFrom: dicomPDVStream definition: dataElementDefinition [
-	"Create an instance of OWDataElement with undefined lenght
-	from the PDV byte stream - PS 3.5-2000 Section 7.5
-	
-	 PRD 10-11.2001, 03-05.2002, 05.2003, 02.2016"
-
-	| itemLenght writeStream dicomOWDataElement tag |
-
-	writeStream := WriteStream on: ByteArray new.
-	"******* Repeatedly looks for the Item Tag *******"
-	
-	"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-	elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-	[(groupNumber = 16rFFFE) & (elementNumber = 16rE000)] whileTrue: ["
-
-	tag := self readDicomDataElementTag: dicomPDVStream.
-	[tag isItemTag] whileTrue: [
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		dicomPDVStream position: dicomPDVStream position - 8.
-		writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8).
-		tag := self  readDicomDataElementTag: dicomPDVStream.
-		"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
-	].
-	"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-	tag isSequenceDelimitationElementTag ifTrue: [ 
-		"***** Sequence Delimitation Element Tag Found!!!!"
-		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-		itemLenght = 16r00000000 ifTrue: [
-			dicomPDVStream position: dicomPDVStream position - 8.
-			writeStream nextPutAll: (dicomPDVStream next: 8).
-			dicomOWDataElement := dataElementDefinition copy.
-			dicomOWDataElement encoder: self.
-			dicomOWDataElement length: 16rFFFFFFFF.
-			dicomOWDataElement dataBytes: writeStream contents.
-			"dicomOWDataElement dataElementLength: dicomOWDataElement dataBytes size + 8."
-		]
-		ifFalse: [self halt]. 		"***** More Problems.... *****"
-	]
-	ifFalse: [self halt]. 		"***** More Problems.... *****"
-	^dicomOWDataElement
-]
-
 { #category : #'PDV bytes' }
 EncodedPixelDataEncapsulationTS class >> encapsulateOBPixelDataElement: dataElement on: aByteStream [ 
 	"This method assumes that the Pixel Data Data Element being encoded in a DICOM Stream
@@ -215,7 +91,7 @@ EncodedPixelDataEncapsulationTS class >> headerLengthOBDataElement [
 	"Return the number of bytes used in the header (group number
 	+ element number + vr + length) of a DICOM OB Data Element.
 	
-	PRD 05-11.2001, 03.2017"
+	March 2017: Initial implementation - Paulo R. Dellani"
 
 	^ self shortDataElementHeaderLength
 ]
@@ -223,120 +99,190 @@ EncodedPixelDataEncapsulationTS class >> headerLengthOBDataElement [
 { #category : #'data elements - header lenght' }
 EncodedPixelDataEncapsulationTS class >> headerLengthOWDataElement [
 	"Return the number of bytes used in the header (group number
-	+ element number + vr + length) of a DICOM OW Data Element.
+	 + element number + vr + length) of a DICOM OW Data Element.
 	
-	PRD 05-11.2001, 03.2017"
+	 March 2017: Initial implementation - Paulo R. Dellani"
 
 	^ self shortDataElementHeaderLength
 ]
 
 { #category : #initialize }
 EncodedPixelDataEncapsulationTS class >> initialize [
-"
-	Abstract Smalltalk Class for DICOM Transfer Syntaxes with 
-	Pixel Data Encapsulation Encoder initialization - 
-	Since this is an abstract class, that should not be directly used, it's 
-	UID is set to a nil value - PRD 03.2001 - 04.2003
-"
-	UID := nil.
+	"Abstract Smalltalk class for DICOM Transfer Syntaxes with 
+	 Pixel Data Encapsulation Encoder. Since this is an abstract
+	 class, that should not be directly used, it's UID is set
+	 to a nil value.
+	
+	 April 2004: Initial implementation - Paulo R. Dellani"
+
+	UID := nil
 ]
 
 { #category : #'next data element' }
 EncodedPixelDataEncapsulationTS class >> nextDataElementOB: dicomPDVStream [
-"
-	Return the position in the dicomPDV byte array where starts the next data Element.
-	tagPosition corresponds to the first byte of the 'current' data element.
-	PRD 05-11.2001
-"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next OB data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
+
+  	    March 2017: Pharo Smalltalk implemnentation;
+	 05 April 2021: Refactored the whole family of nextDataElement:;
+ 	   16 May 2021: Refactored the former implementation of this method
+	                into nextDataElementOBOW:;
+	   16 May 2021: Reviwed implementation comments  - Paulo R. Dellani"
+
+	^ self nextDataElementOBOW: dicomPDVStream
+]
+
+{ #category : #'next data element - private' }
+EncodedPixelDataEncapsulationTS class >> nextDataElementOBOW: dicomPDVStream [
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next OB or OW data element into a ByteArray,
+	 which is used as return value for the message. dicomPDVStream
+	 will be positioned at the begining of the next next data element.
+
+  	    March 2017: Pharo Smalltalk implemnentation;
+	 05 April 2021: Refactored the whole family of nextDataElement:;
+	 16 May 2021: Implemented this method as the result of refactoring 
+	              former methods nextDataElementOB: and nextDataElementOW:
+	              - Paulo R. Dellani"
 
 	| writeStream length tag itemLenght |
 
 	dicomPDVStream next: 2. 	"**** Skip 2 unused bytes ******"
 	writeStream := WriteStream on: ByteArray new.
+
 	length := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-	length = 16rFFFFFFFF ifFalse: [
-		dicomPDVStream position: dicomPDVStream position - 12.
-		writeStream nextPutAll: (dicomPDVStream next: 12 + length)
-	]
-	ifTrue: [
-		"******* Repeatedly looks for the Item Tag *******"
-		"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		[(groupNumber = 16rFFFE) & (elementNumber = 16rE000)] whileTrue: ["
-
-		tag := self readDicomDataElementTag: dicomPDVStream.
-		[tag isItemTag] whileTrue: [
-			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-			dicomPDVStream position: dicomPDVStream position - 8.
-			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8).
-
-			"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-			elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
-			tag := self readDicomDataElementTag: dicomPDVStream.
-		].
-
-		tag isSequenceDelimitationElementTag ifTrue: [ 
-		"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-			"***** Sequence Delimitation Element Tag Found!!!!"
-			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-			itemLenght = 16r00000000 ifTrue: [
+	length = 16rFFFFFFFF 
+		ifFalse: [
+			dicomPDVStream position: dicomPDVStream position - 12.
+			writeStream nextPutAll: (dicomPDVStream next: 12 + length) ]
+		ifTrue: [
+			"******* Repeatedly looks for the Item Tag *******"
+			[ tag := self readDicomDataElementTag: dicomPDVStream.
+			 tag isItemTag ] whileTrue: [
+				itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
 				dicomPDVStream position: dicomPDVStream position - 8.
-				writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8).
-			]
-			ifFalse: [self halt]. 		"***** More Problems.... *****"
-		]
-		ifFalse: [self halt]. 		"***** More Problems.... *****"
-	].
+				writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8) ].
 
-	^writeStream contents.
+			tag isSequenceDelimitationElementTag 
+				ifTrue: [
+					"***** Sequence Delimitation Element Tag Found!!!!"
+					itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+					itemLenght = 16r00000000 
+						ifTrue: [
+							dicomPDVStream position: dicomPDVStream position - 8.
+							writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8) ]
+						ifFalse: [ Error signal: 'Error decoding encapsulated OB data element of undefined length: ' ,
+							                      'Sequence delimitation element tag with length different than zero found!' ] ]
+				ifFalse: [ Error signal: 'Error decoding encapsulated OB data element of undefined length: ' ,
+			                      		'Sequence delimitation element tag not found!' ] ].
+	^ writeStream contents.
 ]
 
 { #category : #'next data element' }
 EncodedPixelDataEncapsulationTS class >> nextDataElementOW: dicomPDVStream [
-"
-	Return the position in the dicomPDV byte array where starts the next data Element.
-	tagPosition corresponds to the first byte of the 'current' data element.
-	PRD 05-11.2001
-"
+	"Parses the given PDV byte stream, copying the complete byte
+	 encoding of the next OW data element into a ByteArray, which
+	 is used as return value for the message. dicomPDVStream will be
+	 positioned at the begining of the next next data element.
 
-	| writeStream length groupNumber elementNumber tag itemLenght |
+  	    March 2017: Pharo Smalltalk implemnentation;
+	 05 April 2021: Refactored the whole family of nextDataElement:;
+ 	   16 May 2021: Refactored the former implementation of this method
+	                into nextDataElementOBOW:;
+	   16 May 2021: Reviwed implementation comments  - Paulo R. Dellani"
 
-	dicomPDVStream next: 2. 	"**** Skip 2 unused bytes ******"
+	^ self nextDataElementOBOW: dicomPDVStream
+]
+
+{ #category : #'data elements' }
+EncodedPixelDataEncapsulationTS class >> parseDicomOBDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OB' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+	
+	| length newDataElement |
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	length = 16rFFFFFFFF
+		ifTrue: [
+			self parseDicomOBOWUnLenDataElementDataBytesFrom: pdvStream for: aDataElement ]
+		ifFalse: [ 
+			aDataElement encoder: self.
+			aDataElement length: length.
+			aDataElement dataBytes: (pdvStream next: length).
+			newDataElement := aDataElement ].
+	^ newDataElement
+]
+
+{ #category : #'data elements' }
+EncodedPixelDataEncapsulationTS class >> parseDicomOBOWUnLenDataElementDataBytesFrom: dicomPDVStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OB' DICOM data element.
+	 This will parse an 'OB' data element of undefined length.
+	 More details in PS 3.5-2000 Section 7.5
+	
+	 18 March 2017: Initial implementation;
+      16 May 2021: Split data element definition from the data element
+	                class hierarchy used to store the data elements parsed
+	                from the DICOM PDV stream bytes - Paulo R. Dellani"
+	
+	| itemLenght writeStream tag |
+
 	writeStream := WriteStream on: ByteArray new.
-	length := self get32BitUnsignedValueFromByteStream: dicomPDVStream.
-	length = 16rFFFFFFFF ifFalse: [
-		dicomPDVStream position: dicomPDVStream position - 12.
-		writeStream nextPutAll: (dicomPDVStream next: 12 + length)
-	]
-	ifTrue: [
-		"******* Repeatedly looks for the Item Tag *******"
-		"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-		[(groupNumber = 16rFFFE) & (elementNumber = 16rE000)] whileTrue: ["
-		tag := self readDicomDataElementTag: dicomPDVStream.
-		[tag isItemTag] whileTrue: [
-			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-			dicomPDVStream position: dicomPDVStream position - 8.
-			writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8).
 
-			"groupNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2).
-			elementNumber := (self getValueFromByteStream: dicomPDVStream bytes: 2)."
-			tag := self readDicomDataElementTag: dicomPDVStream.
-		].
-		"(groupNumber = 16rFFFE) & (elementNumber = 16rE0DD) ifTrue:  ["
-		tag isSequenceDelimitationElementTag ifTrue: [ 
-			"***** Sequence Delimitation Element Tag Found!!!!"
-			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
-			itemLenght = 16r00000000 ifTrue: [
-				dicomPDVStream position: dicomPDVStream position - 8.
-				writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8).
-			]
-			ifFalse: [self halt]. 		"***** More Problems.... *****"
-		]
-		ifFalse: [self halt]. 		"***** More Problems.... *****"
-	].
+	"******* Repeatedly looks for the Item Tag *******"
+	[ tag := self readDicomDataElementTag: dicomPDVStream.
+	  tag isItemTag ] whileTrue: [
+		itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+		dicomPDVStream position: dicomPDVStream position - 8.
+		writeStream nextPutAll: (dicomPDVStream next: itemLenght + 8) ].
 
-	^writeStream contents.
+	tag isSequenceDelimitationElementTag 
+		ifTrue: [ "***** Sequence Delimitation Element Tag Found!!!!"
+			itemLenght := (self get32BitUnsignedValueFromByteStream: dicomPDVStream).
+			itemLenght = 16r00000000 
+				ifTrue: [
+					dicomPDVStream position: dicomPDVStream position - 8.
+					writeStream nextPutAll: (dicomPDVStream next: 8).
+					aDataElement encoder: self.
+					aDataElement length: 16rFFFFFFFF.
+					aDataElement dataBytes: writeStream contents ]
+				ifFalse: [ Error signal: 'Error decoding encapsulated OB data element of undefined length: ' ,
+							                      'Sequence delimitation element tag with length different than zero found!' ] 	]
+		ifFalse: [ Error signal: 'Error decoding encapsulated OB data element of undefined length: ' ,
+			                      		'Sequence delimitation element tag not found!' ]. 		"***** More Problems.... *****"
+	^ aDataElement
+]
+
+{ #category : #'data elements' }
+EncodedPixelDataEncapsulationTS class >> parseDicomOWDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OW' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length byteArray byte1 |
+	pdvStream next: 2.	"**** Skip 2 unused bytes ******"
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	length = 16rFFFFFFFF
+		ifTrue: [ 
+			self parseDicomOBOWUnLenDataElementDataBytesFrom: pdvStream for: aDataElement ]
+		ifFalse: [ 
+			aDataElement encoder: self.
+			aDataElement length: length.
+
+			byteArray := pdvStream next: aDataElement length.
+			"Swap byte order"
+			1 to: length by: 2 do: [ :index | 
+				byte1 := byteArray at: index.
+				byteArray at: index put: (byteArray at: index + 1).
+				byteArray at: index + 1 put: byte1 ].
+
+			aDataElement dataBytes: byteArray ].
+	^ aDataElement
 ]
 
 { #category : #'PDV bytes' }

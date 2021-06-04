@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 LTDataElement class >> initialize [
-	
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -15,21 +14,20 @@ LTDataElement class >> valueRepresentationString [
 	^ 'LT'
 ]
 
-{ #category : #'instance creation' }
-LTDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomLTDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 LTDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type LT.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthLTDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+LTDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomLTDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

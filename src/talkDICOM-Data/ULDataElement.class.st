@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 ULDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -37,9 +36,9 @@ ULDataElement >> byteSize [
 
 { #category : #accessing }
 ULDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type UL.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthULDataElement + self dataBytes size
 ]
@@ -48,6 +47,13 @@ ULDataElement >> dataElementLength [
 ULDataElement >> decodeElementDataBytes: valueDataBytes [
 
 	^self encoder getValueFromByteArray: valueDataBytes
+]
+
+{ #category : #parsing }
+ULDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomULDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

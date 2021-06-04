@@ -6,44 +6,12 @@ Class {
 
 { #category : #'class initialization' }
 FDDataElement class >> initialize [
-
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
 FDDataElement class >> valueRepresentationString [
 	^ 'FD'
-]
-
-{ #category : #'to deprecate' }
-FDDataElement >> _printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-
-	PRD January 10th, 2003 - August 20th, 2015, August 29, 2017"
-
-	| valueCollection |
-
-	self dataBytes notEmpty
-		ifTrue: [ self dataBytes size >= self byteSize
-				ifTrue: [ (valueCollection := self decodeValue) notEmpty
-						ifTrue: [ aStream nextPutAll: valueCollection first printString.
-							2 to: valueCollection size do: [ :index | 
-								aStream nextPutAll: ' \\ '.
-								aStream nextPutAll: (valueCollection at: index) printString ] ] ] ].
-
-
-	"((elementValue := self value) isKindOf: OrderedCollection)
-		ifTrue: [ aStream
-				nextPutAll: elementValue first printString;
-				nextPut: $\.
-			2 to: elementValue size - 1 do: [ :index | 
-				aStream
-					nextPutAll: (elementValue at: index) printString;
-					nextPut: $\ ].
-			aStream nextPutAll: elementValue last printString ]
-		ifFalse: [ (elementValue isKindOf: Float)
-				ifTrue: [ aStream nextPutAll: elementValue printString ] ]."
-
 ]
 
 { #category : #'field value retrieving' }
@@ -53,9 +21,9 @@ FDDataElement >> byteSize [
 
 { #category : #accessing }
 FDDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type FD.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthFDDataElement + self dataBytes size
 ]
@@ -65,6 +33,13 @@ FDDataElement >> decodeElementDataBytes: valueDataBytes [
 	" VR = Floating Point Single - PRD 04.2001, 03.2003"
 
 	^self encoder bytesToDoublePrecisionFloat: valueDataBytes
+]
+
+{ #category : #parsing }
+FDDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomFDDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

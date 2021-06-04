@@ -19,7 +19,7 @@ SHDataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire upperCase;
 		addAll: DefaultCharacterRepertoire symbol;
 		add: Character escape.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -27,35 +27,20 @@ SHDataElement class >> valueRepresentationString [
 	^ 'SH'
 ]
 
-{ #category : #'to deprecate' }
-SHDataElement >> _printValueOn: aStream [
-"
-	Print the Dicom Data Element Value to 'aStream' 
-	PRD January 10th, 2003 - August 20th, 2015
-"
-	| elementValue |
-
-	((elementValue := self value) isKindOf: String) ifTrue: [
-		aStream nextPutAll: elementValue]
-	ifFalse: [
-		aStream nextPutAll: elementValue printString]
-]
-
-{ #category : #'instance creation' }
-SHDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomSHDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 SHDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type SH.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthSHDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+SHDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomSHDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

@@ -17,7 +17,7 @@ PNDataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire upperCase;
 		addAll: DefaultCharacterRepertoire symbol;
 		add: Character escape.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -25,21 +25,20 @@ PNDataElement class >> valueRepresentationString [
 	^ 'PN'
 ]
 
-{ #category : #'instance creation' }
-PNDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomPNDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 PNDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type PN.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthPNDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+PNDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomPNDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

@@ -75,25 +75,6 @@ LittleEndianImplicitVRTS class >> bitpolisher [
 LittleEndianImplicitVRTS class >> checkEncodingRequirements: aDicomImageIOD [
 ]
 
-{ #category : #'data elements' }
-LittleEndianImplicitVRTS class >> dicomOWDataElementFrom: pdvStream definition: dataElementDefinition [
-	| length newDataElement byteArray byte1 |
-	newDataElement := dataElementDefinition copy.
-	length := self get32BitUnsignedValueFromByteStream: pdvStream.
-	newDataElement encoder: self.
-	newDataElement length: length.
-	"newDataElement dataElementLength: length + 8."
-	byteArray := pdvStream next: length.
-
-	"Swap byte order"
-	1 to: length by: 2 do: [ :index | 
-		byte1 := byteArray at: index.
-		byteArray at: index put: (byteArray at: index + 1).
-		byteArray at: index + 1 put: byte1 ].
-	newDataElement dataBytes: byteArray.
-	^ newDataElement
-]
-
 { #category : #initialize }
 LittleEndianImplicitVRTS class >> initialize [
 
@@ -103,14 +84,34 @@ LittleEndianImplicitVRTS class >> initialize [
 
 { #category : #testing }
 LittleEndianImplicitVRTS class >> isBigEndian [
-
-	^false
+	^ false
 ]
 
 { #category : #testing }
 LittleEndianImplicitVRTS class >> isLittleEndian [
+	^ true
+]
 
-	^true
+{ #category : #'data elements' }
+LittleEndianImplicitVRTS class >> parseDicomOWDataElementDataBytesFrom: pdvStream for: aDataElement [
+	"Parse the given presentation data value byte stream, 
+	 extracting the data bytes of a 'OW' DICOM data element.
+	
+	 15 May 2021: Initial implementation - Paulo R. Dellani"
+
+	| length byteArray byte1 |
+	length := self get32BitUnsignedValueFromByteStream: pdvStream.
+	aDataElement encoder: self.
+	aDataElement length: length.
+	byteArray := pdvStream next: length.
+
+	"Swap byte order"
+	1 to: length by: 2 do: [ :index | 
+		byte1 := byteArray at: index.
+		byteArray at: index put: (byteArray at: index + 1).
+		byteArray at: index + 1 put: byte1 ].
+	aDataElement dataBytes: byteArray.
+	^ aDataElement
 ]
 
 { #category : #'PDV bytes' }

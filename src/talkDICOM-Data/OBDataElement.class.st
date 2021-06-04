@@ -6,8 +6,7 @@ Class {
 
 { #category : #'class initialization' }
 OBDataElement class >> initialize [
-	
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -15,21 +14,20 @@ OBDataElement class >> valueRepresentationString [
 	^ 'OB'
 ]
 
-{ #category : #'instance creation' }
-OBDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomOBDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 OBDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type OB.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthOBDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+OBDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomOBDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

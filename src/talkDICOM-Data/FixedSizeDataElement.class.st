@@ -14,14 +14,6 @@ FixedSizeDataElement >> byteSize [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'instance creation' }
-FixedSizeDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				fixedSizeDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> dataBytesByteSpliter [
 	"Split the DICOM multi-byte values (for VM > 1) that are coded in dataBytes 
@@ -52,9 +44,10 @@ FixedSizeDataElement >> dataBytesByteSpliter: byteValueSize [
 
 { #category : #accessing }
 FixedSizeDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for a data element of 
+	 type (see subclass implementations)
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self subclassResponsibility
 ]
@@ -72,6 +65,11 @@ FixedSizeDataElement >> decodeValue [
 	Refactoring - PRD June 28, 2017, August 29, 2017"
 
 	^ self dataBytesByteSpliter collect: [ :item | self decodeElementDataBytes: item ]
+]
+
+{ #category : #parsing }
+FixedSizeDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxEncoder [
+	^ self subclassResponsibility
 ]
 
 { #category : #'field bytes' }
@@ -130,9 +128,9 @@ FixedSizeDataElement >> validateValue: aValue [
 
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> value [
-	"Decode value from DICOM data element with fixed size - PRD 04.2001
+	"Decode value from DICOM data element with fixed length.
 	
-	Refactoring - PRD June 28, 2017"
+	28 June 2017: Refactoring - Paulo R. Dellani"
 
 	| orderedCollection |
 	^ self dataBytes notEmpty

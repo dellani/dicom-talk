@@ -13,7 +13,7 @@ ISDataElement class >> initialize [
 		addAll: DefaultCharacterRepertoire digit;
 		add: 16r002B asCharacter;
 		add: 16r002D asCharacter.
-	self dataElementClasses at: self valueRepresentationString put: self
+	DicomRegistry registerDataElementClass: self
 ]
 
 { #category : #accessing }
@@ -21,35 +21,20 @@ ISDataElement class >> valueRepresentationString [
 	^ 'IS'
 ]
 
-{ #category : #'to deprecate' }
-ISDataElement >> _printValueOn: aStream [
-	"Print the Dicom Data Element Value to 'aStream' 
-
-	PRD January 10th, 2003 - August 20th, 2015"
-
-	| elementValue |
-	aStream
-		nextPutAll:
-			(((elementValue := self value) isKindOf: String)
-				ifTrue: [ elementValue ]
-				ifFalse: [ elementValue printString ])
-]
-
-{ #category : #'instance creation' }
-ISDataElement >> createInstanceFrom: pdvStream transferSyntax: transferSyntaxEncoder [
-	
-	^transferSyntaxEncoder 
-				dicomISDataElementFrom: pdvStream 
-				definition: self.
-]
-
 { #category : #accessing }
 ISDataElement >> dataElementLength [
-	"Data Length of the message field in bytes
+	"Lenght of the message field in bytes for data element of type IS.
 
-	PRD 04-10.2001"
+	 May 13 2021 - PRD"
 
 	^ self encoder headerLengthISDataElement + self dataBytes size
+]
+
+{ #category : #parsing }
+ISDataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxCodec [
+	^ transferSyntaxCodec
+		parseDicomISDataElementDataBytesFrom: pdvStream
+		for: self
 ]
 
 { #category : #'field bytes' }

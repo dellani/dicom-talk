@@ -244,7 +244,6 @@ DataElementTag class >> parseToken: token [
 
 { #category : #comparing }
 DataElementTag >> < anObject [
-
 	^ self hash < anObject hash
 ]
 
@@ -396,6 +395,24 @@ DataElementTag >> isSequenceDelimitationElementTag [
 	"Am I a Sequence Delimitation Element Tag?"
 
 	^ self tag = 16rFFFEE0DD
+]
+
+{ #category : #printing }
+DataElementTag >> printArrayCodeOn: aStream [
+	aStream nextPutAll: '#(16r'.
+	self groupNumber
+		printOn: aStream
+		base: 16
+		length: 4
+		padded: true.
+	aStream nextPutAll: ' 16r'.
+	self elementNumber
+		printOn: aStream
+		base: 16
+		length: 4
+		padded: true.
+	aStream nextPut: $).
+
 ]
 
 { #category : #printing }
