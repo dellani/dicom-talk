@@ -87,12 +87,12 @@ TransferSyntax class >> dataElementDefinion: dataElementTag from: dataElementsDe
 	| definition |
 	definition := dataElementsDefinition
 		at: dataElementTag
-		ifAbsent: [ "Item delimitation data element for an unknown group?"
-			definition := dataElementTag isGroupLengthDataElement
+		ifAbsent: [ 
+			definition := (dataElementTag isGroupLengthDataElement 
 				ifTrue: [ DataElementDefinition new
 						tag: dataElementTag;
 						vr: 'UN';
-						name: (self privateGroupLengthDataElementNameFrom: dataElementTag) asSymbol;
+						name: (self privateGroupLengthDataElementNameFrom: dataElementTag);
 						vm: '1';
 						description: 'Private Group Length Data Element with tag equal to: ' , dataElementTag printString;
 						type: '3';
@@ -107,7 +107,7 @@ TransferSyntax class >> dataElementDefinion: dataElementTag from: dataElementsDe
 								vm: '1';
 								description: 'Private Data Element with tag equal to: ' , dataElementTag printString;
 								type: '3';
-								yourself ] ] ].
+								yourself ] ]) ].
 	^ definition
 ]
 
@@ -1112,51 +1112,45 @@ TransferSyntax class >> pdvBytesFromUTDataElement: dicomUTDataElement on: aByteS
 
 { #category : #'data elements' }
 TransferSyntax class >> privateCreatorDataElementNameFrom: dataElementTag [
-
-	| elementName |
-	elementName := String
+	^ String
 		new: 10
 		streamContents: [ :aStream | 
 			aStream
 				nextPutAll: 'privateCreatorDataElement';
-				nextPutAll: dataElementTag printString ].
-	^ elementName
+				nextPutAll: dataElementTag printString ]
 ]
 
 { #category : #'data elements' }
 TransferSyntax class >> privateDataElementNameFrom: dataElementTag [
-	| elementName |
-	elementName := String
+	^ String
 		new: 10
 		streamContents: [ :aStream | 
 			aStream
 				nextPutAll: 'privateDataElement';
-				nextPutAll: dataElementTag printString ].
-	^ elementName
+				nextPutAll: dataElementTag printString ]
 ]
 
 { #category : #'data elements' }
 TransferSyntax class >> privateDataElementNameFrom: dataElementTag vr: valueRepresentation [
-	| elementName |
-	elementName := WriteStream on: String new.
-	elementName nextPutAll: 'private' , valueRepresentation , 'DataElement['.
-	(dataElementTag groupNumber ) printOn: elementName base: 16.
-	elementName nextPutAll: ','.
-	(dataElementTag elementNumber) printOn: elementName base: 16.
-	elementName nextPutAll: ']'.
-	^ elementName contents
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream
+				nextPutAll: 'private'; nextPutAll: valueRepresentation; nextPutAll: 'DataElement['.
+			dataElementTag groupNumber printOn: aStream base: 16.
+			aStream nextPutAll: ','.
+			dataElementTag elementNumber printOn: aStream base: 16.
+			aStream nextPutAll: ']' ]
 ]
 
 { #category : #'data elements' }
 TransferSyntax class >> privateGroupLengthDataElementNameFrom: dataElementTag [
-	| elementName |
-	elementName := String
+	^ String
 		new: 10
 		streamContents: [ :aStream | 
 			aStream
 				nextPutAll: 'privateGroupLengthDataElement';
-				nextPutAll: dataElementTag printString ].
-	^ elementName
+				nextPutAll: dataElementTag printString ]
 ]
 
 { #category : #'byte/value handling' }

@@ -1316,7 +1316,7 @@ DicomObject >> loadPrivateCreatorsGroup: aDicomDataElement [
 
 	xx := aDicomDataElement tag elementNumber bitShift: 8.
 	aDicomDataElement name: (TransferSyntax 
-		privateCreatorDataElementNameFrom: aDicomDataElement tag) asSymbol.
+		privateCreatorDataElementNameFrom: aDicomDataElement tag).
 
 	elementsCollection do: [ :entry | 
 		newEntry := entry copy.
