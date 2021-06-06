@@ -3940,5 +3940,9 @@ SequenceItem >> length [
 
 { #category : #printing }
 SequenceItem >> printOn: aStream [
-	aStream nextPutAll: self description
+	aStream
+		nextPutAll:
+			(self description
+				ifNotNil: [ :arg | arg ]
+				ifNil: [ 'Sequence item for unknow SQ data element' ])
 ]
