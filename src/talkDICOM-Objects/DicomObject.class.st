@@ -1005,16 +1005,23 @@ DicomObject >> copyTo: aDicomObject [
 	]
 ]
 
-{ #category : #'PDV Bytes' }
+{ #category : #'data elements' }
 DicomObject >> dataElementsCollection [
-	"Answer an OrderedCollection with the *DataElements found in the DicomObject instance
-
-	PRD 05-12.2001, 02-06.2002"
+	"Return an instance of SortedCollection with all data elements of 
+	 a given instance of my subclasses. New instances of *DataElement 
+	 will be create for those data elements that had their values decoded
+	 and stored in the 'data elements values cache' (instance variable
+	 dataElementsValues)
+	
+	    July 2003: Implementation of the data elements values cache mechanism;
+	 04 Juni 2021: Reimplementation making use of the DataElementDefinition 
+	               and *DataElement classes scheme - Paulo R. Dellani"
 
 	"Create DataElement instances with the stored data element values. 'Key' stores 
 	the name of the data element as a String, need to be converted to a instance of class Symbol."
 
 	| groupLengthTag groupLengthDataElement groupLengthDataElements dataElement keys |
+
 	keys := self dataElementsValues keys.
 	keys
 		do: [ :key | 
@@ -1026,22 +1033,25 @@ DicomObject >> dataElementsCollection [
 			may be shared as a variable instance among several instances of subclasses of Object,
 			remove the keys instead of creating a new and empty instance of Dictionary."
 			self dataElementsValues removeKey: key ].
+
 	groupLengthDataElements := Dictionary new.
 	self dataElementsDictionary
 		do: [ :aDataElement | 
 			groupLengthTag := aDataElement groupLengthTag.
 			groupLengthDataElement := groupLengthDataElements
 				at: groupLengthTag
-				ifAbsentPut: [ (ULDataElement
-						newWith: #groupLength
-						tag:
-						(Array
-								with: groupLengthTag groupNumber
-								with: groupLengthTag elementNumber)
-						vm: 1
-						type: '3')
+				ifAbsentPut: [
+					(DataElementDefinition new
+												vr: 'UL';
+												tag: groupLengthTag;
+												name: 'groupLength';
+												vm: '1';
+												type: '3'
+												yourself)
+					asDataElement
 						encoder: self encoder;
-						value: 16r0000 ].
+						value: 16r0000; 
+						yourself ].
 			groupLengthDataElement
 				value:
 					groupLengthDataElement value
@@ -1079,7 +1089,7 @@ DicomObject >> dataElementsDefinitionByName: aDictionary [
 
 { #category : #accessing }
 DicomObject >> dataElementsDictionary [
-	^dataElementsDictionary
+	^ dataElementsDictionary
 ]
 
 { #category : #accessing }
@@ -1087,7 +1097,7 @@ DicomObject >> dataElementsDictionary: aDictionary [
 	dataElementsDictionary := aDictionary
 ]
 
-{ #category : #'PDV Bytes' }
+{ #category : #'data elements' }
 DicomObject >> dataElementsDictionaryByTag [
 	"Answer an Dictionary with the *DataElements found in the DicomObject instance.
 	The DICOM data element tag is the key.
@@ -1136,16 +1146,11 @@ DicomObject >> dataElementsDictionaryByTag [
 	dictionary := Dictionary new.
 	self dataElementsDictionary do: [ :dicomDataElement | dictionary at: dicomDataElement tag put: dicomDataElement ].
 	^ dictionary
-
-	"^ SortedCollection new
-		addAll: self dataElementsDictionary;
-		addAll: groupLengthDataElements;
-		yourself"
 ]
 
 { #category : #accessing }
 DicomObject >> dataElementsValues [
-	^dataElementsValues
+	^ dataElementsValues
 ]
 
 { #category : #accessing }
@@ -1183,47 +1188,46 @@ DicomObject >> doesNotUnderstand: aMessage [
 
 { #category : #accessing }
 DicomObject >> encoder [
-	"Contains a reference to the object class that represents the DICOM Transfer - Syntax being used - PRD 05.2001"
+	"Reference to the object class implementing the DICOM Transfer Syntax
+	 used by a given instance of my subclasses - Paulo R. Dellani 05.2001"
 
-	^encoder
+	^ encoder
 ]
 
 { #category : #accessing }
 DicomObject >> encoder: aDicomTransferSyntaxClass [
-	"Contains a reference to the object class that represents the DICOM Transfer Syntax being used
-	Also takes care of the encoding of all stored data elements.
-
-	PRD 05.2001, 07.2003"
+	"Reference to the object class implementing the DICOM Transfer Syntax
+	 used by a given instance of my subclasses. This method also takes care
+	 of the encoding of all stored data elements, reenconding them in the case
+	 of a transfer syntax change
+	
+	 July 2003: Paulo R. Dellani"
 
 	| dataElement |
-	aDicomTransferSyntaxClass isNil
-		ifFalse: 
-			[encoder = aDicomTransferSyntaxClass
-				ifFalse: 
-					[encoder := aDicomTransferSyntaxClass.
-					"Create *DataElement instances with the stored data element values"
-					self dataElementsValues keysAndValuesDo: 
-							[:key :value |
-							"dataElementValues shall not contain any unknown data element value,
-				 			since only the values of known data elements are cached by its accessors"
-							dataElement := self newDataElementNamed: key.
+	aDicomTransferSyntaxClass ifNotNil: [
+		encoder = aDicomTransferSyntaxClass ifFalse: [
+			encoder := aDicomTransferSyntaxClass.
+			"Create *DataElement instances with the stored data element values"
+			self dataElementsValues
+				keysAndValuesDo: [ :key :value | 
+					"dataElementValues shall not contain any unknown data element value,
+					 since only the values of known data elements are cached by its accessors"
+					dataElement := self newDataElementNamed: key.
+					dataElement encoder: aDicomTransferSyntaxClass.
+					dataElement value: value.
+					self dataElementsDictionary at: key put: dataElement ].
+
+			"Remove all data element values, since they are now safe"
+			self dataElementsValues removeAll.
+
+			"**** (Re)Encode all other data elements, inclusive the unknown ones ********"
+			self dataElementsDictionary
+				keysAndValuesDo: [ :key :value | 
+					value encoder = aDicomTransferSyntaxClass
+						ifFalse: [ dataElement := value copy.
 							dataElement encoder: aDicomTransferSyntaxClass.
-							dataElement value: value.
-							self dataElementsDictionary at: key put: dataElement].
-
-					"Remove all data element values, since they are now safe"
-					self dataElementsValues keys
-						do: [:key | self dataElementsValues removeKey: key].
-
-					"**** (Re)Encode all the other data elements, inclusive the unknown ones ********"
-					self dataElementsDictionary keysAndValuesDo: 
-							[:key :value |
-							value encoder = aDicomTransferSyntaxClass
-								ifFalse: 
-									[dataElement := value copy.
-									dataElement encoder: aDicomTransferSyntaxClass.
-									dataElement value: value value.
-									self dataElementsDictionary at: key put: dataElement]]]]
+							dataElement value: value value.
+							self dataElementsDictionary at: key put: dataElement ] ] ] ]
 ]
 
 { #category : #'parsing - private' }
@@ -1432,7 +1436,7 @@ DicomObject >> presentationDataValueBytesArray [
 	| pdvStream |
 	pdvStream := WriteStream on: ByteArray new.
 	self writePDVBytesOn: pdvStream.
-	^pdvStream contents
+	^ pdvStream contents
 ]
 
 { #category : #'computer reflection - private' }
@@ -1474,9 +1478,10 @@ DicomObject >> unknowDataElement: dataElementTag [
 { #category : #'PDV Bytes' }
 DicomObject >> writePDVBytesOn: aByteStream [
 	"Write all the Presentation Data Value of this object (the DICOM data elements
-	byte codification) in the given ByteStream - PRD 05.2001, 02.2002, 09.2003"
+	 byte codification) in the given ByteStream - PRD 05.2001, 02.2002, 09.2003"
 
-	self dataElementsCollection do: [ :each | each pdvBytes: aByteStream ]
+	self dataElementsCollection
+		do: [ :each | each pdvBytes: aByteStream ]
 ]
 
 { #category : #'PDV Bytes' }
@@ -1486,5 +1491,6 @@ DicomObject >> writePDVBytesOnExcludePrivate: aByteStream [
 	excluding the private defined ones, in the given ByteStream
 	- PRD 05.2001, 02.2002, 09.2003, 10.2017"
 
-	self dataElementsCollectionExcludePrivate do: [:each | each pdvBytes: aByteStream]
+	self dataElementsCollectionExcludePrivate
+		do: [ :each | each pdvBytes: aByteStream ]
 ]
