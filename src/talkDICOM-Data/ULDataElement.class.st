@@ -38,7 +38,7 @@ ULDataElement >> byteSize [
 ULDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type UL.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthULDataElement + self dataBytes size
 ]
@@ -67,17 +67,20 @@ ULDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 ULDataElement >> validateValue: a32BitInteger [
-	"Perform the validation of the value to be stored in a DICOM UL (Unsigned Long) Data Element
-	Unsigned binary integer 32 bits long. Represents an integer n in the range: 0 <= n < 2^32 . 
-	Character Repertoire: not applicable 
-	4 bytes fixed
-	PS 3.5-2000 6.2 - PRD 05.2001, 07.2002"
+	"Validate 'a32BitInteger' according to the rules for DICOM UL (Unsigned Long) Data Elements.
+	 Unsigned binary integer 32 bits long. Represents an integer n in the range: 0 <= n < 2^32 . 
+	 Character Repertoire: not applicable 
+	 4 bytes fixed
+	 PS 3.5-2000 6.2
 
-	| aByteArray |
-	aByteArray := ByteArray new.
-	a32BitInteger isInteger
-		ifTrue: [aByteArray := self encoder byteArrayFromValue: a32BitInteger size: 4].
-	^aByteArray
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
+	^ ByteArray
+		new: 10
+		streamContents: [ :byteStream | 
+			a32BitInteger isInteger
+				ifTrue: [ byteStream
+						nextPutAll: (self encoder byteArrayFromValue: a32BitInteger size: 4) ] ]
 ]
 
 { #category : #'field value storing' }

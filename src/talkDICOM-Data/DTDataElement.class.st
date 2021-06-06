@@ -20,16 +20,11 @@ DTDataElement >> byteSize [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'field value retrieving' }
-DTDataElement >> dataBytesByteSpliter: byteValueSize [
-	^ self subclassResponsibility
-]
-
 { #category : #accessing }
 DTDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type DT.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthDTDataElement + self dataBytes size
 ]
@@ -52,19 +47,20 @@ DTDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 DTDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the value that I store to aStream;
-	April 06, 2021: Code formating - PRD"
+	"Print the value that I store to aStream.
+	
+	 20 August 2015: Initial implementation;
+	   06 June 2021: New implementation - Paulo R. Dellani"
 
-	| elementValue |
-	((elementValue := self value) isKindOf: DateAndTime)
-		ifTrue: [ aStream nextPutAll: elementValue printString ]
+	self value ifNotNil: [ :arg | aStream nextPutAll: arg printString ]
 ]
 
 { #category : #'field value storing' }
 DTDataElement >> validateValue: aValue [
-	"Perform the validation of the value to be stored in a DICOM Data Element
+	"Validate 'aValue' according to the rules for my DICOM Data Element subclasses.
+    See subclasses implementations for details.
 
-	PRD 04.2001 - 06.2002"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	^ self subclassResponsibility
 ]

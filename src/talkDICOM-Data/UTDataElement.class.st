@@ -32,7 +32,7 @@ UTDataElement class >> valueRepresentationString [
 UTDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type UT.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthUTDataElement + self dataBytes size
 ]
@@ -67,14 +67,15 @@ UTDataElement >> printEntireValueOn: aStream [
 UTDataElement >> printValueOn: aStream [
 	"August 20, 2015: Print up to 16 bytes of the unlimeted text
 	                  value that I store to aStream;
-	 April 06, 2021: New implementation with improved output - PRD"
+	 April 06, 2021: New implementation with improved output;
+	   06 June 2021: New new implementation - Paulo R. Dellani"
 
-	| elementValue |
-	(elementValue := self value) isString
-		ifTrue: [ elementValue copyFrom: 1 to: (16 min: elementValue size).
-			elementValue size > 16
+	self value
+		ifNotEmpty: [ :aString | 
+			aString copyFrom: 1 to: (16 min: aString size).
+			aString size > 16
 				ifTrue: [ aStream nextPutAll: ' (...)' ] ]
-		ifFalse: [ aStream nextPutAll: '#!STRING' ]
+		ifEmpty: [ aStream nextPutAll: '#!STRING' ]
 ]
 
 { #category : #'field value retrieving' }
@@ -82,16 +83,12 @@ UTDataElement >> value [
 	"VR = Unlimited Text.
 	
 	PRD 04.2001"
-	
+
 	| aUnlimitedTextString |
-
-	aUnlimitedTextString := (
-		self 
-			stringPurify: (String withAll: self dataBytes)
-			goodChars: self class dataElementCharacterRepertoire
-		) trimBoth.
-
-	^aUnlimitedTextString
+	aUnlimitedTextString := (self
+		stringPurify: (String withAll: self dataBytes)
+		goodChars: self class dataElementCharacterRepertoire) trimBoth.
+	^ aUnlimitedTextString
 ]
 
 { #category : #'field value storing' }
@@ -104,14 +101,14 @@ UTDataElement >> value: anObject [
 	Default Character Repertoire and/or as defined by (0008,0005). 2 32 -2 
 	Note: limited only by the size of the maximum unsigned integer representable in a 32 bit 
 	VL field minus one, since FFFFFFFFH is reserved.
-	PS 3.5-2000 6.2 - PRD 05.2001"
+
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	| dataString |
-
 	dataString := self stringEvenner: anObject asByteString.
-	dataString := self sizeString: dataString maxSize: 16rFFFFFFFF - 3.
+	dataString := dataString
+		copyFrom: 1
+		to: (dataString size min: 16rFFFFFFFF - 3).
 	self dataBytes: dataString asByteArray.
-	self length: self dataBytes size.
-	"self dataElementLength: self length
-				+ (self encoder dataElementHeaderLenght: self)"
+	self length: self dataBytes size
 ]

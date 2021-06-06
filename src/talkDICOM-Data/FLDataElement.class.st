@@ -23,7 +23,7 @@ FLDataElement >> byteSize [
 FLDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type FL.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthFLDataElement + self dataBytes size
 ]
@@ -32,7 +32,7 @@ FLDataElement >> dataElementLength [
 FLDataElement >> decodeElementDataBytes: valueDataBytes [
 	" VR = Floating Point Double - PRD 04.2001, 03.2003"
 
-	^self encoder bytesToSinglePrecisionFloat: valueDataBytes
+	^ self encoder bytesToSinglePrecisionFloat: valueDataBytes
 ]
 
 { #category : #parsing }
@@ -53,20 +53,20 @@ FLDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 FLDataElement >> validateValue: floatValue [
-	"Perform the validation of the value to be stored in a DICOM FL (Float) Data Element
+	"Validate 'floatValue' according to the rules for DICOM FL (single precision FLoat) Data Elements.
 
 	Single Single precision binary floating point number represented 
 	in IEEE 754:1985 32-bit Floating Point Number Format. 
 	4 bytes fixed
-	PS 3.5-2000 6.2 - PRD 05.2001, 07.2002, 03.2003"
 
-	| aByteArray |
-	aByteArray := ByteArray new: 4 withAll: 16r00.
-	(floatValue isKindOf: Float)
-		ifTrue: 
-			[aByteArray := self encoder
-						singlePrecisionFloatToBytes: floatValue].
-	^aByteArray
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
+	^ ByteArray
+		new: 10
+		streamContents: [ :byteStream | 
+			floatValue isFloat
+				ifTrue: [ byteStream
+						nextPutAll: (self encoder singlePrecisionFloatToBytes: floatValue) ] ]
 ]
 
 { #category : #'field value storing' }

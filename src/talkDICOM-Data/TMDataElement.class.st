@@ -18,7 +18,7 @@ TMDataElement class >> valueRepresentationString [
 TMDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type TM.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthTMDataElement + self dataBytes size
 ]
@@ -41,12 +41,13 @@ TMDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 TMDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the time that I store to aStream - PRD"
+	"Print the value that I store to aStream.
+	
+	    20 August 2015: Initial implementation;
+	      06 June 2021: New implementation - Paulo R. Dellani"
 
-	| elementValue |
-	((elementValue := self value) isKindOf: Time)
-		ifTrue: [ aStream nextPutAll: elementValue printString ]
-		ifFalse: [ aStream nextPutAll: '#!TIME' ]
+	aStream
+		nextPutAll: (self value ifNotNil: [ :arg | arg printString ] ifNil: [ '#!TIME' ])
 ]
 
 { #category : #'field value retrieving' }

@@ -25,7 +25,7 @@ ISDataElement class >> valueRepresentationString [
 ISDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type IS.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthISDataElement + self dataBytes size
 ]
@@ -48,23 +48,23 @@ ISDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 ISDataElement >> validateValue: anISValue [
-	"Perform the validation of the value to be stored in a DICOM Integer StringData Element
+	"Validate 'anISValue' according to the rules for DICOM  Integer String Data Elements.
+	 A string of characters representing an Integer in base-10 (decimal), shall contain 
+	 only the characters 0 - 9, with an optional leading '+' or '-'. It may be padded with 
+	 leading and/or trailing spaces. Embedded spaces are not allowed. 
+	 The integer, n, represented shall be in the range: -2^31 <= n <= (2^31 - 1).  
+	 '0' - '9' ,  '+' ,  '-' of Default Character Repertoire
+	 12 bytes maximum. PS 3.5-2000 6.2
 
-	A string of characters representing an Integer in base-10 (decimal), shall contain 
-	only the characters 0 - 9, with an optional leading '+' or '-'. It may be padded with 
-	leading and/or trailing spaces. Embedded spaces are not allowed. 
-	The integer, n, represented shall be in the range: -2^31 <= n <= (2^31 - 1).  
-	'0' - '9' ,  '+' ,  '-' of Default Character Repertoire
-	12 bytes maximum
+	   March 2017: Bug fixes;
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
-	PS 3.5-2000 6.2 - PRD 05-09.2001 - 01.2002, 03.2017"
-
-	| anIntegerString |
-	anIntegerString := self
+	| aString |
+	aString := self
 		stringPurify: anISValue asString
 		goodChars: self class dataElementCharacterRepertoire.
-	anIntegerString := self sizeString: anIntegerString maxSize: 16r0C.
-	^ anIntegerString
+	aString := aString copyFrom: 1 to: (aString size min: 16r0C).
+	^ aString
 ]
 
 { #category : #'field value storing' }

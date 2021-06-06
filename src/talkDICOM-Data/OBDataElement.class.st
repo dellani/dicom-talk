@@ -18,7 +18,7 @@ OBDataElement class >> valueRepresentationString [
 OBDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type OB.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthOBDataElement + self dataBytes size
 ]
@@ -41,18 +41,22 @@ OBDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 OBDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print up to 8 of the bytes that I store to aStream;
-	 September 13, 2017: Improvements for Pharo implementation;
-	 April 6, 2021: Replaced test 'size > 1' with 'isEmpty and the chain
-	                of conditional tests with '8 min:' - PRD"
+	"Put the first 8 bytes of the value that I store in aStream.
+	
+	    20 August 2015: Initial implementation;
+	 13 September 2017: Improvements for Pharo implementation;
+	     06 April 2021: Replaced test 'size > 1' with 'isEmpty and the chain
+	                    of conditional tests with '8 min:';
+         06 June 2021: New implementation - Paulo R. Dellani"
 
-	| elementValue |
-	(elementValue := self value) isArray
-		ifTrue: [ elementValue notEmpty
-				ifTrue: [ elementValue first printOn: aStream base: 10.
-					2 to: (8 min: elementValue size) do: [ :index | 
-						aStream nextPutAll: ', '.
-						(elementValue at: index) printOn: aStream base: 10 ] ] ]
+	self value
+		ifNotEmpty: [ :aByteArray | 
+			aByteArray first printOn: aStream base: 16.
+			2 to: (8 min: aByteArray size) do: [ :index | 
+				aStream nextPutAll: ', '.
+				(aByteArray at: index) printOn: aStream base: 16 ].
+			aByteArray size > 8
+				ifTrue: [ aStream nextPutAll: ', ...' ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -63,9 +67,9 @@ OBDataElement >> value [
 	This Data Element type (OB) always has a Value Multiplicity equal to one
 	PRD 06.2002"
 
-	^self length = 16rFFFFFFFF
-		ifTrue: [self unencapsulateValue]
-		ifFalse: [self dataBytes]
+	^ self length = 16rFFFFFFFF
+		ifTrue: [ self unencapsulateValue ]
+		ifFalse: [ self dataBytes ]
 ]
 
 { #category : #'field value storing' }

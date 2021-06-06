@@ -31,7 +31,7 @@ SHDataElement class >> valueRepresentationString [
 SHDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type SH.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthSHDataElement + self dataBytes size
 ]
@@ -54,25 +54,22 @@ SHDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 SHDataElement >> validateValue: aSHValue [
-"
-	Perform the validation of the value to be stored in a DICOM Short String Data Element
+	"Validate 'aSHValue' according to the rules for DICOM Short String Data Elements.
+	 A character string that may be padded with leading and/or trailing spaces. 
+	 The character code 05CH (the BACKSLASH  \  in ISO-IR 6) shall not be 
+	 present, as it is used as the delimiter between values for multiple data elements. 
+	 The string shall not have Control Characters except ESC. 
+	 Character Repertoire: Default Character Repertoire and/or as defined by (0008,0005).
+	 Value Length: 16 chars maximum (see NOTE in 6.2) - 	PS 3.5-2000 6.2.
 
-	A character string that may be padded with leading and/or trailing spaces. 
-	The character code 05CH (the BACKSLASH  \  in ISO-IR 6) shall not be 
-	present, as it is used as the delimiter between values for multiple data elements. 
-	The string shall not have Control Characters except ESC. 
-	Character Repertoire: Default Character Repertoire and/or as defined by (0008,0005).
-	Value Length: 16 chars maximum (see NOTE in 6.2)
-	PS 3.5-2000 6.2
-	PRD 05.2001, 07.2002
-"
+    06 June 2021: New implementation - Paulo R. Dellani"
+
 	| dataString |
-
-	dataString := (self 
-		stringPurify: aSHValue 
-		goodChars:  self class dataElementCharacterRepertoire) trimBoth.
-	dataString := self sizeString: dataString maxSize: 16r10.
-	^dataString.
+	dataString := (self
+		stringPurify: aSHValue
+		goodChars: self class dataElementCharacterRepertoire) trimBoth.
+	dataString := dataString copyFrom: 1 to: (dataString size min: 16r10).
+	^ dataString
 ]
 
 { #category : #'field value storing' }

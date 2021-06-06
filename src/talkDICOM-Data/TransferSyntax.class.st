@@ -124,9 +124,9 @@ TransferSyntax class >> dataElementFrom: dicomPDVStream dataElementsDefinition: 
 	 of DataElement according to the value representation of the decoded DICOM 
 	 data element. 	PS 3.5-2000 Section 7
 
-	 May 15 2021 - PRD"
+	 15 May 2021 - Paulo R. Dellani"
 
-	^self subclassResponsibility
+	^ self subclassResponsibility
 ]
 
 { #category : #'data elements' }

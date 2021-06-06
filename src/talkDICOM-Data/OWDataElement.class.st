@@ -18,7 +18,7 @@ OWDataElement class >> valueRepresentationString [
 OWDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type OW.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthOWDataElement + self dataBytes size
 ]
@@ -41,24 +41,25 @@ OWDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 OWDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print up to 8 of the bytes that I store to aStream;
-	 September 14, 2017: Improvements for Pharo implementation;
-	 April 6, 2021: Replaced test 'size > 1' with 'isEmpty and the chain
-	                of conditional tests with '8 min:' - PRD"
+	"Put the first 8 words of the value that I store in aStream.
+	
+	    20 August 2015: Initial implementation;
+    14 September 2017: Improvements for Pharo implementation;
+	     06 April 2021: Replaced test 'size > 1' with 'isEmpty and the chain
+                       of conditional tests with '8 min:';
+         06 June 2021: New implementation - Paulo R. Dellani"
 
-	| elementValue |
-	(elementValue := self value) isArray
-		ifTrue: [ elementValue notEmpty
-				ifTrue: [ (encoder getValueFromByteArray: (elementValue copyFrom: 1 to: 2))
-  						             printOn: aStream
-						             base: 16.
-					3 to: (16 min: elementValue size) by: 2 do: [ :index | 
-						aStream nextPutAll: ', '.
-						(encoder getValueFromByteArray: (elementValue copyFrom: index to: index + 1))
-							      printOn: aStream
-							      base: 16 ].
-					elementValue size > 16
-						ifTrue: [ aStream nextPutAll: ', ...' ] ] ]
+	self value
+		ifNotEmpty: [ :aByteArray | 
+			(encoder getValueFromByteArray: (aByteArray copyFrom: 1 to: 2))
+				printOn: aStream base: 16.
+			3 to: (16 min: aByteArray size) by: 2 do: [ :index | 
+				aStream nextPutAll: ', '.
+				(encoder
+					getValueFromByteArray: (aByteArray copyFrom: index to: index + 1))
+					printOn: aStream base: 16 ].
+			aByteArray size > 16
+				ifTrue: [ aStream nextPutAll: ', ...' ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -73,9 +74,9 @@ OWDataElement >> value [
 	This Data Element type (OW) always has a Value Multiplicity equal to one
 	PRD 06.2002"
 
-	^self length = 16rFFFFFFFF
-		ifTrue: [self unencapsulateValue]
-		ifFalse: [self dataBytes]
+	^ self length = 16rFFFFFFFF
+		ifTrue: [ self unencapsulateValue ]
+		ifFalse: [ self dataBytes ]
 ]
 
 { #category : #'field value storing' }

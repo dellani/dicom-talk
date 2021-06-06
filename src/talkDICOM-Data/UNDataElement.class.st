@@ -18,7 +18,7 @@ UNDataElement class >> valueRepresentationString [
 UNDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type UN.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthUNDataElement + self dataBytes size
 ]
@@ -55,21 +55,23 @@ UNDataElement >> printEntireValueOn: aStream [
 UNDataElement >> printValueOn: aStream [
 	"August 20, 2015: Print up to 16 bytes of the unknown value that
 	                  I store to aStream;
-	 April 06, 2021: New implementation - PRD"
+	 April 06, 2021: New implementation;
+	   06 June 2021: New new implementation - Paulo R. Dellani"
 
-	aStream
-		nextPutAll:
-			(ByteString
-				fromByteArray: (self dataBytes copyFrom: 1 to: (16 min: self dataBytes size))).
-	self dataBytes size > 16
-		ifTrue: [ aStream nextPutAll: ' (...)' ]
+	self dataBytes
+		ifNotEmpty: [ :aByteArray | 
+			aStream
+				nextPutAll: (aByteArray copyFrom: 1 to: (16 min: aByteArray size)) asString.
+			aByteArray size > 16
+				ifTrue: [ aStream nextPutAll: ' (...)' ] ]
+		ifEmpty: [ aStream nextPutAll: '#EMPTYVALUE' ]
 ]
 
 { #category : #'field value retrieving' }
 UNDataElement >> value [
 	"This Data Element type (UN) always has a Value Multiplicity equal to one - PRD 06.2002"
 
-	^self dataBytes asString asByteString
+	^ self dataBytes asString asByteString
 ]
 
 { #category : #'field value storing' }

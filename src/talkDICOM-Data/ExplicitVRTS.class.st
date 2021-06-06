@@ -893,8 +893,8 @@ ExplicitVRTS class >> parseDataElement: dataElementTag from: pdvStream dataEleme
 		valueRepresentation: valueRepresentation.
 
 	"This should not happen, but just in case, use the VR encoded in the pdv stream if it is other than UN.
-	If the VR encoded in the PDV stream is UN, first try to decode the data element using the information
-	from the data elements directory."
+	 If the VR encoded in the PDV stream is UN, first try to decode the data element using the information
+	 from the data elements directory."
 	^ aDataElement vr = valueRepresentation
 		ifFalse: [ valueRepresentation = 'UN'
 				ifTrue: [ [ self decodeKnownTagFromUnknownDataElement: aDataElement pdvstream: pdvStream transferSyntax: self ]

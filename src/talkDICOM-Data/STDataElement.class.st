@@ -34,7 +34,7 @@ STDataElement class >> valueRepresentationString [
 STDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type ST.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthSTDataElement + self dataBytes size
 ]
@@ -57,26 +57,26 @@ STDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 STDataElement >> validateValue: aSTValue [
-"
-	Perform the validation of the value to be stored in a DICOM Short Text Data Element
+	"Validate 'aSTValue' according to the rules for DICOM Short Text Data Elements.
+	 A character string that may contain one or more paragraphs. It may contain 
+	 the Graphic Character set and the Control Characters, CR, LF, FF, and ESC. 
+	 It may be padded with trailing spaces, which may be ignored, but leading spaces 
+	 are considered to be significant. Data Elements with this VR shall not be multi-valued 
+	 and therefore character code 5CH (the BACKSLASH  \  in ISO-IR 6) may be used. 
+	 Default Character Repertoire and/or as defined by (0008,0005). 
+	 1024 chars maximum (see NOTE in 6.2)
+	 PS 3.5-2000 6.2
 
-	A character string that may contain one or more paragraphs. It may contain 
-	the Graphic Character set and the Control Characters, CR, LF, FF, and ESC. 
-	It may be padded with trailing spaces, which may be ignored, but leading spaces 
-	are considered to be significant. Data Elements with this VR shall not be multi-valued 
-	and therefore character code 5CH (the BACKSLASH  \  in ISO-IR 6) may be used. 
-	Default Character Repertoire and/or as defined by (0008,0005). 
-	1024 chars maximum (see NOTE in 6.2)
-	PS 3.5-2000 6.2
-	PRD 05.2001, 01-07.2002
-"
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
 	| dataString |
-
-	dataString := (self 
-		stringPurify: aSTValue 
-		goodChars:  self class dataElementCharacterRepertoire) trimBoth.
-	dataString := self sizeString: dataString maxSize: 16r0400.
-	^dataString.
+	dataString := (self
+		stringPurify: aSTValue
+		goodChars: self class dataElementCharacterRepertoire) trimBoth.
+	dataString := dataString
+		copyFrom: 1
+		to: (dataString size min: 16r0400).
+	^ dataString
 ]
 
 { #category : #'field value storing' }

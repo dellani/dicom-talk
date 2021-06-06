@@ -16,46 +16,43 @@ FixedSizeDataElement >> byteSize [
 
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> dataBytesByteSpliter [
-	"Split the DICOM multi-byte values (for VM > 1) that are coded in dataBytes 
-	instance variable into an OrderedCollection and then answer the 
-	OrderedCollection with the splited strings 
-	'byteValueSize' contains the size of an individual multi-byte value - PRD 06-07.2002"
+	"If value multiplicity (vm) is equal or larger than one, split 
+	 multiple values into vm byte representations of a single value 
+	 and store them in an instance of OrderedCollection.
+	
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
-	^self dataBytesByteSpliter: self byteSize
+	^ self dataBytesByteSpliter: self byteSize
 ]
 
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> dataBytesByteSpliter: byteValueSize [
-	"Split the DICOM multi-byte values (for VM > 1) that are coded in dataBytes 
-	instance variable into an OrderedCollection and then answer the 
-	OrderedCollection with the splited strings 
-	'byteValueSize' contains the size of an individual multi-byte value - PRD 06-07.2002"
+	"If value multiplicity (vm) is equal or larger than one, split 
+	 multiple values into vm byte representations of a single value 
+	 and store them in an instance of OrderedCollection.
+	
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
-	| anOrderedCollection |
-	anOrderedCollection := OrderedCollection new.
-	1 to: self dataBytes size
-				by: byteValueSize
-				do: 
-					[:index |
-					anOrderedCollection
-						add: (self dataBytes copyFrom: index to: index + byteValueSize - 1)].
-	^anOrderedCollection
+	| collection |
+	collection := OrderedCollection new.
+	self dataBytes
+		groupsOf: byteValueSize
+		atATimeCollect: [ :x | collection add: x ].
+	^ collection
 ]
 
 { #category : #accessing }
 FixedSizeDataElement >> dataElementLength [
-	"Lenght of the message field in bytes for a data element of 
-	 type (see subclass implementations)
+	"Lenght of the message field in bytes (see subclass implementations)
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self subclassResponsibility
 ]
 
 { #category : #'field value retrieving' }
 FixedSizeDataElement >> decodeElementDataBytes: valueDataBytes [
-
-	^self subclassResponsibility
+	^ self subclassResponsibility
 ]
 
 { #category : #'field value retrieving' }
@@ -83,17 +80,18 @@ FixedSizeDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 FixedSizeDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the value or the values that I store to aStream;; 
-	 August 29, 2017: Output improvements - PRD"
+	"Print the value that I store to aStream.
+	
+	 20 August 2015: Initial implementation;
+	 29 August 2017: Improvements in the output formatting;
+	   06 June 2021: New implementation - Paulo R. Dellani"
 
-	| valueCollection |
-	self dataBytes notEmpty
-		ifTrue: [ self dataBytes size >= self byteSize
-				ifTrue: [ (valueCollection := self decodeValue) notEmpty
-						ifTrue: [ aStream nextPutAll: valueCollection first printString.
-							2 to: valueCollection size do: [ :index | 
-								aStream nextPutAll: ' \\ '.
-								aStream nextPutAll: (valueCollection at: index) printString ] ] ] ]
+	self decodeValue
+		ifNotEmpty: [ :arg | 
+			aStream nextPutAll: arg first printString.
+			2 to: arg size do: [ :index | 
+				aStream nextPutAll: ' \\ '.
+				aStream nextPutAll: (arg at: index) printString ] ]
 ]
 
 { #category : #'field value retrieving' }
@@ -119,9 +117,10 @@ FixedSizeDataElement >> raiseElementSizeError [
 
 { #category : #'field value storing' }
 FixedSizeDataElement >> validateValue: aValue [
-	"Perform the validation of the value to be stored in a DICOM Data Element
+	"Validate 'aValue' according to the rules for my DICOM Data Element subclasses.
+    See subclasses implementations for details.
 
-	PRD 04.2001 - 06.2002"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	^ self subclassResponsibility
 ]
@@ -130,7 +129,7 @@ FixedSizeDataElement >> validateValue: aValue [
 FixedSizeDataElement >> value [
 	"Decode value from DICOM data element with fixed length.
 	
-	28 June 2017: Refactoring - Paulo R. Dellani"
+	 28 June 2017: Refactoring - Paulo R. Dellani"
 
 	| orderedCollection |
 	^ self dataBytes notEmpty

@@ -14,17 +14,11 @@ MultipleStringValueDataElement >> byteSize [
 	^ self subclassResponsibility
 ]
 
-{ #category : #'field value retrieving' }
-MultipleStringValueDataElement >> dataBytesByteSpliter: byteValueSize [
-	^ self subclassResponsibility
-]
-
 { #category : #accessing }
 MultipleStringValueDataElement >> dataElementLength [
-	"Lenght of the message field in bytes for a data element of 
-	 type (see subclass implementations)
+	"Lenght of the message field in bytes (see subclass implementations)
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self subclassResponsibility
 ]
@@ -45,25 +39,29 @@ MultipleStringValueDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 MultipleStringValueDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the string or collection of strings that I store to aStream;
-	 August 29, 2017: Output improvements;
-	 April 6, 2021: Replace test 'size >= 1' with 'isEmpty' - PRD"
+	"Print the value that I store to aStream.
+	
+	 20 August 2015: Initial implementation;
+	 29 August 2017: Improvements in the output formatting;
+	  06 April 2021: Replace test 'size >= 1' with 'isEmpty';
+	   06 June 2021: New implementation - Paulo R. Dellani"
 
-	| valueCollection |
-	(valueCollection := self dataBytesStringSpliter) notEmpty
-		ifTrue: [ aStream nextPutAll: valueCollection first.
-			2 to: valueCollection size do: [ :index | 
+	self dataBytesStringSpliter
+		ifNotEmpty: [ :arg | 
+			aStream nextPutAll: arg first.
+			2 to: arg size do: [ :index | 
 				aStream
 					nextPutAll: ' // ';
-					nextPutAll: (valueCollection at: index) ] ]
-		ifFalse: [ '#EMPTYVALUE' ]
+					nextPutAll: (arg at: index) ] ]
+		ifEmpty: [ aStream nextPutAll: '#EMPTYVALUE' ]
 ]
 
 { #category : #'field value storing' }
 MultipleStringValueDataElement >> validateValue: aValue [
-	"Perform the validation of the value to be stored in a DICOM Data Element
+	"Validate 'aValue' according to the rules for my DICOM Data Element subclasses.
+    See subclasses implementations for details.
 
-	PRD 04.2001 - 06.2002"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	^ self subclassResponsibility
 ]

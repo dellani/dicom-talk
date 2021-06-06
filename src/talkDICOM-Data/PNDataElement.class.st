@@ -29,7 +29,7 @@ PNDataElement class >> valueRepresentationString [
 PNDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type PN.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthPNDataElement + self dataBytes size
 ]
@@ -52,8 +52,11 @@ PNDataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 PNDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the person name that I store to aStream;
-	 April 06, 2021: replace 'isKindOf: PersonName' with isPersonName - PRD"
+	"Print the value that I store to aStream.
+	
+	    20 August 2015: Initial implementation;
+        06 April 2021: replace 'isKindOf: PersonName' with 
+                       isPersonName - Paulo R. Dellani"
 
 	| elementValue |
 	(elementValue := self value) isPersonName
@@ -63,26 +66,25 @@ PNDataElement >> printValueOn: aStream [
 
 { #category : #'field value retrieving' }
 PNDataElement >> value [
-	" VR = Person Name - PRD 04.2001, 01-02.2002,  14.05.2002"
+	"Decode Person Name data element value, returning an
+	 instance of PersonName with its contents.
+	
+    06 June 2021: New Implementation - Paulo R. Dellani"
 
-	| personName index writeStream |
+	| personName index |
 	personName := PersonName new: 5.
 	index := 1.
-	writeStream := WriteStream on: String new.
 	personName at: index put: String new.
-	self dataBytes do: 
-			[:each |
-			each = 16r005E
-				ifTrue: 
-					[writeStream := WriteStream on: String new.
-					index := index + 1]
-				ifFalse: [writeStream nextPut: (Character value: each)].
-			index <= 5
-				ifTrue: 
-					[personName at: index
-						put: (self stringPurify: writeStream contents
-								goodChars: self class dataElementCharacterRepertoire)]].
-	^personName
+	self dataBytes
+		splitOn: 16r005E
+		do: [ :each | 
+			personName
+				at: index
+				put: (self
+						stringPurify: each asString
+						goodChars: self class dataElementCharacterRepertoire).
+			index := index + 1 ].
+	^ personName
 ]
 
 { #category : #'field value storing' }

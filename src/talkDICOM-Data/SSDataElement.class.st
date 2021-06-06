@@ -52,18 +52,21 @@ SSDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 SSDataElement >> validateValue: a16BitInteger [
-	"Perform the validation of the value to be stored in a DICOM SS (Signed Short) Data Element
-	Signed binary integer 16 bits long in 2's complement form. 
-	Represents an integer n in the range: -2^15 <= n <= (2^15 - 1). 
-	Character Repertoire: not applicable 
-	Value Length: 2 bytes fixed
-	PS 3.5-2000 6.2 - PRD 05.2001, 07.2002"
+	"Validate 'a16BitInteger' according to the rules for DICOM SS (Signed Short) Data Elements.
+	 Signed binary integer 16 bits long in 2's complement form. 
+	 Represents an integer n in the range: -2^15 <= n <= (2^15 - 1). 
+	 Character Repertoire: not applicable 
+	 Value Length: 2 bytes fixed
+	 PS 3.5-2000 6.2
 
-	| aByteArray |
-	aByteArray := ByteArray new.
-	a16BitInteger isInteger
-		ifTrue: [aByteArray := self encoder byteArrayFromValue: a16BitInteger size: 2].
-	^aByteArray
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
+	^ ByteArray
+		new: 10
+		streamContents: [ :byteStream | 
+			a16BitInteger isInteger
+				ifTrue: [ byteStream
+						nextPutAll: (self encoder byteArrayFromValue: a16BitInteger size: 2) ] ]
 ]
 
 { #category : #'field value storing' }

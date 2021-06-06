@@ -30,7 +30,7 @@ LODataElement class >> valueRepresentationString [
 LODataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type LO.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthLODataElement + self dataBytes size
 ]
@@ -53,23 +53,22 @@ LODataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 LODataElement >> validateValue: aLOValue [
-	"Perform the validation of the value to be stored in a DICOM Long Text Data Element
-
-	A character string that may be padded with leading and/or trailing spaces.
-	The character code 5CH (the BACKSLASH  \  in ISO-IR 6) shall not be present,
-	as it is used as the delimiter between values in multiple valued  data elements. 
-	The string shall not have Control Characters except for ESC.
-	Default Character  Repertoire and/or as defined by (0008,0005).
-	64 chars maximum (see NOTE in 6.2)
-
-	PS 3.5-2000 6.2 - PRD 05.2001, 07.2002
-"
+	"Validate 'aLOValue' according to the rules for DICOM Long Text Data Elements.
+	 A character string that may be padded with leading and/or trailing spaces.
+	 The character code 5CH (the BACKSLASH  \  in ISO-IR 6) shall not be present,
+	 as it is used as the delimiter between values in multiple valued  data elements. 
+	 The string shall not have Control Characters except for ESC.
+	 Default Character  Repertoire and/or as defined by (0008,0005).
+	 64 chars maximum (see NOTE in 6.2). PS 3.5-2000 6.2
+	
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	| dataString |
-	dataString := self stringPurify: aLOValue
-				goodChars: self class dataElementCharacterRepertoire.
-	dataString := self sizeString: dataString maxSize: 16r40.
-	^dataString
+	dataString := self
+		stringPurify: aLOValue
+		goodChars: self class dataElementCharacterRepertoire.
+	dataString := dataString copyFrom: 1 to: (dataString size min: 16r40).
+	^ dataString
 ]
 
 { #category : #'field value storing' }

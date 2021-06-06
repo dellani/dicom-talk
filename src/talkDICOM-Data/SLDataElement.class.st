@@ -23,7 +23,7 @@ SLDataElement >> byteSize [
 SLDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type SL.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthSLDataElement + self dataBytes size
 ]
@@ -52,21 +52,23 @@ SLDataElement >> pdvBytes: aByteStream [
 ]
 
 { #category : #'field value storing' }
-SLDataElement >> validateValue: an32BitInteger [
-	"Perform the validation of the value to be stored in a DICOM SL (Signed Long) Data Element
-	Signed binary integer 32 bits long in 2's complement form. 
-	Represents an integer, n, in the range: 
-	-2^31 <= n <= (2^31 - 1). 
-	Character Repertoire: not applicable 
-	Value Length: 4 bytes fixed
-	PS 3.5-2000 6.2 - PRD 05.2001, 07.2002"
+SLDataElement >> validateValue: a32BitInteger [
+	"Validate 'a32BitInteger' according to the rules for DICOM SL (Signed Long) Data Elements.
+	 Signed binary integer 32 bits long in 2's complement form. 
+	 Represents an integer, n, in the range: 
+	 -2^31 <= n <= (2^31 - 1). 
+	 Character Repertoire: not applicable 
+	 Value Length: 4 bytes fixed
+	 PS 3.5-2000 6.2
 
-	| aByteArray |
-	aByteArray := ByteArray new.
-	an32BitInteger isInteger
-		ifTrue: 
-			[aByteArray := self encoder byteArrayFromValue: an32BitInteger size: 4].
-	^aByteArray
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
+	^ ByteArray
+		new: 10
+		streamContents: [ :byteStream | 
+			a32BitInteger isInteger
+				ifTrue: [ byteStream
+						nextPutAll: (self encoder byteArrayFromValue: a32BitInteger size: 4) ] ]
 ]
 
 { #category : #'field value storing' }

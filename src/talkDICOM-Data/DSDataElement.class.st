@@ -36,7 +36,7 @@ DSDataElement class >> valueRepresentationString [
 DSDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type DS.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthDSDataElement + self dataBytes size
 ]
@@ -59,23 +59,24 @@ DSDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 DSDataElement >> validateValue: aDSValue [
-	"Perform the validation of the value to be stored in Decimal String DICOM Data Element.
+	"Validate 'aDSValue' according to the rules for DICOM Decimal String Data Elements.
+	 A string of characters representing either a fixed point number or a floating point number. 
+	 A fixed point number shall contain only the characters 0-9 with an optional leading 
+	 '+' or '-' and an optional '.' to mark the decimal point. A floating point number shall 
+	 be conveyed as defined in ANSI X3.9, with an 'E' or 'e' to indicate the start of the 
+	 exponent. Decimal Strings may be padded with leading or trailing spaces. 
+	 Embedded spaces are not allowed.  
+	 '0' - '9' ,  '+' ,  '-' ,  'E' ,  'e' ,  '.' of Default Character Repertoire 
+	 16 bytes maximum
+	 PS 3.5-2000 6.2
 
-	A string of characters representing either a fixed point number or a floating point number. 
-	A fixed point number shall contain only the characters 0-9 with an optional leading 
-	'+' or '-' and an optional '.' to mark the decimal point. A floating point number shall 
-	be conveyed as defined in ANSI X3.9, with an 'E' or 'e' to indicate the start of the 
-	exponent. Decimal Strings may be padded with leading or trailing spaces. 
-	Embedded spaces are not allowed.  
-	'0' - '9' ,  '+' ,  '-' ,  'E' ,  'e' ,  '.' of Default Character Repertoire 
-	16 bytes maximum
-	PS 3.5-2000 6.2
-
-	PRD 05.2001, 07.2002"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	| dataString |
-	dataString := (self stringPurify: aDSValue goodChars: self class dataElementCharacterRepertoire) trimBoth.
-	dataString := self sizeString: dataString maxSize: 16r10.
+	dataString := (self
+		stringPurify: aDSValue
+		goodChars: self class dataElementCharacterRepertoire) trimBoth.
+	dataString := dataString copyFrom: 1 to: (dataString size min: 16r10).
 	^ dataString
 ]
 

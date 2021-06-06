@@ -47,7 +47,7 @@ DADataElement >> dataBytesByteSpliter_exception01 [
 DADataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type DA.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthDADataElement + self dataBytes size
 ]
@@ -145,43 +145,53 @@ DADataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 DADataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the value or the values that I store to aStream - PRD"
+	"Print the value that I store to aStream.
+	
+	 20 August 2015: Initial implementation;
+	   06 June 2021: New implementation - Paulo R. Dellani"
 
-	| valueCollection |
-	self dataBytes size >= self byteSize
-		ifTrue: [ (valueCollection := self decodeValue) notEmpty
-				ifTrue: [ valueCollection first printYMDOn: aStream.
-					2 to: valueCollection size do: [ :index | 
-						aStream nextPutAll: ' \\ '.
-						(valueCollection at: index) printYMDOn: aStream ] ] ]
+	self decodeValue
+		ifNotEmpty: [ :arg | 
+			arg first printYMDOn: aStream.
+			2 to: arg size do: [ :index | 
+				aStream nextPutAll: ' \\ '.
+				(arg at: index) printYMDOn: aStream ] ]
 ]
 
 { #category : #'field value storing' }
-DADataElement >> validateValue: aDate [
-	"Perform the validation of the value to be stored in a DICOM UL (Unsigned Long) Data Element
-	Unsigned binary integer 32 bits long. Represents an integer n in the range: 0 <= n < 2^32 . 
-	Character Repertoire: not applicable 
-	4 bytes fixed
-	PS 3.5-2000 6.2
+DADataElement >> validateValue: aDateOrString [
+	"Validate 'aDateOrString' according to the rules for DICOM Date Data Elements.
+	 A string of characters of the format yyyymmdd; where yyyy shall contain year, 
+	 mm shall contain the month, and dd shall contain the day. This conforms to the 
+	 ANSI HISPP MSDS Date common data type. Example:  19930822  would represent 
+	 August 22, 1993. 
+	 Notes: 
+	 1. For reasons of backward compatibility with versions of this standard prior to V3.0, 
+	 it is recommended that implementations also support a string of characters of the format 
+	 yyyy.mm.dd for this VR. 
+	 0 - 9  of Default Character Repertoire 
+	 Note: For reasons specified in the previous column, implementations may wish to support 
+	 the  .  character as well.
+	 8 bytes fixed 
+	 Note: For reasons specified in the previous columns, implementations may also wish to 
+	 support a 10 byte fixed length as well.	
 
-	PRD 05.2001, 07.2002, 02.2017"
+	   March 2017: Bug fixes;
+	 06 June 2021: Bug fixes; New implementation - Paulo R. Dellani"
 
-	| aStream dateString aByteArray |
-
-	aByteArray := ByteArray new.
-	aStream := WriteStream on: String new.
-	(aDate isKindOf: Date) | (aDate isKindOf: DateAndTime)
-		ifTrue:
-			[aDate asDate printOn: aStream format: #(3 2 1 0 1 1 2).
-			aByteArray := aStream contents asByteArray].
-
-	(aDate isKindOf: String)
-		ifTrue:
-			[dateString := self stringEvenner: aDate.
-			dateString := self stringPurify: dateString goodChars: DefaultCharacterRepertoire digit.
-			aByteArray := aStream contents asByteArray].
-
-	^ aByteArray
+	| dateString |
+	^ String
+		new: 10
+		streamContents:
+			[ :stream | 
+			(aDateOrString isKindOf: Date) | (aDateOrString isKindOf: DateAndTime)
+				ifTrue: [ aDateOrString asDate printOn: stream format: #(3 2 1 0 1 1 2) ].
+			aDateOrString isString
+				ifTrue: [ dateString := self stringEvenner: aDateOrString.
+					dateString := self
+						stringPurify: dateString
+						goodChars: DefaultCharacterRepertoire digit.
+					stream nextPutAll: dateString ] ] asByteArray
 ]
 
 { #category : #'field value storing' }
@@ -212,6 +222,4 @@ DADataElement >> value: anObject [
 				ifTrue: [ self multipleByteValuesFrom: anObject ]
 				ifFalse: [ self validateValue: anObject ]).
 	self length: self dataBytes size
-	"self dataElementLength: self length
-				+ (self encoder dataElementHeaderLenght: self)"
 ]

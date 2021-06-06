@@ -18,7 +18,7 @@ AEDataElement class >> valueRepresentationString [
 AEDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type AE.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthAEDataElement + self dataBytes size
 ]
@@ -41,13 +41,15 @@ AEDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 AEDataElement >> validateValue: anAEValue [
-	"Perform the validation of the value to be stored in a DICOM AE Data Element
-
-	PRD 04.2001 - 06.2002"
+	"Validate 'anAEValue' according to the rules for DICOM AE Data Elements.
+	
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	| dataString |
-	dataString := (self stringPurify: anAEValue badChars: DefaultCharacterRepertoire control) trimBoth.
-	dataString := self sizeString: dataString maxSize: 16r10.
+	dataString := (self
+		stringPurify: anAEValue
+		badChars: DefaultCharacterRepertoire control) trimBoth.
+	dataString := dataString copyFrom: 1 to: (dataString size min: 16r10).
 	^ dataString
 ]
 

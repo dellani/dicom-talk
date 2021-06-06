@@ -23,7 +23,7 @@ ATDataElement >> byteSize [
 ATDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type AT.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthATDataElement + self dataBytes size
 ]
@@ -59,25 +59,27 @@ ATDataElement >> pdvBytes: aByteStream [
 
 { #category : #'field value storing' }
 ATDataElement >> validateValue: anATValue [
-	"Perform the validation of the value to be stored in a DICOM Attribute Tag Data Element
-	Ordered pair of 16-bit unsigned integers that is the value of a Data Element Tag. 
-	Example: A Data Element Tag of (0018,00FF) would be encoded as a series of 4 bytes in a 
-	Little-Endian Transfer Syntax as 18H,00H,FFH,00H and in a Big-Endian Transfer Syntax 
-	as 00H,18H,00H,FFH. 
-	Note: The encoding of an AT value is exactly the same as the encoding of a Data Element 
-	Tag as defined in Section 7. 
-	4 bytes fixed
-	PS 3.5-2000 6.2
-	PRD 05.2001, 07.2002"
+	"Validate 'anATValue' according to the rules for DICOM Attribute Tag Data Elements.
+	 Ordered pair of 16-bit unsigned integers that is the value of a Data Element Tag. 
+	 Example: A Data Element Tag of (0018,00FF) would be encoded as a series of 4 bytes in a 
+	 Little-Endian Transfer Syntax as 18H,00H,FFH,00H and in a Big-Endian Transfer Syntax 
+	 as 00H,18H,00H,FFH. 
+	 Note: The encoding of an AT value is exactly the same as the encoding of a Data Element 
+	 Tag as defined in Section 7. 
+	 4 bytes fixed
+	 PS 3.5-2000 6.2
 
-	| attributeTagStream aByteArray |
-	aByteArray := ByteArray new.
-	(anATValue isKindOf: DataElementTag)
-		ifTrue: [ attributeTagStream := WriteStream on: ByteArray new.
-			attributeTagStream nextPutAll: (self encoder byteArrayFromValue: anATValue groupNumber size: 2).
-			attributeTagStream nextPutAll: (self encoder byteArrayFromValue: anATValue elementNumber size: 2).
-			aByteArray := attributeTagStream contents ].
-	^ aByteArray
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
+	^ ByteArray
+		new: 10
+		streamContents: [ :byteStream | 
+			anATValue
+				ifNotNil: [ :arg | 
+					byteStream
+						nextPutAll: (self encoder byteArrayFromValue: anATValue groupNumber size: 2).
+					byteStream
+						nextPutAll: (self encoder byteArrayFromValue: anATValue elementNumber size: 2) ] ]
 ]
 
 { #category : #'field value storing' }

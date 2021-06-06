@@ -26,7 +26,7 @@ CSDataElement class >> valueRepresentationString [
 CSDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type CS.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthCSDataElement + self dataBytes size
 ]
@@ -48,19 +48,21 @@ CSDataElement >> pdvBytes: aByteStream [
 ]
 
 { #category : #'field value storing' }
-CSDataElement >> validateValue: anASValue [
-	"Perform the validation of the value to be stored in a DICOM Coded String Data Element
-	A string of characters with leading or trailing spaces (20H) being non-significant. 
-	Character Repertoire: Uppercase characters,  0 -  9 , the SPACE character, 
-	and underscore  _ , of the Default Character Repertoire 
-	Value Length: 16 bytes maximum
-	PS 3.5-2000 6.2
+CSDataElement >> validateValue: anCSValue [
+	"Validate 'anCSValue' according to the rules for DICOM CS Data Elements.
+	 A string of characters with leading or trailing spaces (20H) being non-significant.
+	 Character Repertoire: Uppercase characters,  0 -  9 , the SPACE character, 
+	 and underscore _ of the Default Character Repertoire 
+	 Value Length: 16 bytes maximum
+	 PS 3.5-2000 6.2
 
-	PRD 05-09.2001, 07.2002"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	| dataString |
-	dataString := (self stringPurify: anASValue goodChars: self class dataElementCharacterRepertoire) trimBoth.
-	dataString := self sizeString: dataString maxSize: 16r10.
+	dataString := (self
+		stringPurify: anCSValue
+		goodChars: self class dataElementCharacterRepertoire) trimBoth.
+	dataString := dataString copyFrom: 1 to: (dataString size min: 16r10).
 	^ dataString
 ]
 

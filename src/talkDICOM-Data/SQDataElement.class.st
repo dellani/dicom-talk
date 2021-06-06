@@ -190,7 +190,7 @@ SQDataElement >> csvPrintOn: aStream separator: aCharacter level: level listItem
 SQDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type SQ.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthSQDataElement + self dataBytes size
 ]
@@ -458,7 +458,9 @@ SQDataElement >> printTableEntryWithValues: level [
 
 { #category : #printing }
 SQDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print something about the values that I store to aStream - PRD"
+	"Print the value that I store to aStream.
+	
+	    20 August 2015: Initial implementation - Paulo R. Dellani"
 
 	aStream nextPutAll: 'Sequence of items'
 ]
@@ -486,15 +488,7 @@ SQDataElement >> value [
 
 	^ valueCache
 		ifNil: [ valueCache := OrderedCollection new.
-					self decodeSequenceItems.
-			"self
-				decodeSequenceItems:
-					(DicomRegistry sequenceItems
-						at: self tag
-						ifAbsent: [ GenericSequenceItem ])."
-			"self sequenceItemClass notNil
-				ifTrue: [ self decodeSequenceItems: self sequenceItemClass ]
-				ifFalse: [ self decodeSequenceItems: GenericSequenceItem ]."
+			self decodeSequenceItems.
 			valueCache ]
 		ifNotNil: [ :arg | valueCache ]
 ]

@@ -18,7 +18,7 @@ LTDataElement class >> valueRepresentationString [
 LTDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type LT.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthLTDataElement + self dataBytes size
 ]
@@ -51,24 +51,26 @@ LTDataElement >> printEntireValueOn: aStream [
 
 { #category : #printing }
 LTDataElement >> printValueOn: aStream [
-	"August 20, 2015: Print the value or the values that I store to aStream;
-	 April 6, 2021: use min: instead of a chain of conditional tests - PRD"
+	"Put the first 16 characters of the value that I store in aStream.
+	
+	 20 August 2015: Initial implementation;
+     06 April 2021: use min: instead of a chain of conditional tests;
+	   06 June 2021: New implementation - Paulo R. Dellani"
 
 	| elementValue |
+	elementValue := self value.
 	aStream
-		nextPutAll:
-			((elementValue := self value) isString
-				ifTrue: [ elementValue copyFrom: 1 to: (16 min: elementValue size) ]
-				ifFalse: [ '' ])
+		nextPutAll: (elementValue copyFrom: 1 to: (16 min: elementValue size))
 ]
 
 { #category : #'field value retrieving' }
 LTDataElement >> value [
-	"VR = Long Text.
+	"Decode value Long Text stored in dataBytes and convert 
+	 it to its correspoding Smalltalk representation.
 	
-	PRD 04-06.2001"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
-	^self dataBytes asString asByteString.
+	^ self dataBytes asString asByteString
 ]
 
 { #category : #'field value storing' }

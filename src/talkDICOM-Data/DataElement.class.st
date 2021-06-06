@@ -237,57 +237,28 @@ DataElement class >> valueRepresentationString [
 ]
 
 { #category : #comparing }
-DataElement >> < aDataElement [
-	"True if aDataElement instance group and element numbers are 
-	greater than the self instance ones - PRD 04-06.2001"
-	
-	^((self groupNumber bitShift: 16) + self elementNumber) < 
-		((aDataElement groupNumber bitShift: 16) + 
-			aDataElement elementNumber).
+DataElement >> < anotherDataElement [
+	^ self tag < anotherDataElement tag
 ]
 
 { #category : #comparing }
-DataElement >> <= aDataElement [
-	"True if aDataElement instance group and element numbers are 
-	greater than or equal to the self instance ones - PRD 04-06.2001"
-	
-	^((self groupNumber bitShift: 16) + self elementNumber) <=
-		((aDataElement groupNumber bitShift: 16) + aDataElement elementNumber).
+DataElement >> <= anotherDataElement [
+	^ self tag <= anotherDataElement tag
 ]
 
 { #category : #comparing }
-DataElement >> = aDataElement [
-	"Compare the aDataElement instance group and element numbers with self 
-	instance ones, answer true if they are equal - PRD 04-06.2001"
-	
-	^(self groupNumber = aDataElement groupNumber) & 
-	  (self elementNumber = aDataElement elementNumber).
+DataElement >> = anotherDataElement [
+	^ self tag = anotherDataElement tag
 ]
 
 { #category : #comparing }
-DataElement >> > aDataElement [
-	"True if aDataElement instance group and element numbers are
-	less than the self instance ones - PRD 04-06.2001"
-	
-	^((self groupNumber bitShift: 16) + self elementNumber) >
-		((aDataElement groupNumber bitShift: 16) + 
-			aDataElement elementNumber).
+DataElement >> > anotherDataElement [
+	^ self tag > anotherDataElement tag
 ]
 
 { #category : #comparing }
-DataElement >> >= aDataElement [
-	"True if aDataElement instance group and element numbers are
-	less than or equal to the self instance ones - PRD 04-06.2001"
-	
-	^((self groupNumber bitShift: 16) + self elementNumber) >=
-		((aDataElement groupNumber bitShift: 16) + 
-			aDataElement elementNumber).
-]
-
-{ #category : #converting }
-DataElement >> asText [
-
-	^'Empty Dicom Data Element' asText
+DataElement >> >= anotherDataElement [
+	^ self tag >= anotherDataElement tag
 ]
 
 { #category : #'field value retrieving' }
@@ -306,27 +277,25 @@ DataElement >> copyString: aString [
 
 { #category : #'field value storing' }
 DataElement >> copyString: aString maxSize: maxValueLength [
-"
-	Copy the string to an byte array instance variable
-	PRD 05-12.2001
-"
-	(aString size > maxValueLength) 
-		ifTrue: [ length := maxValueLength. ]
-		ifFalse: [ length := aString size. ].
-	dataBytes := (aString asByteArray) copyFrom: 1 to: length.
-	^dataBytes.
+	"Copy the string to an byte array instance variable
+	 PRD 05-12.2001"
+
+	aString size > maxValueLength
+		ifTrue: [ length := maxValueLength ]
+		ifFalse: [ length := aString size ].
+	dataBytes := aString asByteArray copyFrom: 1 to: length.
+	^ dataBytes
 ]
 
 { #category : #printing }
 DataElement >> csvPrintOn: aStream separator: aCharacter level: level [
-	"Print a description of myself in a single CSV text line 
-	 separated by aCharacter:
+	"Print a description of myself in a single CSV text line separated by aCharacter:
 	
 	 Group number <tab> Element number <tab> name <tab> vr <tab> vm <tab> type <cr>
 	
-	 Assumes that every all values are correctly defined.
+	 Assume that all instance variables are correctly defined.
 	
-	 April 11 2021 - PRD."
+	 11 April 2021 - Paulo R. Dellani."
 
 	level timesRepeat: [ aStream nextPutAll: '> ' ].
 	self tag csvPrintOn: aStream separator: aCharacter.
@@ -344,42 +313,37 @@ DataElement >> csvPrintOn: aStream separator: aCharacter level: level [
 
 { #category : #accessing }
 DataElement >> dataBytes [
-	"Byte array storing the data bytes of the message field - PRD 04.2001"
+	"The the data bytes of the message field.
+	
+	 06 June 20201: New implementation - Paulo R. Dellani."
 
-	^ dataBytes isNil
-		ifTrue: [ dataBytes := ByteArray new ]
-		ifFalse: [ dataBytes ]
+	^ dataBytes
+		ifNil: [ dataBytes := ByteArray new ]
+		ifNotNil: [ :arg | arg ]
 ]
 
 { #category : #accessing }
-DataElement >> dataBytes: aByteArray [
-	"Byte array storing the data bytes of the message field - PRD 04.2001"
+DataElement >> dataBytes: byteArray [
+	"The the data bytes of the message field.
+	
+	 06 June 20201: New implementation - Paulo R. Dellani."
 
-	dataBytes := aByteArray
-]
-
-{ #category : #'field value retrieving' }
-DataElement >> dataBytesByteSpliter: byteValueSize [
-	^ self subclassResponsibility
+	dataBytes := byteArray
 ]
 
 { #category : #'field value retrieving' }
 DataElement >> dataBytesStringSpliter [
-	"Split the DICOM strings (for VM > 1) coded in dataBytes instance variable.
-	Answer an OrderedCollection with the splited strings - PRD 06.2002"
+	"Split dataBytes using the DICOM string separator $\ (16r5C asCharacter),
+	 storing the DICOM strings (for VM > 1) in an OrderedCollection.
+	
+	 06 June 2021: New Implementation - Paulo R. Dellani"
 
-	| aWriteStream anOrderedCollection aValue |
+	| anOrderedCollection |
 	anOrderedCollection := OrderedCollection new.
-	aWriteStream := WriteStream on: String new.
 	self dataBytes
-		do: [ :byteValue | 
-			byteValue = 16r5C
-				ifTrue: [ aValue := self validateValue: aWriteStream contents.
-					anOrderedCollection add: aValue trimBoth.
-					aWriteStream := WriteStream on: String new ]
-				ifFalse: [ aWriteStream nextPut: byteValue asCharacter ] ].
-	aValue := self validateValue: aWriteStream contents.
-	anOrderedCollection add: aValue trimBoth.
+		splitOn: 16r5C
+		do: [ :each | 
+			anOrderedCollection add: (self validateValue: each asString) trimBoth ].
 	^ anOrderedCollection
 ]
 
@@ -394,10 +358,9 @@ DataElement >> dataElementDefinion: aDataElementDefinition [
 
 { #category : #accessing }
 DataElement >> dataElementLength [
-	"Lenght of the message field in bytes for a data element of 
-	 type (see subclass implementations)
+	"Lenght of the message field in bytes (see subclass implementations)
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self subclassResponsibility
 ]
@@ -428,21 +391,30 @@ DataElement >> definition: aDataElementDefinition [
 
 { #category : #accessing }
 DataElement >> description [
-	"Data element description"
+	"Data element description.
+	
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self definition description
 ]
 
 { #category : #accessing }
 DataElement >> elementNumber [
-	"Data Element's Element Number"
+	"Data Element's Element Number.
+	
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self definition tag elementNumber
 ]
 
 { #category : #accessing }
 DataElement >> elementNumber: an16bitInteger [
-	"Data Element's Element Number"
+	"Data Element's Element Number.
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	self definition tag elementNumber: an16bitInteger
 ]
@@ -495,14 +467,18 @@ DataElement >> groupLengthTag [
 
 { #category : #accessing }
 DataElement >> groupNumber [
-	"Data Element's Group Number"
+	"Data Element's Group Number.
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self definition tag groupNumber
 ]
 
 { #category : #accessing }
 DataElement >> groupNumber: an16bitInteger [
-	"Data Element's Group Number"
+	"Data Element's Group Number.
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	self definition tag groupNumber: an16bitInteger
 ]
@@ -514,26 +490,41 @@ DataElement >> isSequence [
 
 { #category : #testing }
 DataElement >> isType1 [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	^ self definition type = '1'
 ]
 
 { #category : #testing }
 DataElement >> isType1C [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	^ self definition type = '1C'
 ]
 
 { #category : #testing }
 DataElement >> isType2 [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	^ self definition type = '2'
 ]
 
 { #category : #testing }
 DataElement >> isType2C [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	^ self definition type = '2C'
 ]
 
 { #category : #testing }
 DataElement >> isType3 [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	^ self definition type = '3'
 ]
 
@@ -544,89 +535,82 @@ DataElement >> isUnknown [
 
 { #category : #accessing }
 DataElement >> length [
-	"Data Length of the message field in bytes
+	"Message field's data length of in bytes
 
-	PRD 04.2001"
+	 06 June 2021: Paulo R. Dellani"
 
 	^ length
 ]
 
 { #category : #accessing }
 DataElement >> length: aNumber [
-	"Data Length of the message field in bytes
+	"Message field's data length of in bytes
 
-	PRD 04.2001"
+	 06 June 2021: Paulo R. Dellani"
 
 	length := aNumber
 ]
 
 { #category : #'field value storing' }
-DataElement >> multipleByteValuesFrom: anOrderedCollectionorArray [
-"
-	Convert an OrderedCollection of Multi-byte DICOM Values into a 
-	DICOM Multi-Byte Data Element where the VM > 1
+DataElement >> multipleByteValuesFrom: arrayOrOrderedCollection [
+	"Convert an OrderedCollection of Multi-byte DICOM Values into a 
+	 DICOM Multi-Byte Data Element (VM > 1).
 
-	PRD 06-07.2002
-"
-	| aWriteStream |
+	 06 June 2021: New Implementation - Paulo R. Dellani"
 
-	aWriteStream := WriteStream on: ByteArray new.
-	anOrderedCollectionorArray do: [:each | 
-		aWriteStream nextPutAll: (self validateValue: each).
-	].
-
-	^aWriteStream contents
+	^ ByteArray
+		new: 10
+		streamContents: [ :aStream | 
+			arrayOrOrderedCollection
+				do: [ :each | aStream nextPutAll: (self validateValue: each) ] ]
 ]
 
 { #category : #'field value storing' }
-DataElement >> multipleStringValuesFrom: anOrderedCollection [
-"
-	Convert an OrderedCollection of String Values into a DICOM String Data Element 
-	with VM >= 1 where the elements are separeted from each other with the character 5Ch
-	('\' of the ISO IR-6 character repertoire)
+DataElement >> multipleStringValuesFrom: orderedCollection [
+	"Encode a collection of strings into a DICOM string data element with
+	 value multiplicity >= 1. Every string is separated from each other
+	 with the character 16r5C ($\) of the ISO IR-6 character repertoire.
+	
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
-	PRD 06.2002
-"
-	| dataString |
-
-	dataString := String new.
-	anOrderedCollection do: [:each | 
-		(each isKindOf: String) ifTrue: [
-			dataString isEmpty 
-				ifTrue: [dataString := self validateValue: each]
-				ifFalse: [dataString := (dataString, ('' copyWith: 16r5C asCharacter)), 
-							(self validateValue: each)].
-		].
-	].
-	^dataString
+	| selection |
+	"Ignore entries that are not strings"
+	selection := orderedCollection select: [ :each | each isString ].
+	^ String
+		new: 10
+		streamContents: [ :aStream | 
+			aStream nextPutAll: (self validateValue: selection first).
+			2 to: selection size do: [ :index | 
+				aStream
+					nextPut: 16r5C asCharacter;
+					nextPutAll: (self validateValue: (selection at: index)) ] ]
 ]
 
 { #category : #accessing }
 DataElement >> name [
-	"Name of the data element"
+	"Name of the data element
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self definition name
 ]
 
 { #category : #accessing }
 DataElement >> name: aByteString [
-	"Name of the data element"
+	"Name of the data element
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	self definition name: aByteString
 ]
 
-{ #category : #initialize }
-DataElement >> name: aDicomTagNameSymbol tag: aTagGroupElementValueArray vm: aValueMultiplicityNumber description: aDescriptionString type: dataElementType [
-	self name: aDicomTagNameSymbol.
-	self tag: (DataElementTag fromArray: aTagGroupElementValueArray).
-	self vm: aValueMultiplicityNumber.
-	self description: aDescriptionString.
-	self type: dataElementType
-]
-
 { #category : #accessing }
 DataElement >> nameAndTag [
-	"Dicom Message Field Name Symbol + Tag as String - August 29, 2017"
+	"Dicom Message Field Name Symbol + Tag as String.
+	
+	29 August 2017: First implementatin - Paulo R. Dellani"
 
 	^ String
 		new: 10
@@ -656,14 +640,19 @@ DataElement >> parseDataBytesFrom: pdvStream transferSyntax: transferSyntaxEncod
 
 { #category : #'field bytes' }
 DataElement >> pdvBytes [
-	"Answer a ByteArray with the byte-coding of this DICOM Data Element
+	"DICOM Presentation Data Value byte encoding of myself
+	 in a ByteArray instance.
+	
+	 06 June 2021: New Implementation - Paulo R. Dellani"
 
-	PRD 05-11.2001"
+	^ ByteArray
+		new: 10
+		streamContents: [ :pdvStream | self pdvBytes: pdvStream ]
 
-	| byteStream |
+	"| byteStream |
 	byteStream := WriteStream on: ByteArray new.
 	encoder perform: ('pdvBytesFrom' , self vr , 'DataElement:on:') asSymbol with: self with: byteStream.
-	^ byteStream contents
+	^ byteStream contents"
 ]
 
 { #category : #'field bytes' }
@@ -677,20 +666,23 @@ DataElement >> pdvBytes: aByteStream [
 
 { #category : #printing }
 DataElement >> printEntireValueOn: aStream [
-	"August 31 2017: Some subclasses do not print the entire value 
-	represented by the data element when receiving the message 
-	printValueOn: aStream, so instead send this message to my
-	subclasses - PRD"
+	"Some subclasses do not print the entire value represented 
+	by the data element when receiving the message printValueOn:.
+	To print the complete value on aStream, send this message to
+	one my subclasses
+	
+	31 August 2017: Initial implementation - Paulo R. Dellani"
 
 	^ self printValueOn: aStream
 ]
 
 { #category : #printing }
 DataElement >> printOn: aStream [
-	"August 2002: Print general description of myself in 'aStream';
-    January 10, 2003: Print the value that I store too;
-	 August 2, 2015: Refactoring;
-	 April 6, 2021: Refactoring"
+	"Print general description of myself in 'aStream'.
+	 
+    10 January 2003: Print the value that I store too;
+	  02 August 2015: Refactoring;
+	   06 April 2021: Code improvements."
 
 	aStream
 		nextPutAll:
@@ -715,9 +707,11 @@ DataElement >> printTableEntry [
 { #category : #printing }
 DataElement >> printTableEntry: level [
 	"Return a string of characters describing myself in unique row.
-	 PRD - July 15th, 2004 - August 21th, 2015
-	 April 6, 2021: replace printOn:paddedWith:to: messages with padLeftTo:,
-	                removed references to printOn:base:digitsToPad:highDigit: - PRD"
+	   15 July 2004: Initial implementation; 
+	 21 August 2015: Code changes;
+	  06 April 2021: replace printOn:paddedWith:to: messages with padLeftTo:,
+	                 removed references to printOn:base:digitsToPad:highDigit:
+	                 - Paulo R. Dellani"
 
 	^ String
 		new: 10
@@ -745,9 +739,10 @@ DataElement >> printTableEntryWithValues [
 
 { #category : #printing }
 DataElement >> printTableEntryWithValues: level [
-	"July 15 2004: Return a string of characters describing myself in unique row.
-	 August 20 2015: Version that prints the value stored on the data element.
-	 April 06, 2021: Refactoring - PRD"
+	"Return a string of characters describing myself in unique row.
+	   15 July 2004: Initial implementation; 
+	 20 August 2015: Version that prints the value stored on the data element;
+	  06 April 2021: Refactoring - Paulo R. Dellani"
 
 	^ String
 		new: 10
@@ -760,28 +755,23 @@ DataElement >> printTableEntryWithValues: level [
 
 { #category : #printing }
 DataElement >> printValueOn: aStream [
-	"August 20 2015: Print the value that I store to aStream - PRD"
+	"Print the value that I store to aStream.
+	
+	 20 August 2015: Initial implementation - Paulo R. Dellani"
+
 	^ self subclassResponsibility
 ]
 
 { #category : #accessing }
 DataElement >> put: aTagGroupElementValueArray [
-	"Receive an array with the Group and Element number of the 
-	DICOM Data Elemente Tag. PRD 05.2001 - 09.2017"
+	"Define data element's group and element number using the
+	 contents fo aTagGroupElementValueArray, an Array with two 
+	 16-bit integers.
+	
+	 September 2017: New implementation - Paulo R. Dellani"
 
 	self groupNumber: (aTagGroupElementValueArray at: 1).
 	self elementNumber: (aTagGroupElementValueArray at: 2)
-]
-
-{ #category : #'field value storing' }
-DataElement >> sizeString: aString maxSize: maxSize [
-	"Answer back a copy of aString with the correct size, if needed.
-
-	PRD 06.2002"
-
-	^ aString size > maxSize
-		ifTrue: [ aString copyFrom: 1 to: maxSize ]
-		ifFalse: [ aString ]
 ]
 
 { #category : #'field value storing' }
@@ -853,7 +843,10 @@ DataElement >> tag: dataElementTag [
 { #category : #accessing }
 DataElement >> type [
 	"Data element type, as defined by the Dicom Standard (PS 3.5-2000 7.4), 
-	 shall contain a value of 1, 1C, 2, 2C or 3."
+	 shall contain a value of 1, 1C, 2, 2C or 3.
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self definition type
 ]
@@ -861,7 +854,10 @@ DataElement >> type [
 { #category : #accessing }
 DataElement >> type: aByteString [
 	"Data element type, as defined by the Dicom Standard (PS 3.5-2000 7.4), 
-	 shall contain a value of 1, 1C, 2, 2C or 3."
+	 shall contain a value of 1, 1C, 2, 2C or 3.
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	self definition type: aByteString
 ]
@@ -926,62 +922,79 @@ DataElement >> unencapsulateValue [
 
 { #category : #'field value storing' }
 DataElement >> validateValue: aValue [
-	"Perform the validation of the value to be stored in a DICOM Data Element
+	"Validate 'aValue' according to the rules for my DICOM Data Element subclasses.
+    See subclasses implementations for details.
 
-	PRD 04.2001 - 06.2002"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	^ self subclassResponsibility
 ]
 
 { #category : #'field value retrieving' }
 DataElement >> value [
-	"Decode the value stored by the DICOM data element 
-	to the respective 'Smalltalk representation' and then return it.
-	
-	PRD 04-05.2001, 07.2002"
+	"Decode the value stored by the DICOM data element to the
+	 respective 'Smalltalk representation' and then return it.
+
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
 	^ self subclassResponsibility
 ]
 
 { #category : #'field value storing' }
 DataElement >> value: aValue [
-	"Calculate the bytes corresponding to aValue for a message field value representation from the 'Smalltalk representation'
+	"Encode the 'Smalltalk representation' (aValue) of the 
+	 value which I will store according to the DICOM rules
+	 for data element value representation of my subclasses.
+	 See subclasses implementations for details.
 
-	PRD 05.2001"
+	 06 June 2021: New implementation - Paulo R. Dellani"
 
-	self subclassResponsibility
+	^ self subclassResponsibility
 ]
 
 { #category : #accessing }
 DataElement >> vm [
-	"Value Multiplicity Sort"
+	"Value Multiplicity Sort
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	^ self definition vm
 ]
 
 { #category : #accessing }
 DataElement >> vm: aByteString [
-	"Value Multiplicity Sort"
+	"Value Multiplicity Sort	
+
+	 13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
 
 	self definition vm: aByteString
 ]
 
 { #category : #accessing }
 DataElement >> vmArray [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	^ self definition vmArray
 ]
 
 { #category : #accessing }
 DataElement >> vmArray: anArray [
+	"13 May 2021: Split data element definition from data element
+	              instance itself - Paulo Roberto Dellani"
+
 	self definition vmArray: anArray
 ]
 
 { #category : #accessing }
 DataElement >> vr [
 	"String with the two characters encoding of the 
-	dicom data element value representttion.
+	 dicom data element value representttion.
 	
-	PRD 04-10.2001, 29.02.2016"
+	 29 February 2016: Take VR from the class side method
+	                   valueRepresentationString - Paulo R. Dellani"
 
-	^self class valueRepresentationString
+	^ self class valueRepresentationString
 ]

@@ -22,7 +22,7 @@ UIDataElement class >> valueRepresentationString [
 UIDataElement >> dataElementLength [
 	"Lenght of the message field in bytes for data element of type UI.
 
-	 May 13 2021 - PRD"
+	 13 May 2021: New implementation - PRD"
 
 	^ self encoder headerLengthUIDataElement + self dataBytes size
 ]
@@ -64,26 +64,25 @@ UIDataElement >> stringEvenner: aString [
 
 { #category : #'field value storing' }
 UIDataElement >> validateValue: anUIValue [
-"
-	UI Unique Identifier (UID)  data element value validation routine
-	A character string containing a UID that is used to uniquely identify 
-	a wide variety of items. The UID is a series of numeric components separated by the period '.' 
-	character. If a Value Field containing one or more UIDs is an odd number of bytes in length, 
-	the Value Field shall be padded with a single trailing NULL (00H) character to ensure that 
-	the Value Field is an even number of bytes in length. See Section 9 and Annex B for a complete 
-	specification and examples. 
-	'0 - 9 ,  .' of Default Character Repertoire 
-	Byte Length: 64 bytes maximum	
-	PS 3.5-2000 6.2
-	PRD 05-09.2001, 01-06.2002
-"
-	| dataString |
+	"Validate 'anUIValue' according to the rules for DICOM Unique Identifier Data Elements.
+	 A character string containing a UID that is used to uniquely identify 
+	 a wide variety of items. The UID is a series of numeric components separated by the period '.' 
+	 character. If a Value Field containing one or more UIDs is an odd number of bytes in length, 
+	 the Value Field shall be padded with a single trailing NULL (00H) character to ensure that 
+	 the Value Field is an even number of bytes in length. See Section 9 and Annex B for a complete 
+	 specification and examples. 
+	 '0 - 9 ,  .' of Default Character Repertoire 
+	 Byte Length: 64 bytes maximum	
+	 PS 3.5-2000 6.2
 
-	dataString := self 
-		stringPurify: anUIValue 
+	 06 June 2021: New implementation - Paulo R. Dellani"
+
+	| dataString |
+	dataString := self
+		stringPurify: anUIValue
 		goodChars: self class dataElementCharacterRepertoire.
-	dataString := self sizeString: dataString maxSize: 16r40.
-	^dataString
+	dataString := dataString copyFrom: 1 to: (dataString size min: 16r40).
+	^ dataString
 ]
 
 { #category : #'field value storing' }
