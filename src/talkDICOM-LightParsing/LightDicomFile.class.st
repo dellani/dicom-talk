@@ -30,7 +30,14 @@ LightDicomFile class >> initialize [
 	"Initialize the dictionary of DICOM File Meta Elements
 	PS 3.3-2000 Annex C.7.6.2
 
-	PRD 11.2001 - 02.2021"
+	16 May 2021: New implementation - Paulo R. Dellani"
 
-	super initialize.
+	self initializeDataElementsDefinition
+]
+
+{ #category : #'private - reading / writing' }
+LightDicomFile >> parseIODFrom: dicomPDVStream transferSyntax: transferSyntaxEncoder [
+	^ self dicomIOD
+		lightPDVBytesStream: dicomPDVStream
+		encoder: transferSyntaxEncoder
 ]

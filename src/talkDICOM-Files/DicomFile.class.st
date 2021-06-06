@@ -147,7 +147,7 @@ DicomFile class >> dicomIOD: aDicomIOD [
 DicomFile class >> example01 [
 	| dicomFile1 dicomFile2 |
 	dicomFile1 := self
-		readFrom: '/home/dellani/tmp/_read_test/0CE1AF6B/1A0E091E/256FE631'.
+		readFrom: '/usr/data/Projetos/talkDICOM/TEST-DATA/_read_test/0CE1AF6B/1A0E091E/256FE631'.
 
 	dicomFile2 := self dicomIOD: dicomFile1 dicomIOD.
 	dicomFile2 writeTo: '/tmp/256FE631.talkDicom'
@@ -270,56 +270,54 @@ DicomFile >> contents [
 
 { #category : #'private - reading / writing' }
 DicomFile >> createDicomFileInstance: readStream [
-
 	| transferSyntaxEncoder aDicomSOPCommonIOM position iodDef |
+	DicomRegistry TransferSyntaxes
+		at: self transferSyntaxUID
+		ifPresent: [ :value | transferSyntaxEncoder := value ]
+		ifAbsent: [ Error
+				signal:
+					'Impossible to Open DICOM File: the file is encoded with an unsupported transfer syntax' ].
 
-	(transferSyntaxEncoder := 
-		DicomRegistry TransferSyntaxes at: self transferSyntaxUID ifAbsent: [nil]) ifNil: [
-			Error signal:
-				'Impossible to Open DICOM File: the file is encoded with an unsupported transfer syntax'.
-	].
-	"mediaStorageSOPClassUID data element not present, like with files written by GE CENTRICITY_3.0?"
-	self mediaStorageSOPClassUID ifNil: [
-		"If yes look for the the SOP Class UID data element in the dicom dataset"
-		position := readStream position.
-		aDicomSOPCommonIOM := SOPCommonIOM new pdvBytesStream: readStream encoder: transferSyntaxEncoder.
-		self mediaStorageSOPClassUID: aDicomSOPCommonIOM sopClassUID.
-		self mediaStorageSOPInstanceUID: aDicomSOPCommonIOM sopInstanceUID.
-		readStream position: position.
-		Error signal: 
-			'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present'
-	] ifNotNil: [
-		self mediaStorageSOPClassUID isEmpty ifTrue: [ 
-			Error signal:
-				'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present'
-		] ifFalse: [ 
-			self dicomIOD: DicomIOD new.
-			iodDef := DicomRegistry dicomIODDataElementDefinitions 
-				at: self mediaStorageSOPClassUID 
-				ifAbsent: nil.
-			iodDef ifNotNil: [ 
-				self dicomIOD
-					name: iodDef name;
-					sopClassUID: iodDef sopClassUID;
-					dataElementsDefinition: (Dictionary withAll: iodDef dataElementsDefinition);
-					dataElementsDefinitionByName: (Dictionary withAll: iodDef dataElementsDefinitionByName) ].
-			self halt.
-			self dicomIOD
+	"In the case that mediaStorageSOPClassUID data element is not present, like
+	 with files written by GE CENTRICITY_3.0, look for the the SOP Class UID data
+	 element in the dicom dataset."
+	self mediaStorageSOPClassUID
+		ifNil: [ position := readStream position.
+			aDicomSOPCommonIOM := SOPCommonIOM new
 				pdvBytesStream: readStream
 				encoder: transferSyntaxEncoder.
-		]
-	]
+			self mediaStorageSOPClassUID: aDicomSOPCommonIOM sopClassUID.
+			self mediaStorageSOPInstanceUID: aDicomSOPCommonIOM sopInstanceUID.
+			readStream position: position.
+			Error
+				signal:
+					'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present' ]
+		ifNotNil: [ self mediaStorageSOPClassUID isEmpty
+				ifTrue: [ Error
+						signal:
+							'Impossible to Open DICOM File: Media Storage SOP Class UID Data Element Not Present' ]
+				ifFalse: [ self dicomIOD: DicomIOD new.
+					iodDef := DicomRegistry dicomIODDataElementDefinitions
+						at: self mediaStorageSOPClassUID
+						ifAbsent: nil.
+					iodDef
+						ifNotNil: [ self dicomIOD
+								name: iodDef name;
+								sopClassUID: iodDef sopClassUID;
+								dataElementsDefinition: (Dictionary withAll: iodDef dataElementsDefinition);
+								dataElementsDefinitionByName: (Dictionary withAll: iodDef dataElementsDefinitionByName) ].
+					self
+						parseIODFrom: readStream
+						transferSyntax: transferSyntaxEncoder ] ]
 ]
 
 { #category : #accessing }
 DicomFile >> dicomIOD [
-
-	^dicomIOD
+	^ dicomIOD
 ]
 
 { #category : #accessing }
 DicomFile >> dicomIOD: aDicomIOD [
-
 	dicomIOD := aDicomIOD
 ]
 
@@ -389,6 +387,13 @@ DicomFile >> isPart10Format: aByteArray [
 	PRD 01.2001 - 02.2021"
 
 	^ self dicomPrefix = (aByteArray copyFrom: 129 to: 132) asString
+]
+
+{ #category : #'private - reading / writing' }
+DicomFile >> parseIODFrom: readStream transferSyntax: transferSyntaxEncoder [
+	^ self dicomIOD
+		pdvBytesStream: readStream
+		encoder: transferSyntaxEncoder
 ]
 
 { #category : #'private - reading / writing' }

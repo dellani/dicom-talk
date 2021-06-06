@@ -2,21 +2,21 @@ Extension { #name : #ExplicitVRTS }
 
 { #category : #'*talkDICOM-LightParsing' }
 ExplicitVRTS class >> lightDataElementFrom: pdvStream dataElementsDefinition: dataElementsDefinition [
-	"See comments on the super class method implementation
+	"See comments on the super class method implementation. Parse only
+	 'light' data elements. If the next data element stores pixel data
+    or other large amounts of data, skip it.
 
-	PRD February 28, 2021"
+ 	 28 February 2021: Initial implementation - Paulo R. Dellani"
 
 	| elementTag |
 	elementTag := self readDicomDataElementTag: pdvStream.
-	elementTag isPixelData ifTrue: [
-		self skipNextDataElement: pdvStream.
-		^ nil
-	].
-
-	^ self 
-		parseDataElement: elementTag
-		from: pdvStream
-		dataElementsDefinition: dataElementsDefinition
+	^ elementTag isPixelData
+		ifTrue: [ self skipNextDataElement: pdvStream.
+			nil ]
+		ifFalse: [ self
+				parseDataElement: elementTag
+				from: pdvStream
+				dataElementsDefinition: dataElementsDefinition ]
 ]
 
 { #category : #'*talkDICOM-LightParsing' }
